@@ -48,7 +48,6 @@ export default function LoginPage() {
       <div className="max-w-md w-full mx-4 bg-white rounded-2xl shadow-xl p-8 space-y-8">
         <div className="text-center">
           <h2 className="text-3xl font-bold text-gray-900">欢迎回来</h2>
-          <p className="mt-2 text-gray-600">登录以进入AI工作流编辑器</p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>

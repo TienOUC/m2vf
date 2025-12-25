@@ -48,54 +48,6 @@ export default function NotFound() {
           >
             返回首页
           </Link>
-          <div className="text-sm">
-            <button
-              onClick={() => window.history.back()}
-              className="text-blue-600 hover:text-blue-700 font-medium underline"
-            >
-              返回上一页
-            </button>
-          </div>
-        </div>
-
-        {/* 有用的链接 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <Link
-            href="/login"
-            className="p-4 bg-white/50 backdrop-blur-sm rounded-lg hover:bg-white/70 transition"
-          >
-            <div className="font-medium text-gray-900">登录</div>
-            <div className="text-gray-600">访问您的账户</div>
-          </Link>
-
-          <Link
-            href="/register"
-            className="p-4 bg-white/50 backdrop-blur-sm rounded-lg hover:bg-white/70 transition"
-          >
-            <div className="font-medium text-gray-900">注册</div>
-            <div className="text-gray-600">创建新账户</div>
-          </Link>
-
-          <Link
-            href="/edit"
-            className="p-4 bg-white/50 backdrop-blur-sm rounded-lg hover:bg-white/70 transition"
-          >
-            <div className="font-medium text-gray-900">编辑器</div>
-            <div className="text-gray-600">开始创建工作流</div>
-          </Link>
-        </div>
-
-        {/* 技术支持信息 */}
-        <div className="mt-8 pt-8 border-t border-gray-200">
-          <p className="text-gray-500 text-sm">
-            如果您认为这是一个错误，请联系{' '}
-            <a
-              href="mailto:support@m2vflow.com"
-              className="text-blue-600 hover:text-blue-700"
-            >
-              技术支持
-            </a>
-          </p>
         </div>
       </div>
     </div>

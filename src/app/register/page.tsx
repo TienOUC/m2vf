@@ -58,7 +58,6 @@ export default function RegisterPage() {
       <div className="max-w-md w-full mx-4 bg-white rounded-2xl shadow-xl p-8">
         <div className="text-center mb-10">
           <h2 className="text-3xl font-bold text-gray-900">创建新账户</h2>
-          <p className="mt-2 text-gray-600">开始使用强大的AI工作流编辑器</p>
         </div>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
