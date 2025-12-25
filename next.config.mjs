@@ -7,18 +7,22 @@ const nextConfig = {
     },
   },
 
-  // 代理到后端，打包的时候注释掉，平时开发的时候打开
+  // 代理到后端，只在开发环境启用
   async rewrites() {
-    return [
-      {
-        source: '/api2/:path*/',  // 明确匹配尾部斜杠
-        destination: 'http://115.190.176.116:8080/:path*/',
-      },
-      {
-        source: '/api2/:path*',  // 也匹配不带尾部斜杠的情况
-        destination: 'http://115.190.176.116:8080/:path*',
-      },
-    ];
+    // 只在开发环境启用代理
+    if (process.env.NODE_ENV !== 'production') {
+      return [
+        {
+          source: '/api2/:path*/',  // 明确匹配尾部斜杠
+          destination: 'http://115.190.176.116:8080/:path*/',
+        },
+        {
+          source: '/api2/:path*',  // 也匹配不带尾部斜杠的情况
+          destination: 'http://115.190.176.116:8080/:path*',
+        },
+      ];
+    }
+    return [];
   },
 
   // 禁用自动添加尾部斜杠

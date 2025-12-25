@@ -3,15 +3,13 @@
 import type { TokenResponse, LoginCredentials } from '../types/auth';
 import { saveTokens, clearTokens } from '../utils/token';
 import { apiRequest } from './client';
+import { buildApiUrl, API_ENDPOINTS, ROUTES } from '../config/api.config';
 
 // 专门用于登录的 API 请求（不需要 token）
 export const loginUser = async (
   credentials: LoginCredentials
 ): Promise<TokenResponse> => {
-  // 构建登录 URL，确保带尾部斜杠
-  const baseUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
-  const loginUrl = `${baseUrl}/api/users/login/`; // 必须带尾部斜杠
+  const loginUrl = buildApiUrl(API_ENDPOINTS.AUTH.LOGIN);
 
   console.log(
     '[loginUser] 环境变量 NEXT_PUBLIC_API_BASE_URL:',
@@ -45,17 +43,14 @@ export const loginUser = async (
 
 // 获取用户信息
 export const getUserProfile = async (): Promise<Response> => {
-  const profileUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/profile/`
-    : 'http://127.0.0.1:8000/api/users/profile/';
-
+  const profileUrl = buildApiUrl(API_ENDPOINTS.AUTH.PROFILE);
   return apiRequest(profileUrl, { method: 'GET' });
 };
 
 // 登出用户
 export const logoutUser = (): void => {
   clearTokens();
-  window.location.href = '/login';
+  window.location.href = ROUTES.LOGIN;
 };
 
 // 用户注册
@@ -66,9 +61,7 @@ export const registerUser = async (userData: {
   confirmPassword: string;
   name?: string;
 }): Promise<{ success: boolean; message?: string }> => {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
-  const registerUrl = `${baseUrl}/api/users/register/`;
+  const registerUrl = buildApiUrl(API_ENDPOINTS.AUTH.REGISTER);
 
   try {
     const response = await fetch(registerUrl, {

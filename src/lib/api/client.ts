@@ -6,6 +6,7 @@ import {
   refreshAccessToken,
   clearTokens
 } from '../utils/token';
+import { DEFAULT_CONFIG, ROUTES } from '../config/api.config';
 
 // API 工具函数，用于处理需要认证的请求
 export const apiRequest = async (
@@ -30,8 +31,8 @@ export const apiRequest = async (
     (headers as Record<string, string>).Authorization = `Bearer ${accessToken}`;
   }
 
-  // 设置超时时间（默认 15 分钟 = 900000 毫秒）
-  const timeout = options.timeout || 900000;
+  // 设置超时时间（默认使用配置文件中的值）
+  const timeout = options.timeout || DEFAULT_CONFIG.REQUEST_TIMEOUT;
   const abortController = new AbortController();
   const timeoutId = setTimeout(() => {
     abortController.abort();
@@ -86,7 +87,7 @@ export const apiRequest = async (
       }
     } else {
       // 刷新失败，重定向到登录页
-      window.location.href = '/login';
+      window.location.href = ROUTES.LOGIN;
       return response;
     }
   }
@@ -94,7 +95,7 @@ export const apiRequest = async (
   // 如果仍然是401，清除本地存储并重定向到登录页
   if (response.status === 401) {
     clearTokens();
-    window.location.href = '/login';
+    window.location.href = ROUTES.LOGIN;
   }
 
   return response;
