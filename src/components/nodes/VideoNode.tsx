@@ -48,7 +48,7 @@ function VideoNode({ data, id }: NodeProps) {
   }, [nodeData, id]);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg min-w-[280px] relative transition-colors duration-150 hover:shadow-sm">
+    <div className="bg-white rounded-lg min-w-[280px] relative transition-colors duration-150 shadow-sm hover:shadow-md">
       {/* 输入连接点 */}
       <Handle type="target" position={Position.Top} className="w-3 h-3 !bg-gray-400" />
       
