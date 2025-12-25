@@ -1,0 +1,63 @@
+'use client';
+
+import { useState } from 'react';
+import { logoutUser } from '@/lib/api/auth';
+
+interface UserAvatarProps {
+  user: {
+    name: string;
+    email: string;
+  };
+}
+
+export default function UserAvatar({ user }: UserAvatarProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const handleLogout = () => {
+    logoutUser();
+  };
+
+  return (
+    <div className="relative">
+      {/* 圆形头像按钮 */}
+      <button
+        onClick={() => setIsMenuOpen(!isMenuOpen)}
+        className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full text-white font-medium hover:from-blue-600 hover:to-blue-700 transition"
+      >
+        {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+      </button>
+
+      {/* 下拉菜单 */}
+      {isMenuOpen && (
+        <>
+          {/* 点击外部关闭菜单 */}
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setIsMenuOpen(false)}
+          ></div>
+
+          {/* 菜单内容 */}
+          <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-20">
+            {/* 用户信息 */}
+            <div className="px-4 py-3 border-b border-gray-100">
+              <p className="text-sm font-medium text-gray-900">
+                {user.name || '用户'}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">{user.email}</p>
+            </div>
+
+            {/* 菜单项 */}
+            <div className="py-1">
+              <button
+                onClick={handleLogout}
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
+              >
+                退出登录
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}

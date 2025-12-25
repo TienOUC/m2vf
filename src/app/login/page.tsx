@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { loginUser } from '@/lib/api/auth';
 import { getAccessToken, clearTokens } from '@/lib/utils/token';
+import { ROUTES } from '@/lib/config/api.config';
 import {
   EnvelopeIcon,
   LockClosedIcon,
@@ -23,6 +24,7 @@ interface FormTouched {
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [formErrors, setFormErrors] = useState<FormErrors>({});
@@ -31,18 +33,21 @@ export default function LoginPage() {
     password: false
   });
 
+  // 获取跳转目标，默认为 edit 页面
+  const redirectTo = searchParams.get('redirect') || ROUTES.EDIT;
+
   // 组件加载时检查是否已登录
   useEffect(() => {
     const checkLoginStatus = async () => {
       const token = getAccessToken();
       if (token) {
-        // 如果有token，跳转到编辑器页面
-        router.push('/editor');
+        // 如果有token，跳转到目标页面
+        router.replace(redirectTo);
       }
     };
 
     checkLoginStatus();
-  }, [router]);
+  }, [router, redirectTo]);
 
   // 验证邮箱格式
   const validateEmail = (value: string): string | undefined => {
@@ -167,12 +172,11 @@ export default function LoginPage() {
       console.log('登录响应:', response);
 
       if (response.access_token) {
-        // 登录成功，显示成功消息后跳转
+        // 登录成功，跳转到目标页面
         setError('');
-        setTimeout(() => {
-          router.push('/editor');
-          router.refresh();
-        }, 500);
+        
+        // 使用 replace 而不是 push，避免用户点击后退时回到登录页
+        router.replace(redirectTo);
       } else {
         // 根据后端返回的错误信息提供更具体的错误提示
         let errorMessage = response.message || '登录失败，请检查凭证';
