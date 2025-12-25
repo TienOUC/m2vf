@@ -1,12 +1,13 @@
 // app/edit/page.tsx
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { getUserProfile } from '@/lib/api/auth';
 import { isUserLoggedIn } from '@/lib/utils/token';
 import { ROUTES } from '@/lib/config/api.config';
 import Navbar from '@/components/layout/Navbar';
+import { TextNode, ImageNode, VideoNode } from '@/components/nodes';
 import {
   ReactFlow,
   Background,
@@ -23,16 +24,10 @@ import {
   ReactFlowProvider,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { Add, TextFields, Image as ImageIcon, VideoFile } from '@mui/icons-material';
 
-// 初始节点
-const initialNodes: Node[] = [
-  {
-    id: '1',
-    type: 'input',
-    data: { label: '开始节点' },
-    position: { x: 250, y: 25 },
-  },
-];
+// 初始节点（空数组，画布初始为空）
+const initialNodes: Node[] = [];
 
 // 初始边
 const initialEdges: Edge[] = [];
@@ -42,8 +37,53 @@ function FlowCanvas() {
   // ReactFlow 状态管理
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [nodeId, setNodeId] = useState(2); // 用于生成唯一节点ID
+  const [nodeId, setNodeId] = useState(1); // 用于生成唯一节点ID（从1开始）
   const { screenToFlowPosition } = useReactFlow();
+
+  // 节点类型切换回调
+  const handleTypeChange = useCallback(
+    (nodeId: string, newType: 'text' | 'image' | 'video') => {
+      setNodes((nds) =>
+        nds.map((node) => {
+          if (node.id === nodeId) {
+            return {
+              ...node,
+              type: newType,
+              data: {
+                ...node.data,
+                label: newType === 'text' ? '文本节点'
+                      : newType === 'image' ? '图片节点'
+                      : '视频节点',
+                onTypeChange: handleTypeChange,
+                onDelete: handleDelete,
+              },
+            };
+          }
+          return node;
+        })
+      );
+    },
+    [setNodes]
+  );
+
+  // 节点删除回调
+  const handleDelete = useCallback(
+    (nodeId: string) => {
+      setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+      setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
+    },
+    [setNodes, setEdges]
+  );
+
+  // 注册自定义节点类型
+  const nodeTypes = useMemo(
+    () => ({
+      text: TextNode,
+      image: ImageNode,
+      video: VideoNode,
+    }),
+    []
+  );
 
   // 连接节点回调
   const onConnect: OnConnect = useCallback(
@@ -51,7 +91,7 @@ function FlowCanvas() {
     [setEdges]
   );
 
-  // 双击画布添加节点（使用 onDoubleClick 事件）
+  // 双击画布添加节点（默认添加文本节点）
   const handlePaneClick = useCallback(
     (event: React.MouseEvent) => {
       // 检查是否是双击事件
@@ -64,16 +104,20 @@ function FlowCanvas() {
 
         const newNode: Node = {
           id: `node-${nodeId}`,
-          type: 'default',
+          type: 'text', // 默认添加文本节点
           position,
-          data: { label: `节点 ${nodeId}` },
+          data: { 
+            label: '文本节点',
+            onTypeChange: handleTypeChange,
+            onDelete: handleDelete,
+          },
         };
 
         setNodes((nds) => nds.concat(newNode));
         setNodeId((id) => id + 1);
       }
     },
-    [nodeId, setNodes, screenToFlowPosition]
+    [nodeId, setNodes, screenToFlowPosition, handleTypeChange]
   );
 
   return (
@@ -84,6 +128,7 @@ function FlowCanvas() {
       onEdgesChange={onEdgesChange}
       onConnect={onConnect}
       onPaneClick={handlePaneClick}
+      nodeTypes={nodeTypes}
       fitView
     >
       {/* 点状背景 */}
@@ -99,10 +144,11 @@ function FlowCanvas() {
       <MiniMap />
       
       {/* 操作提示 */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-md border border-gray-200 z-10">
-        <p className="text-sm text-gray-600">
-          💡 双击画布任意位置可快速添加节点
-        </p>
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-md border border-gray-200 z-10 flex items-center gap-2">
+        <Add fontSize="small" />
+        <span className="text-sm text-gray-600">
+          双击画布添加文本节点，点击节点右上角按钮可切换类型或删除
+        </span>
       </div>
     </ReactFlow>
   );

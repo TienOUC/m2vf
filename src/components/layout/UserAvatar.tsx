@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { logoutUser } from '@/lib/api/auth';
+import { Person, Logout } from '@mui/icons-material';
 
 interface UserAvatarProps {
   user: {
@@ -24,7 +25,7 @@ export default function UserAvatar({ user }: UserAvatarProps) {
         onClick={() => setIsMenuOpen(!isMenuOpen)}
         className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full text-white font-medium hover:from-blue-600 hover:to-blue-700 transition"
       >
-        {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+        <Person fontSize="small" />
       </button>
 
       {/* 下拉菜单 */}
@@ -50,8 +51,9 @@ export default function UserAvatar({ user }: UserAvatarProps) {
             <div className="py-1">
               <button
                 onClick={handleLogout}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2"
               >
+                <Logout fontSize="small" />
                 退出登录
               </button>
             </div>
