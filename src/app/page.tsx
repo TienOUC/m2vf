@@ -14,13 +14,13 @@ export default function HomePage() {
         {/* 欢迎语部分 */}
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight">
-            欢迎来到
+            {/* 欢迎来到 */}
             <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
               M2V-Flow
             </span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            图文智能生成视频，让你的创意更有力量
+            图文智能生成视频，让你的创意实现更便捷
           </p>
         </div>
 
@@ -83,7 +83,7 @@ export default function HomePage() {
             还没有账户？{' '}
             <Link
               href="/register"
-              className="text-blue-600 hover:text-blue-700 font-medium underline underline-offset-4 transition-colors"
+              className="text-blue-600 hover:text-blue-700 font-medium  transition-colors"
             >
               点击注册
             </Link>
