@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { register } from '@/lib/api/auth';
+import { registerUser } from '@/lib/api/auth';
 import {
   UserIcon,
   EnvelopeIcon,
@@ -41,7 +41,7 @@ export default function RegisterPage() {
     }
 
     try {
-      const response = await register(userData);
+      const response = await registerUser(userData);
 
       if (response.success) {
         setSuccess('账户创建成功！正在跳转到登录页...');

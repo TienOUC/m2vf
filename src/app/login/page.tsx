@@ -1,15 +1,146 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { login } from '@/lib/api/auth';
-import { EnvelopeIcon, LockClosedIcon } from '@heroicons/react/24/outline';
+import { loginUser } from '@/lib/api/auth';
+import { getAccessToken, clearTokens } from '@/lib/utils/token';
+import {
+  EnvelopeIcon,
+  LockClosedIcon,
+  ExclamationCircleIcon
+} from '@heroicons/react/24/outline';
+
+interface FormErrors {
+  email?: string;
+  password?: string;
+}
+
+interface FormTouched {
+  email: boolean;
+  password: boolean;
+}
 
 export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [touched, setTouched] = useState<FormTouched>({
+    email: false,
+    password: false
+  });
+
+  // 组件加载时检查是否已登录
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      const token = getAccessToken();
+      if (token) {
+        // 如果有token，跳转到编辑器页面
+        router.push('/editor');
+      }
+    };
+
+    checkLoginStatus();
+  }, [router]);
+
+  // 验证邮箱格式
+  const validateEmail = (value: string): string | undefined => {
+    if (!value.trim()) {
+      return '请输入邮箱地址';
+    }
+
+    // 邮箱验证正则
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(value)) {
+      return '请输入有效的邮箱地址';
+    }
+
+    return undefined;
+  };
+
+  // 验证密码格式
+  const validatePassword = (value: string): string | undefined => {
+    if (!value.trim()) {
+      return '请输入密码';
+    }
+
+    if (value.length < 6) {
+      return '密码长度不能少于6位';
+    }
+
+    if (value.length > 20) {
+      return '密码长度不能超过20位';
+    }
+
+    return undefined;
+  };
+
+  // 实时验证单个字段
+  const validateField = (name: keyof FormTouched, value: string) => {
+    let error: string | undefined;
+
+    switch (name) {
+      case 'email':
+        error = validateEmail(value);
+        break;
+      case 'password':
+        error = validatePassword(value);
+        break;
+    }
+
+    setFormErrors((prev) => ({
+      ...prev,
+      [name]: error
+    }));
+  };
+
+  // 验证整个表单
+  const validateForm = (formData: FormData): boolean => {
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
+    const emailError = validateEmail(email);
+    const passwordError = validatePassword(password);
+
+    const errors: FormErrors = {};
+    if (emailError) errors.email = emailError;
+    if (passwordError) errors.password = passwordError;
+
+    setFormErrors(errors);
+    setTouched({
+      email: true,
+      password: true
+    });
+
+    return Object.keys(errors).length === 0;
+  };
+
+  // 处理输入框失焦事件
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setTouched((prev) => ({
+      ...prev,
+      [name]: true
+    }));
+    validateField(name as keyof FormTouched, value);
+  };
+
+  // 处理输入框变化事件
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    // 如果字段已经被触摸过，实时验证
+    if (touched[name as keyof FormTouched]) {
+      validateField(name as keyof FormTouched, value);
+    }
+
+    // 清除通用错误信息
+    if (error) {
+      setError('');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -17,26 +148,87 @@ export default function LoginPage() {
     setError('');
 
     const formData = new FormData(e.currentTarget);
+
+    // 先进行客户端验证
+    if (!validateForm(formData)) {
+      setIsLoading(false);
+      return;
+    }
+
     const credentials = {
-      identifier: formData.get('identifier') as string,
+      email: formData.get('email') as string,
       password: formData.get('password') as string
     };
 
     try {
-      const response = await login(credentials);
+      console.log('正在发送登录请求...', credentials);
+      const response = await loginUser(credentials);
 
-      if (response.success) {
-        router.push('/editor');
-        router.refresh();
+      console.log('登录响应:', response);
+
+      if (response.access_token) {
+        // 登录成功，显示成功消息后跳转
+        setError('');
+        setTimeout(() => {
+          router.push('/editor');
+          router.refresh();
+        }, 500);
       } else {
-        setError(response.message || '登录失败，请检查凭证');
+        // 根据后端返回的错误信息提供更具体的错误提示
+        let errorMessage = response.message || '登录失败，请检查凭证';
+
+        if (
+          response.message?.includes('email') ||
+          response.message?.includes('Email')
+        ) {
+          errorMessage = '邮箱地址不存在或格式错误';
+        } else if (
+          response.message?.includes('password') ||
+          response.message?.includes('Password')
+        ) {
+          errorMessage = '密码错误';
+        } else if (
+          response.message?.includes('invalid') ||
+          response.message?.includes('Invalid')
+        ) {
+          errorMessage = '邮箱或密码错误';
+        }
+
+        setError(errorMessage);
+
+        // 登录失败时清除本地存储
+        clearTokens();
       }
-    } catch (err) {
-      setError('网络请求失败，请稍后重试');
+    } catch (err: any) {
       console.error('登录请求错误:', err);
+
+      let errorMessage = '网络请求失败，请稍后重试';
+
+      if (err.message?.includes('超时')) {
+        errorMessage = '请求超时，请检查网络连接';
+      } else if (
+        err.message?.includes('401') ||
+        err.message?.includes('未授权')
+      ) {
+        errorMessage = '邮箱或密码错误';
+      } else if (err.message?.includes('400')) {
+        errorMessage = '请求参数错误，请检查输入格式';
+      } else if (err.message?.includes('500')) {
+        errorMessage = '服务器内部错误，请稍后重试';
+      }
+
+      setError(errorMessage);
+
+      // 登录失败时清除本地存储
+      clearTokens();
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // 检查表单是否有效
+  const isFormValid = () => {
+    return Object.values(formErrors).every((error) => !error);
   };
 
   return (
@@ -56,13 +248,29 @@ export default function LoginPage() {
               <h2 className="text-3xl font-bold text-gray-900 mb-2">
                 欢迎回来
               </h2>
+              <p className="text-sm text-gray-600">登录以进入AI工作流编辑器</p>
             </div>
 
             <form className="space-y-6" onSubmit={handleSubmit}>
               {/* 错误提示 */}
               {error && (
                 <div className="p-4 rounded-lg bg-red-50/80 backdrop-blur-sm border border-red-200">
-                  <p className="text-sm text-red-700 text-center">{error}</p>
+                  <p className="text-sm text-red-700 text-center">
+                    {error.includes('网络') ||
+                    error.includes('超时') ||
+                    error.includes('服务器') ? (
+                      <>
+                        <span className="font-medium">系统提示：</span>
+                        {error}
+                        <br />
+                        <span className="text-xs text-red-600 mt-1 block">
+                          请检查网络连接或联系管理员
+                        </span>
+                      </>
+                    ) : (
+                      error
+                    )}
+                  </p>
                 </div>
               )}
 
@@ -70,23 +278,37 @@ export default function LoginPage() {
               <div className="space-y-4">
                 <div className="group">
                   <label
-                    htmlFor="identifier"
+                    htmlFor="email"
                     className="block text-sm font-medium text-gray-700 mb-2"
                   >
-                    邮箱或手机号
+                    邮箱地址
                   </label>
                   <div className="relative">
                     <EnvelopeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
-                      id="identifier"
-                      name="identifier"
-                      type="text"
-                      autoComplete="username"
+                      id="email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
                       required
-                      className="w-full pl-10 pr-4 py-3 bg-white/50 border border-gray-200/50 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 placeholder-gray-400"
-                      placeholder="输入您的邮箱或手机号"
+                      className={`w-full pl-10 pr-10 py-3 bg-white/50 border rounded-xl focus:ring-2 focus:border-blue-500/50 transition-all duration-300 placeholder-gray-400 ${
+                        touched.email && formErrors.email
+                          ? 'border-red-300 focus:ring-red-500/50'
+                          : 'border-gray-200/50 focus:ring-blue-500/50'
+                      }`}
+                      placeholder="输入您的邮箱地址"
+                      onBlur={handleBlur}
+                      onChange={handleInputChange}
                     />
+                    {touched.email && formErrors.email && (
+                      <ExclamationCircleIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-red-500" />
+                    )}
                   </div>
+                  {touched.email && formErrors.email && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {formErrors.email}
+                    </p>
+                  )}
                 </div>
 
                 <div className="group">
@@ -104,10 +326,24 @@ export default function LoginPage() {
                       type="password"
                       autoComplete="current-password"
                       required
-                      className="w-full pl-10 pr-4 py-3 bg-white/50 border border-gray-200/50 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 placeholder-gray-400"
+                      className={`w-full pl-10 pr-10 py-3 bg-white/50 border rounded-xl focus:ring-2 focus:border-blue-500/50 transition-all duration-300 placeholder-gray-400 ${
+                        touched.password && formErrors.password
+                          ? 'border-red-300 focus:ring-red-500/50'
+                          : 'border-gray-200/50 focus:ring-blue-500/50'
+                      }`}
                       placeholder="输入您的密码"
+                      onBlur={handleBlur}
+                      onChange={handleInputChange}
                     />
+                    {touched.password && formErrors.password && (
+                      <ExclamationCircleIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-red-500" />
+                    )}
                   </div>
+                  {touched.password && formErrors.password && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {formErrors.password}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -115,7 +351,7 @@ export default function LoginPage() {
               <div>
                 <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || !isFormValid()}
                   className="w-full group relative flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
                   {isLoading ? (
@@ -165,14 +401,14 @@ export default function LoginPage() {
         </div>
 
         {/* 返回首页链接 */}
-        <div className="text-center mt-6">
+        {/* <div className="text-center mt-6">
           <Link
             href="/"
             className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 transition-colors"
           >
             返回首页
           </Link>
-        </div>
+        </div> */}
       </div>
     </div>
   );

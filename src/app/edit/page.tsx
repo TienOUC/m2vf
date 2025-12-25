@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getCurrentUser } from '@/lib/api/auth'; // 假设有获取当前用户信息的API
+import { getUserProfile } from '@/lib/api/auth'; // 获取用户信息的API
 
 export default function EditorPage() {
   const router = useRouter();
@@ -16,8 +16,13 @@ export default function EditorPage() {
     // 组件加载时检查用户是否已认证
     const checkAuth = async () => {
       try {
-        const userData = await getCurrentUser();
-        setUser(userData);
+        const response = await getUserProfile();
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData);
+        } else {
+          throw new Error('未认证');
+        }
       } catch (error) {
         // 如果后端返回未认证，跳转到登录页
         console.warn('用户未认证，跳转到登录页');

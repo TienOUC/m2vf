@@ -1,150 +1,96 @@
-// 类型定义保持不变
-interface LoginCredentials {
-  identifier: string;
-  password: string;
-}
+// 用户认证相关 API
 
-interface RegisterData {
-  name?: string;
+import type { TokenResponse, LoginCredentials } from '../types/auth';
+import { saveTokens, clearTokens } from '../utils/token';
+import { apiRequest } from './client';
+
+// 专门用于登录的 API 请求（不需要 token）
+export const loginUser = async (
+  credentials: LoginCredentials
+): Promise<TokenResponse> => {
+  // 构建登录 URL，确保带尾部斜杠
+  const baseUrl =
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
+  const loginUrl = `${baseUrl}/api/users/login/`; // 必须带尾部斜杠
+
+  console.log(
+    '[loginUser] 环境变量 NEXT_PUBLIC_API_BASE_URL:',
+    process.env.NEXT_PUBLIC_API_BASE_URL
+  );
+  console.log('[loginUser] 实际请求 URL:', loginUrl);
+
+  try {
+    const response = await fetch(loginUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(credentials),
+      redirect: 'manual' // 关键：禁止自动跟随重定向
+    });
+
+    if (response.ok) {
+      const data: TokenResponse = await response.json();
+      // 保存token到本地存储
+      saveTokens(data);
+      return data;
+    } else {
+      throw new Error(`登录失败: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('登录请求失败:', error);
+    throw error;
+  }
+};
+
+// 获取用户信息
+export const getUserProfile = async (): Promise<Response> => {
+  const profileUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/profile/`
+    : 'http://127.0.0.1:8000/api/users/profile/';
+
+  return apiRequest(profileUrl, { method: 'GET' });
+};
+
+// 登出用户
+export const logoutUser = (): void => {
+  clearTokens();
+  window.location.href = '/login';
+};
+
+// 用户注册
+export const registerUser = async (userData: {
   email: string;
   phoneNumber: string;
   password: string;
   confirmPassword: string;
-}
-
-interface ApiResponse<T = any> {
-  success: boolean;
-  message?: string;
-  data?: T;
-  token?: string;
-}
-
-// 获取 API 基础 URL，方便环境配置
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api';
-
-/**
- * 通用的 fetch 请求封装
- */
-async function fetchApi<T = any>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<ApiResponse<T>> {
-  const url = `${API_BASE_URL}${endpoint}`;
-
-  // 设置默认请求头
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...options.headers
-  };
-
-  // 尝试从 localStorage 获取 token 并添加到请求头
-  const token =
-    typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  const config: RequestInit = {
-    ...options,
-    headers,
-    credentials: 'include' // 如果后端使用 HttpOnly Cookie，请确保包含此项
-  };
+  name?: string;
+}): Promise<{ success: boolean; message?: string }> => {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
+  const registerUrl = `${baseUrl}/api/users/register/`;
 
   try {
-    const response = await fetch(url, config);
+    const response = await fetch(registerUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(userData)
+    });
 
-    // 尝试解析 JSON 响应体
-    let data: any;
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-      data = await response.json();
+    if (response.ok) {
+      const data = await response.json();
+      return { success: true, message: data.message || '注册成功' };
     } else {
-      // 如果不是 JSON，获取文本（用于错误信息）
-      data = { message: await response.text() };
-    }
-
-    // 处理 HTTP 状态码
-    if (!response.ok) {
-      // HTTP 状态码不在 200-299 范围内
+      const errorData = await response.json();
       return {
         success: false,
-        message: data.message || `请求失败 (${response.status})`,
-        ...data
+        message: errorData.message || '注册失败，请重试'
       };
     }
-
-    // 请求成功
-    return {
-      success: true,
-      ...data
-    };
   } catch (error) {
-    // 网络错误或请求无法发送
-    console.error('Fetch API 错误:', error);
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : '网络请求失败'
-    };
-  }
-}
-
-/**
- * 登录 API
- */
-export const login = async (
-  credentials: LoginCredentials
-): Promise<ApiResponse> => {
-  const response = await fetchApi('/auth/login', {
-    method: 'POST',
-    body: JSON.stringify(credentials)
-  });
-
-  // 如果登录成功且返回了 token，存储到 localStorage
-  if (response.success && response.token) {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('auth_token', response.token);
-    }
-  }
-
-  return response;
-};
-
-/**
- * 注册 API
- */
-export const register = async (
-  userData: RegisterData
-): Promise<ApiResponse> => {
-  return fetchApi('/auth/register', {
-    method: 'POST',
-    body: JSON.stringify(userData)
-  });
-};
-
-/**
- * 获取当前用户信息
- */
-export const getCurrentUser = async (): Promise<any> => {
-  const response = await fetchApi('/auth/me');
-
-  if (response.success && response.data) {
-    return response.data;
-  }
-
-  throw new Error(response.message || '获取用户信息失败');
-};
-
-/**
- * 退出登录
- */
-export const logout = async (): Promise<void> => {
-  await fetchApi('/auth/logout', {
-    method: 'POST'
-  });
-
-  // 清除本地存储的 token
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('auth_token');
+    console.error('注册请求失败:', error);
+    return { success: false, message: '网络请求失败，请稍后重试' };
   }
 };
