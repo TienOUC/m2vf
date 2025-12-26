@@ -109,10 +109,10 @@ export const useNodeAddition = ({
       
       const newNode = {
         id: `node-${nodeId}`,
-        type: 'audio', // 假设存在音频节点类型
+        type: 'image',
         position: pos,
         data: { 
-          label: '音频节点',
+          label: '音频节点（图片类型）',
           onTypeChange: handleTypeChange,
           onDelete: handleDelete,
           onReplace: (id: string) => {
