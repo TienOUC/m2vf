@@ -167,7 +167,7 @@ function FlowCanvas() {
       <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-md border border-gray-200 z-10 flex items-center gap-2">
         <Add fontSize="small" />
         <span className="text-sm text-gray-600">
-          双击画布添加文本节点，点击节点右上角按钮可切换类型或删除
+          双击画布添加文本节点
         </span>
       </div>
       
@@ -190,16 +190,6 @@ export default function EditPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // 绕过认证检查，直接设置一个模拟用户
-    // 在登录接口可用后，可将此部分替换回原始认证逻辑
-    setUser({
-      name: 'Demo User',
-      email: 'demo@example.com'
-    });
-    setIsLoading(false);
-    
-    // 原始认证逻辑（注释）：
-    /*
     const checkAuth = async () => {
       // 先检查本地是否有 token
       if (!isUserLoggedIn()) {
@@ -226,7 +216,6 @@ export default function EditPage() {
     };
 
     checkAuth();
-    */
   }, [router]);
 
   if (isLoading) {
