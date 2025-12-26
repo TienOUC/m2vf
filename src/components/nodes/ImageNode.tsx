@@ -67,7 +67,7 @@ function ImageNode({ data, id, selected, ...rest }: NodeProps) {
         ) : (
           <button
             onClick={handleButtonClick}
-            className="w-full h-full border-2 border-dashed border-gray-400 rounded-md flex flex-col items-center justify-center hover:border-gray-500 hover:bg-gray-50 transition-colors text-gray-500"
+            className="w-full h-full border border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center hover:border-gray-500 hover:bg-gray-50 transition-colors text-gray-500"
           >
             <ImageIcon className="text-3xl mb-2" />
             <span className="text-sm">点击上传图片</span>

@@ -135,7 +135,7 @@ function FlowCanvas() {
         setNodeId((id) => id + 1);
       }
     },
-[nodeId, setNodes, screenToFlowPosition, handleTypeChange, handleDelete]
+    [nodeId, setNodes, screenToFlowPosition, handleTypeChange, handleDelete]
   );
 
   return (
@@ -148,6 +148,7 @@ function FlowCanvas() {
       onPaneClick={handlePaneClick}
       nodeTypes={nodeTypes}
       fitView
+      proOptions={{ hideAttribution: true }}
     >
       {/* 点状背景 */}
       <Background
