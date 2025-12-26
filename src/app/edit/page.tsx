@@ -8,7 +8,7 @@ import { isUserLoggedIn } from '@/lib/utils/token';
 import { ROUTES } from '@/lib/config/api.config';
 import Navbar from '@/components/layout/Navbar';
 import LeftSidebar from '@/components/layout/LeftSidebar';
-import { TextNode, ImageNode, VideoNode } from '@/components/nodes';
+import { TextNode, ImageNode, VideoNode, AudioNode } from '@/components/nodes';
 import { useNodeAddition } from '@/hooks/useNodeAddition';
 import {
   ReactFlow,
@@ -26,7 +26,7 @@ import {
   ReactFlowProvider,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Add, TextFields, Image as ImageIcon, VideoFile } from '@mui/icons-material';
+import { Add, TextFields, Image as ImageIcon, VideoFile, Audiotrack } from '@mui/icons-material';
 
 // 初始节点（空数组，画布初始为空）
 const initialNodes: Node[] = [];
@@ -53,7 +53,7 @@ function FlowCanvas() {
 
   // 节点类型切换回调
   const handleTypeChange = useCallback(
-    (nodeId: string, newType: 'text' | 'image' | 'video') => {
+    (nodeId: string, newType: 'text' | 'image' | 'video' | 'audio') => {
       setNodes((nds) =>
         nds.map((node) => {
           if (node.id === nodeId) {
@@ -61,13 +61,14 @@ function FlowCanvas() {
               ...node.data,
               label: newType === 'text' ? '文本节点'
                     : newType === 'image' ? '图片节点'
-                    : '视频节点',
+                    : newType === 'video' ? '视频节点'
+                    : '音频节点',
               onTypeChange: handleTypeChange,
               onDelete: handleDelete,
             };
             
-            // 为图片和视频节点添加onReplace回调
-            if (newType === 'image' || newType === 'video') {
+            // 为图片、视频和音频节点添加onReplace回调
+            if (newType === 'image' || newType === 'video' || newType === 'audio') {
               return {
                 ...node,
                 type: newType,
@@ -101,6 +102,7 @@ function FlowCanvas() {
       text: TextNode,
       image: ImageNode,
       video: VideoNode,
+      audio: AudioNode,
     }),
     []
   );
