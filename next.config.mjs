@@ -14,11 +14,11 @@ const nextConfig = {
       return [
         {
           source: '/api2/:path*/',  // 明确匹配尾部斜杠
-          destination: 'http://115.190.176.116:8081/:path*/',
+          destination: 'http://115.190.176.116:8001/:path*/',
         },
         {
           source: '/api2/:path*',  // 也匹配不带尾部斜杠的情况
-          destination: 'http://115.190.176.116:8081/:path*',
+          destination: 'http://115.190.176.116:8001/:path*',
         },
       ];
     }
