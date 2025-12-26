@@ -7,6 +7,7 @@ import { getUserProfile } from '@/lib/api/auth';
 import { isUserLoggedIn } from '@/lib/utils/token';
 import { ROUTES } from '@/lib/config/api.config';
 import Navbar from '@/components/layout/Navbar';
+import LeftSidebar from '@/components/layout/LeftSidebar';
 import { TextNode, ImageNode, VideoNode } from '@/components/nodes';
 import {
   ReactFlow,
@@ -169,6 +170,9 @@ function FlowCanvas() {
           双击画布添加文本节点，点击节点右上角按钮可切换类型或删除
         </span>
       </div>
+      
+      {/* 左侧悬浮工具栏 */}
+      <LeftSidebar />
     </ReactFlow>
   );
 }
