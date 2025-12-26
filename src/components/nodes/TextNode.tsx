@@ -5,6 +5,8 @@ import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { TextFields, SwapHoriz, Close, Image as ImageIcon, VideoFile } from '@mui/icons-material';
 import NodeToolbar from './NodeToolbar';
+import { useNodeBase } from '../../hooks/useNodeBase';
+import { NodeBase } from './NodeBase';
 
 export interface TextNodeData {
   label?: string;
@@ -13,11 +15,13 @@ export interface TextNodeData {
   onDelete?: (nodeId: string) => void;
 }
 
-function TextNode({ data, id, selected }: NodeProps) {
+function TextNode({ data, id, selected, ...rest }: NodeProps) {
   const nodeData = data as TextNodeData;
   const [content, setContent] = useState(nodeData?.content || '');
   const [isEditing, setIsEditing] = useState(false);
-  const [showTypeMenu, setShowTypeMenu] = useState(false);
+  
+  // 使用公共 hook 处理基础节点逻辑
+  const { handleTypeChange, handleDelete } = useNodeBase(data, id);
 
   const handleDoubleClick = useCallback(() => {
     setIsEditing(true);
@@ -31,43 +35,17 @@ function TextNode({ data, id, selected }: NodeProps) {
     setContent(e.target.value);
   }, []);
 
-  const handleTypeChange = useCallback((newType: 'text' | 'image' | 'video') => {
-    if (nodeData?.onTypeChange && id) {
-      nodeData.onTypeChange(id, newType);
-    }
-    setShowTypeMenu(false);
-  }, [nodeData, id]);
-
-  const handleDelete = useCallback(() => {
-    if (nodeData?.onDelete && id) {
-      nodeData.onDelete(id);
-    }
-  }, [nodeData, id]);
-
   return (
-    <div className="bg-white rounded-lg min-w-[200px] relative transition-colors duration-150 shadow-sm hover:shadow-md">
-      {/* 输入连接点 */}
-      <Handle type="target" position={Position.Top} className="w-3 h-3 !bg-gray-400" />
-      
-      {/* 节点工具栏 */}
-      <NodeToolbar
-        nodeId={id}
-        onTypeChange={nodeData?.onTypeChange}
-        onDelete={nodeData?.onDelete}
-        selected={selected}
-        type="text"
-      />
-      
-      {/* 节点头部 */}
-      <div className="bg-gray-50 text-gray-800 px-3 py-2 rounded-t-md text-sm font-medium flex justify-between items-center">
-        <span className="flex items-center gap-1">
-          <TextFields fontSize="small" className="text-gray-500" />
-          {nodeData?.label || '文本'}
-        </span>
-      </div>
-      
-      {/* 节点内容 */}
-      <div className="p-3">
+    <NodeBase
+      data={data}
+      id={id}
+      selected={selected}
+      icon={<TextFields fontSize="small" className="text-gray-500" />}
+      title="文本"
+      nodeType="text"
+      {...rest}
+    >
+      <div>
         {isEditing ? (
           <textarea
             value={content}
@@ -86,10 +64,7 @@ function TextNode({ data, id, selected }: NodeProps) {
           </div>
         )}
       </div>
-      
-      {/* 输出连接点 */}
-      <Handle type="source" position={Position.Bottom} className="w-3 h-3 !bg-gray-400" />
-    </div>
+    </NodeBase>
   );
 }
 

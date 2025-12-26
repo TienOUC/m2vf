@@ -1,10 +1,13 @@
 'use client';
 
-import { memo, useState, useCallback, useRef } from 'react';
+import { memo, useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { Image as ImageIcon, SwapHoriz, Close, TextFields, VideoFile } from '@mui/icons-material';
 import NodeToolbar from './NodeToolbar';
+import { useFileUpload } from '../../hooks/useFileUpload';
+import { useNodeBase } from '../../hooks/useNodeBase';
+import { NodeBase } from './NodeBase';
 
 export interface ImageNodeData {
   label?: string;
@@ -13,64 +16,46 @@ export interface ImageNodeData {
   onDelete?: (nodeId: string) => void;
 }
 
-function ImageNode({ data, id, selected }: NodeProps) {
+function ImageNode({ data, id, selected, ...rest }: NodeProps) {
   const nodeData = data as ImageNodeData;
-  const [imageUrl, setImageUrl] = useState(nodeData?.imageUrl || '');
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [showTypeMenu, setShowTypeMenu] = useState(false);
-
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setImageUrl(event.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+  
+  // 使用公共 hook 处理基础节点逻辑
+  const { handleTypeChange, handleDelete } = useNodeBase(data, id);
+  
+  // 使用公共 hook 处理文件上传
+  const {
+    fileInputRef,
+    fileUrl: imageUrl,
+    setFileUrl: setImageUrl,
+    handleFileSelect,
+    handleButtonClick
+  } = useFileUpload('image/');
+  
+  // 如果初始有图片 URL，使用它
+  useState(() => {
+    if (nodeData?.imageUrl && !imageUrl) {
+      setImageUrl(nodeData.imageUrl);
     }
-  }, []);
-
-  const handleButtonClick = useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
-
-  const handleTypeChange = useCallback((newType: 'text' | 'image' | 'video') => {
-    if (nodeData?.onTypeChange && id) {
-      nodeData.onTypeChange(id, newType);
-    }
-    setShowTypeMenu(false);
-  }, [nodeData, id]);
-
-  const handleDelete = useCallback(() => {
-    if (nodeData?.onDelete && id) {
-      nodeData.onDelete(id);
-    }
-  }, [nodeData, id]);
+  });
+  
+  // 图片选择回调，更新 imageUrl
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleFileSelect(e, (url) => {
+      setImageUrl(url);
+    });
+  };
 
   return (
-    <div className="bg-white rounded-lg min-w-[250px] relative transition-colors duration-150 shadow-sm hover:shadow-md">
-      {/* 输入连接点 */}
-      <Handle type="target" position={Position.Top} className="w-3 h-3 !bg-gray-400" />
-      
-      {/* 节点工具栏 */}
-      <NodeToolbar
-        nodeId={id}
-        onTypeChange={nodeData?.onTypeChange}
-        onDelete={nodeData?.onDelete}
-        selected={selected}
-        type="image"
-      />
-      
-      {/* 节点头部 */}
-      <div className="bg-gray-50 text-gray-800 px-3 py-2 rounded-t-md text-sm font-medium flex justify-between items-center">
-        <span className="flex items-center gap-1">
-          <ImageIcon fontSize="small" className="text-gray-500" />
-          {nodeData?.label || '图片'}
-        </span>
-      </div>
-      
-      {/* 节点内容 */}
-      <div className="p-3">
+    <NodeBase
+      data={data}
+      id={id}
+      selected={selected}
+      icon={<ImageIcon fontSize="small" className="text-gray-500" />}
+      title="图片"
+      nodeType="image"
+      {...rest}
+    >
+      <div>
         {imageUrl ? (
           <div className="relative group">
             <img
@@ -98,14 +83,11 @@ function ImageNode({ data, id, selected }: NodeProps) {
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          onChange={handleFileSelect}
+          onChange={handleImageSelect}
           className="hidden"
         />
       </div>
-      
-      {/* 输出连接点 */}
-      <Handle type="source" position={Position.Bottom} className="w-3 h-3 !bg-gray-400" />
-    </div>
+    </NodeBase>
   );
 }
 

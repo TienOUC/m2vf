@@ -1,10 +1,13 @@
 'use client';
 
-import { memo, useState, useCallback, useRef } from 'react';
+import { memo, useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { VideoFile, SwapHoriz, Close, TextFields, Image as ImageIcon } from '@mui/icons-material';
 import NodeToolbar from './NodeToolbar';
+import { useFileUpload } from '../../hooks/useFileUpload';
+import { useNodeBase } from '../../hooks/useNodeBase';
+import { NodeBase } from './NodeBase';
 
 export interface VideoNodeData {
   label?: string;
@@ -13,64 +16,46 @@ export interface VideoNodeData {
   onDelete?: (nodeId: string) => void;
 }
 
-function VideoNode({ data, id, selected }: NodeProps) {
+function VideoNode({ data, id, selected, ...rest }: NodeProps) {
   const nodeData = data as VideoNodeData;
-  const [videoUrl, setVideoUrl] = useState(nodeData?.videoUrl || '');
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [showTypeMenu, setShowTypeMenu] = useState(false);
-
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type.startsWith('video/')) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setVideoUrl(event.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+  
+  // 使用公共 hook 处理基础节点逻辑
+  const { handleTypeChange, handleDelete } = useNodeBase(data, id);
+  
+  // 使用公共 hook 处理文件上传
+  const {
+    fileInputRef,
+    fileUrl: videoUrl,
+    setFileUrl: setVideoUrl,
+    handleFileSelect,
+    handleButtonClick
+  } = useFileUpload('video/');
+  
+  // 如果初始有视频 URL，使用它
+  useState(() => {
+    if (nodeData?.videoUrl && !videoUrl) {
+      setVideoUrl(nodeData.videoUrl);
     }
-  }, []);
-
-  const handleButtonClick = useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
-
-  const handleTypeChange = useCallback((newType: 'text' | 'image' | 'video') => {
-    if (nodeData?.onTypeChange && id) {
-      nodeData.onTypeChange(id, newType);
-    }
-    setShowTypeMenu(false);
-  }, [nodeData, id]);
-
-  const handleDelete = useCallback(() => {
-    if (nodeData?.onDelete && id) {
-      nodeData.onDelete(id);
-    }
-  }, [nodeData, id]);
+  });
+  
+  // 视频选择回调，更新 videoUrl
+  const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleFileSelect(e, (url) => {
+      setVideoUrl(url);
+    });
+  };
 
   return (
-    <div className="bg-white rounded-lg min-w-[280px] relative transition-colors duration-150 shadow-sm hover:shadow-md">
-      {/* 输入连接点 */}
-      <Handle type="target" position={Position.Top} className="w-3 h-3 !bg-gray-400" />
-      
-      {/* 节点工具栏 */}
-      <NodeToolbar
-        nodeId={id}
-        onTypeChange={nodeData?.onTypeChange}
-        onDelete={nodeData?.onDelete}
-        selected={selected}
-        type="video"
-      />
-      
-      {/* 节点头部 */}
-      <div className="bg-gray-50 text-gray-800 px-3 py-2 rounded-t-md text-sm font-medium flex justify-between items-center">
-        <span className="flex items-center gap-1">
-          <VideoFile fontSize="small" className="text-gray-500" />
-          {nodeData?.label || '视频'}
-        </span>
-      </div>
-      
-      {/* 节点内容 */}
-      <div className="p-3">
+    <NodeBase
+      data={data}
+      id={id}
+      selected={selected}
+      icon={<VideoFile fontSize="small" className="text-gray-500" />}
+      title="视频"
+      nodeType="video"
+      {...rest}
+    >
+      <div>
         {videoUrl ? (
           <div className="relative group">
             <video
@@ -100,14 +85,11 @@ function VideoNode({ data, id, selected }: NodeProps) {
           ref={fileInputRef}
           type="file"
           accept="video/*"
-          onChange={handleFileSelect}
+          onChange={handleVideoSelect}
           className="hidden"
         />
       </div>
-      
-      {/* 输出连接点 */}
-      <Handle type="source" position={Position.Bottom} className="w-3 h-3 !bg-gray-400" />
-    </div>
+    </NodeBase>
   );
 }
 

@@ -162,16 +162,7 @@ export default function EditPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // 绕过认证检查，直接设置一个模拟用户
-    // 在登录接口可用后，可将此部分替换回原始认证逻辑
-    setUser({
-      name: 'Demo User',
-      email: 'demo@example.com'
-    });
-    setIsLoading(false);
-    
-    // 原始认证逻辑（注释）：
-    /*
+    // 组件加载时检查用户是否已认证
     const checkAuth = async () => {
       // 先检查本地是否有 token
       if (!isUserLoggedIn()) {
@@ -198,7 +189,6 @@ export default function EditPage() {
     };
 
     checkAuth();
-    */
   }, [router]);
 
   if (isLoading) {
