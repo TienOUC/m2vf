@@ -72,7 +72,7 @@ const NodeToolbar = ({
   return (
     <ReactFlowNodeToolbar
       nodeId={nodeId}
-      position={Position.TopRight}
+      position={Position.Top}
       offset={10}
       isVisible={selected}
       className="bg-white shadow-md rounded-md border border-gray-200 p-1 flex items-center gap-1"
