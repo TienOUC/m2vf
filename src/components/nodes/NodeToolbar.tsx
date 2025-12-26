@@ -1,14 +1,14 @@
 import { NodeToolbar as ReactFlowNodeToolbar, Position } from '@xyflow/react';
-import { SwapHoriz, Close, TextFields, Image as ImageIcon, VideoFile } from '@mui/icons-material';
+import { SwapHoriz, Close, TextFields, Image as ImageIcon, VideoFile, Audiotrack } from '@mui/icons-material';
 import { memo } from 'react';
 
 export interface NodeToolbarProps {
   nodeId: string;
-  onTypeChange?: (nodeId: string, newType: 'text' | 'image' | 'video') => void;
+  onTypeChange?: (nodeId: string, newType: 'text' | 'image' | 'video' | 'audio') => void;
   onDelete?: (nodeId: string) => void;
   onReplace?: (nodeId: string) => void;
   selected?: boolean;
-  type?: 'text' | 'image' | 'video';
+  type?: 'text' | 'image' | 'video' | 'audio';
 }
 
 const NodeToolbar = ({ 
@@ -19,7 +19,7 @@ const NodeToolbar = ({
   selected = false, 
   type = 'text' 
 }: NodeToolbarProps) => {
-  const handleTypeChange = (newType: 'text' | 'image' | 'video') => {
+  const handleTypeChange = (newType: 'text' | 'image' | 'video' | 'audio') => {
     if (onTypeChange) {
       onTypeChange(nodeId, newType);
     }
@@ -44,16 +44,25 @@ const NodeToolbar = ({
         return [
           { type: 'image' as const, label: '图片', icon: <ImageIcon fontSize="small" /> },
           { type: 'video' as const, label: '视频', icon: <VideoFile fontSize="small" /> },
+          { type: 'audio' as const, label: '音频', icon: <Audiotrack fontSize="small" /> },
         ];
       case 'image':
         return [
           { type: 'text' as const, label: '文本', icon: <TextFields fontSize="small" /> },
           { type: 'video' as const, label: '视频', icon: <VideoFile fontSize="small" /> },
+          { type: 'audio' as const, label: '音频', icon: <Audiotrack fontSize="small" /> },
         ];
       case 'video':
         return [
           { type: 'text' as const, label: '文本', icon: <TextFields fontSize="small" /> },
           { type: 'image' as const, label: '图片', icon: <ImageIcon fontSize="small" /> },
+          { type: 'audio' as const, label: '音频', icon: <Audiotrack fontSize="small" /> },
+        ];
+      case 'audio':
+        return [
+          { type: 'text' as const, label: '文本', icon: <TextFields fontSize="small" /> },
+          { type: 'image' as const, label: '图片', icon: <ImageIcon fontSize="small" /> },
+          { type: 'video' as const, label: '视频', icon: <VideoFile fontSize="small" /> },
         ];
       default:
         return [];
@@ -63,7 +72,7 @@ const NodeToolbar = ({
   return (
     <ReactFlowNodeToolbar
       nodeId={nodeId}
-      position={Position.Top}
+      position={Position.TopRight}
       offset={10}
       isVisible={selected}
       className="bg-white shadow-md rounded-md border border-gray-200 p-1 flex items-center gap-1"
@@ -92,14 +101,14 @@ const NodeToolbar = ({
         </div>
       </div>
       
-      {/* 更换文件按钮 - 仅对图片和视频节点显示 */}
-      {(type === 'image' || type === 'video') && (
+      {/* 更换文件按钮 - 仅对图片、视频和音频节点显示 */}
+      {(type === 'image' || type === 'video' || type === 'audio') && (
         <button
           onClick={handleReplace}
           className="w-8 h-8 p-1 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-md transition-colors"
           aria-label="更换文件"
         >
-          {type === 'image' ? <ImageIcon fontSize="small" /> : <VideoFile fontSize="small" />}
+          {type === 'image' ? <ImageIcon fontSize="small" /> : type === 'video' ? <VideoFile fontSize="small" /> : <Audiotrack fontSize="small" />}
         </button>
       )}
       

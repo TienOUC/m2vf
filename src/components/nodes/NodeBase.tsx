@@ -5,7 +5,7 @@ import { NodeData } from '../../hooks/useNodeBase';
 
 export interface BaseNodeProps extends NodeProps {
   children: React.ReactNode;
-  nodeType: 'text' | 'image' | 'video';
+  nodeType: 'text' | 'image' | 'video' | 'audio';
   icon?: React.ReactNode;
   title?: string;
   onReplace?: (nodeId: string) => void;
