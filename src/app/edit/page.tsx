@@ -110,6 +110,32 @@ function FlowCanvas() {
     [setEdges]
   );
 
+  // 添加文本节点函数
+  const addTextNode = useCallback(
+    (position?: { x: number; y: number }) => {
+      // 如果没有提供位置，使用画布中心作为默认位置
+      const pos = position || screenToFlowPosition({
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2,
+      });
+      
+      const newNode: Node = {
+        id: `node-${nodeId}`,
+        type: 'text',
+        position: pos,
+        data: { 
+          label: '文本节点',
+          onTypeChange: handleTypeChange,
+          onDelete: handleDelete,
+        },
+      };
+
+      setNodes((nds) => nds.concat(newNode));
+      setNodeId((id) => id + 1);
+    },
+    [nodeId, setNodes, screenToFlowPosition, handleTypeChange, handleDelete]
+  );
+
   // 双击画布添加节点（默认添加文本节点）
   const handlePaneClick = useCallback(
     (event: React.MouseEvent) => {
@@ -120,23 +146,11 @@ function FlowCanvas() {
           x: event.clientX,
           y: event.clientY,
         });
-
-        const newNode: Node = {
-          id: `node-${nodeId}`,
-          type: 'text', // 默认添加文本节点
-          position,
-          data: { 
-            label: '文本节点',
-            onTypeChange: handleTypeChange,
-            onDelete: handleDelete,
-          },
-        };
-
-        setNodes((nds) => nds.concat(newNode));
-        setNodeId((id) => id + 1);
+        
+        addTextNode(position);
       }
     },
-    [nodeId, setNodes, screenToFlowPosition, handleTypeChange, handleDelete]
+    [addTextNode, screenToFlowPosition]
   );
 
   return (
@@ -172,7 +186,7 @@ function FlowCanvas() {
       </div>
       
       {/* 左侧悬浮工具栏 */}
-      <LeftSidebar />
+      <LeftSidebar onAddTextNode={addTextNode} />
     </ReactFlow>
   );
 }
