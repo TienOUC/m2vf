@@ -9,6 +9,7 @@ import { ROUTES } from '@/lib/config/api.config';
 import Navbar from '@/components/layout/Navbar';
 import LeftSidebar from '@/components/layout/LeftSidebar';
 import { TextNode, ImageNode, VideoNode } from '@/components/nodes';
+import { useNodeAddition } from '@/hooks/useNodeAddition';
 import {
   ReactFlow,
   Background,
@@ -110,31 +111,14 @@ function FlowCanvas() {
     [setEdges]
   );
 
-  // 添加文本节点函数
-  const addTextNode = useCallback(
-    (position?: { x: number; y: number }) => {
-      // 如果没有提供位置，使用画布中心作为默认位置
-      const pos = position || screenToFlowPosition({
-        x: window.innerWidth / 2,
-        y: window.innerHeight / 2,
-      });
-      
-      const newNode: Node = {
-        id: `node-${nodeId}`,
-        type: 'text',
-        position: pos,
-        data: { 
-          label: '文本节点',
-          onTypeChange: handleTypeChange,
-          onDelete: handleDelete,
-        },
-      };
-
-      setNodes((nds) => nds.concat(newNode));
-      setNodeId((id) => id + 1);
-    },
-    [nodeId, setNodes, screenToFlowPosition, handleTypeChange, handleDelete]
-  );
+  // 使用节点添加 hooks
+  const { addTextNode, addImageNode, addVideoNode, addAudioNode } = useNodeAddition({
+    nodeId,
+    setNodeId,
+    setNodes,
+    handleTypeChange,
+    handleDelete,
+  });
 
   // 双击画布添加节点（默认添加文本节点）
   const handlePaneClick = useCallback(
@@ -186,7 +170,12 @@ function FlowCanvas() {
       </div>
       
       {/* 左侧悬浮工具栏 */}
-      <LeftSidebar onAddTextNode={addTextNode} />
+      <LeftSidebar
+        onAddTextNode={addTextNode}
+        onAddImageNode={addImageNode}
+        onAddVideoNode={addVideoNode}
+        onAddAudioNode={addAudioNode}
+      />
     </ReactFlow>
   );
 }
