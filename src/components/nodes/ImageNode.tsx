@@ -4,7 +4,7 @@ import { memo, useState, useCallback, useRef } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { Image as ImageIcon, SwapHoriz, Close, TextFields, VideoFile } from '@mui/icons-material';
-import { Tooltip } from '@mui/material';
+import NodeToolbar from './NodeToolbar';
 
 export interface ImageNodeData {
   label?: string;
@@ -13,7 +13,7 @@ export interface ImageNodeData {
   onDelete?: (nodeId: string) => void;
 }
 
-function ImageNode({ data, id }: NodeProps) {
+function ImageNode({ data, id, selected }: NodeProps) {
   const nodeData = data as ImageNodeData;
   const [imageUrl, setImageUrl] = useState(nodeData?.imageUrl || '');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -52,61 +52,21 @@ function ImageNode({ data, id }: NodeProps) {
       {/* 输入连接点 */}
       <Handle type="target" position={Position.Top} className="w-3 h-3 !bg-gray-400" />
       
+      {/* 节点工具栏 */}
+      <NodeToolbar
+        nodeId={id}
+        onTypeChange={nodeData?.onTypeChange}
+        onDelete={nodeData?.onDelete}
+        selected={selected}
+        type="image"
+      />
+      
       {/* 节点头部 */}
       <div className="bg-gray-50 text-gray-800 px-3 py-2 rounded-t-md text-sm font-medium flex justify-between items-center">
         <span className="flex items-center gap-1">
           <ImageIcon fontSize="small" className="text-gray-500" />
           {nodeData?.label || '图片'}
         </span>
-        <div className="flex items-center gap-1">
-          {/* 类型切换按钮 */}
-          <Tooltip title="切换节点类型" arrow>
-            <button
-              onClick={() => setShowTypeMenu(!showTypeMenu)}
-              className="w-7 h-7 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
-              aria-label="切换节点类型"
-            >
-              <SwapHoriz fontSize="small" />
-            </button>
-          </Tooltip>
-          
-          {/* 类型选择菜单 */}
-          {showTypeMenu && (
-            <>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setShowTypeMenu(false)}
-              />
-              <div className="absolute right-0 top-8 bg-white rounded-md shadow-sm border border-gray-200 py-1 z-20 min-w-[120px] w-32">
-                <button
-                  onClick={() => handleTypeChange('text')}
-                  className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
-                >
-                  <TextFields fontSize="small" />
-                  <span>文本</span>
-                </button>
-                <button
-                  onClick={() => handleTypeChange('video')}
-                  className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
-                >
-                  <VideoFile fontSize="small" />
-                  <span>视频</span>
-                </button>
-              </div>
-            </>
-          )}
-          
-          {/* 删除按钮 */}
-          <Tooltip title="删除节点" arrow>
-            <button
-              onClick={handleDelete}
-              className="w-7 h-7 p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
-              aria-label="删除节点"
-            >
-              <Close fontSize="small" />
-            </button>
-          </Tooltip>
-        </div>
       </div>
       
       {/* 节点内容 */}
