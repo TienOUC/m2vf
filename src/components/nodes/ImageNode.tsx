@@ -50,18 +50,16 @@ function ImageNode({ data, id, selected, ...rest }: NodeProps) {
       data={data}
       id={id}
       selected={selected}
-      icon={<ImageIcon fontSize="small" className="text-gray-500" />}
-      title="图片"
       nodeType="image"
       {...rest}
     >
-      <div>
+      <div className='w-full h-full'>
         {imageUrl ? (
-          <div className="relative group">
+          <div className="relative group h-full w-full">
             <img
               src={imageUrl}
               alt="上传的图片"
-              className="w-full h-auto max-h-[200px] object-contain rounded-md border border-gray-200"
+              className="w-full h-full object-contain rounded-md"
             />
             <button
               onClick={handleButtonClick}
@@ -73,7 +71,7 @@ function ImageNode({ data, id, selected, ...rest }: NodeProps) {
         ) : (
           <button
             onClick={handleButtonClick}
-            className="w-full h-[150px] border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center hover:border-gray-400 hover:bg-gray-50 transition-colors text-gray-500"
+            className="w-full h-full border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center hover:border-gray-500 hover:bg-gray-50 transition-colors text-gray-500"
           >
             <ImageIcon className="text-3xl mb-2" />
             <span className="text-sm">点击上传图片</span>
