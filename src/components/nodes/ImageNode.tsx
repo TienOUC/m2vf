@@ -14,6 +14,7 @@ export interface ImageNodeData {
   imageUrl?: string;
   onTypeChange?: (nodeId: string, newType: 'text' | 'image' | 'video') => void;
   onDelete?: (nodeId: string) => void;
+  onReplace?: (nodeId: string) => void;
 }
 
 function ImageNode({ data, id, selected, ...rest }: NodeProps) {
@@ -51,27 +52,22 @@ function ImageNode({ data, id, selected, ...rest }: NodeProps) {
       id={id}
       selected={selected}
       nodeType="image"
+      onReplace={handleButtonClick}
       {...rest}
     >
       <div className='w-full h-full'>
         {imageUrl ? (
-          <div className="relative group h-full w-full">
+          <div className="h-full w-full">
             <img
               src={imageUrl}
               alt="上传的图片"
               className="w-full h-full object-contain rounded-md"
             />
-            <button
-              onClick={handleButtonClick}
-              className="absolute inset-0 bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-md text-sm"
-            >
-              更换图片
-            </button>
           </div>
         ) : (
           <button
             onClick={handleButtonClick}
-            className="w-full h-full border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center hover:border-gray-500 hover:bg-gray-50 transition-colors text-gray-500"
+            className="w-full h-full border-2 border-dashed border-gray-400 rounded-md flex flex-col items-center justify-center hover:border-gray-500 hover:bg-gray-50 transition-colors text-gray-500"
           >
             <ImageIcon className="text-3xl mb-2" />
             <span className="text-sm">点击上传图片</span>

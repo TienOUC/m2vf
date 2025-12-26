@@ -40,32 +40,6 @@ function FlowCanvas() {
   const [nodeId, setNodeId] = useState(1); // 用于生成唯一节点ID（从1开始）
   const { screenToFlowPosition } = useReactFlow();
 
-  // 节点类型切换回调
-  const handleTypeChange = useCallback(
-    (nodeId: string, newType: 'text' | 'image' | 'video') => {
-      setNodes((nds) =>
-        nds.map((node) => {
-          if (node.id === nodeId) {
-            return {
-              ...node,
-              type: newType,
-              data: {
-                ...node.data,
-                label: newType === 'text' ? '文本节点'
-                      : newType === 'image' ? '图片节点'
-                      : '视频节点',
-                onTypeChange: handleTypeChange,
-                onDelete: handleDelete,
-              },
-            };
-          }
-          return node;
-        })
-      );
-    },
-    [setNodes]
-  );
-
   // 节点删除回调
   const handleDelete = useCallback(
     (nodeId: string) => {
@@ -73,6 +47,50 @@ function FlowCanvas() {
       setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
     },
     [setNodes, setEdges]
+  );
+
+  // 节点类型切换回调
+  const handleTypeChange = useCallback(
+    (nodeId: string, newType: 'text' | 'image' | 'video') => {
+      setNodes((nds) =>
+        nds.map((node) => {
+          if (node.id === nodeId) {
+            const baseData = {
+              ...node.data,
+              label: newType === 'text' ? '文本节点'
+                    : newType === 'image' ? '图片节点'
+                    : '视频节点',
+              onTypeChange: handleTypeChange,
+              onDelete: handleDelete,
+            };
+            
+            // 为图片和视频节点添加onReplace回调
+            if (newType === 'image' || newType === 'video') {
+              return {
+                ...node,
+                type: newType,
+                data: {
+                  ...baseData,
+                  onReplace: (id: string) => {
+                    // 这里可以添加具体的替换逻辑
+                    console.log(`替换节点 ${id} 的文件`);
+                  },
+                },
+              };
+            }
+            
+            // 文本节点不需要onReplace回调
+            return {
+              ...node,
+              type: newType,
+              data: baseData,
+            };
+          }
+          return node;
+        })
+      );
+    },
+    [setNodes, handleDelete]
   );
 
   // 注册自定义节点类型
@@ -117,7 +135,7 @@ function FlowCanvas() {
         setNodeId((id) => id + 1);
       }
     },
-    [nodeId, setNodes, screenToFlowPosition, handleTypeChange]
+[nodeId, setNodes, screenToFlowPosition, handleTypeChange, handleDelete]
   );
 
   return (

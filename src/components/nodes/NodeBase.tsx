@@ -6,6 +6,9 @@ import { NodeData } from '../../hooks/useNodeBase';
 export interface BaseNodeProps extends NodeProps {
   children: React.ReactNode;
   nodeType: 'text' | 'image' | 'video';
+  icon?: React.ReactNode;
+  title?: string;
+  onReplace?: (nodeId: string) => void;
 }
 
 export function NodeBase({ 
@@ -14,6 +17,9 @@ export function NodeBase({
   selected, 
   children, 
   nodeType,
+  icon,
+  title,
+  onReplace,
   ...rest
 }: BaseNodeProps) {
   const nodeData = data as NodeData;
@@ -28,12 +34,13 @@ export function NodeBase({
         nodeId={id}
         onTypeChange={nodeData?.onTypeChange}
         onDelete={nodeData?.onDelete}
+        onReplace={onReplace}
         selected={selected}
         type={nodeType}
       />
       
       {/* 节点内容 */}
-      <div className="w-full h-full p-1 flex items-center justify-center">
+      <div className="w-full h-full p-2 flex items-center justify-center">
         {children}
       </div>
       

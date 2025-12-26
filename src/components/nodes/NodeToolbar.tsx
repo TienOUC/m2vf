@@ -6,6 +6,7 @@ export interface NodeToolbarProps {
   nodeId: string;
   onTypeChange?: (nodeId: string, newType: 'text' | 'image' | 'video') => void;
   onDelete?: (nodeId: string) => void;
+  onReplace?: (nodeId: string) => void;
   selected?: boolean;
   type?: 'text' | 'image' | 'video';
 }
@@ -14,6 +15,7 @@ const NodeToolbar = ({
   nodeId, 
   onTypeChange, 
   onDelete, 
+  onReplace,
   selected = false, 
   type = 'text' 
 }: NodeToolbarProps) => {
@@ -26,6 +28,12 @@ const NodeToolbar = ({
   const handleDelete = () => {
     if (onDelete) {
       onDelete(nodeId);
+    }
+  };
+
+  const handleReplace = () => {
+    if (onReplace) {
+      onReplace(nodeId);
     }
   };
 
@@ -83,6 +91,17 @@ const NodeToolbar = ({
           ))}
         </div>
       </div>
+      
+      {/* 更换文件按钮 - 仅对图片和视频节点显示 */}
+      {(type === 'image' || type === 'video') && (
+        <button
+          onClick={handleReplace}
+          className="w-8 h-8 p-1 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-md transition-colors"
+          aria-label="更换文件"
+        >
+          {type === 'image' ? <ImageIcon fontSize="small" /> : <VideoFile fontSize="small" />}
+        </button>
+      )}
       
       {/* 删除按钮 */}
       <button

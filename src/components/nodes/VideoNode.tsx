@@ -14,6 +14,7 @@ export interface VideoNodeData {
   videoUrl?: string;
   onTypeChange?: (nodeId: string, newType: 'text' | 'image' | 'video') => void;
   onDelete?: (nodeId: string) => void;
+  onReplace?: (nodeId: string) => void;
 }
 
 function VideoNode({ data, id, selected, ...rest }: NodeProps) {
@@ -53,29 +54,24 @@ function VideoNode({ data, id, selected, ...rest }: NodeProps) {
       icon={<VideoFile fontSize="small" className="text-gray-500" />}
       title="视频"
       nodeType="video"
+      onReplace={handleButtonClick}
       {...rest}
     >
-      <div>
+      <div className='w-full h-full'>
         {videoUrl ? (
-          <div className="relative group">
+          <div className="h-full w-full">
             <video
               src={videoUrl}
               controls
-              className="w-full h-auto max-h-[200px] rounded-md border border-gray-200 bg-gray-900"
+              className="w-full h-full object-contain rounded-md"
             >
               您的浏览器不支持视频播放
             </video>
-            <button
-              onClick={handleButtonClick}
-              className="mt-2 w-full px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 transition-colors"
-            >
-              更换视频
-            </button>
           </div>
         ) : (
           <button
             onClick={handleButtonClick}
-            className="w-full h-[150px] border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center hover:border-gray-400 hover:bg-gray-50 transition-colors text-gray-500"
+            className="w-full h-full border-2 border-dashed border-gray-400 rounded-md flex flex-col items-center justify-center hover:border-gray-500 hover:bg-gray-50 transition-colors text-gray-500"
           >
             <VideoFile className="text-3xl mb-2" />
             <span className="text-sm">点击上传视频</span>
