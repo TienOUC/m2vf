@@ -1,13 +1,14 @@
 'use client';
 
 import { memo, useState } from 'react';
-import { Handle, Position } from '@xyflow/react';
+import { Handle, Position, NodeResizeControl } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { VideoFile, SwapHoriz, Close, TextFields, Image as ImageIcon } from '@mui/icons-material';
 import NodeToolbar from './NodeToolbar';
 import { useFileUpload } from '../../hooks/useFileUpload';
 import { useNodeBase } from '../../hooks/useNodeBase';
 import { NodeBase } from './NodeBase';
+import ResizeIcon from './ResizeIcon';
 
 export interface VideoNodeData {
   label?: string;
@@ -46,6 +47,11 @@ function VideoNode({ data, id, selected, ...rest }: NodeProps) {
     });
   };
 
+  const controlStyle = {
+    background: 'transparent',
+    border: 'none',
+  };
+
   return (
     <NodeBase
       data={data}
@@ -57,6 +63,9 @@ function VideoNode({ data, id, selected, ...rest }: NodeProps) {
       onReplace={handleButtonClick}
       {...rest}
     >
+      <NodeResizeControl style={controlStyle} minWidth={100} minHeight={50}>
+        <ResizeIcon className="absolute right-1 bottom-1" />
+      </NodeResizeControl>
       <div className='w-full h-full'>
         {videoUrl ? (
           <div className="h-full w-full">
@@ -88,5 +97,7 @@ function VideoNode({ data, id, selected, ...rest }: NodeProps) {
     </NodeBase>
   );
 }
+
+
 
 export default memo(VideoNode);

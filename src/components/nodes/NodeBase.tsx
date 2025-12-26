@@ -25,7 +25,7 @@ export function NodeBase({
   const nodeData = data as NodeData;
   
   return (
-    <div className="bg-white rounded-lg w-[240px] h-[160px] relative transition-colors duration-150 shadow-sm hover:shadow-md" {...rest}>
+    <div className="bg-white rounded-lg w-full h-full relative transition-colors duration-150 shadow-sm hover:shadow-md" style={{ minWidth: '240px', minHeight: '160px' }} {...rest}>
       {/* 输入连接点 */}
       <Handle type="target" position={Position.Top} className="w-3 h-3 bg-gray-800" isConnectable={true} />
       

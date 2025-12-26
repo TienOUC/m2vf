@@ -1,9 +1,11 @@
 'use client';
 
 import { memo, useState, useCallback } from 'react';
+import { NodeResizeControl } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { useNodeBase } from '../../hooks/useNodeBase';
 import { NodeBase } from './NodeBase';
+import ResizeIcon from './ResizeIcon';
 
 export interface TextNodeData {
   label?: string;
@@ -23,6 +25,11 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
     setContent(e.target.value);
   }, []);
 
+  const controlStyle = {
+    background: 'transparent',
+    border: 'none',
+  };
+
   return (
     <NodeBase
       data={data}
@@ -31,6 +38,9 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
       nodeType="text"
       {...rest}
     >
+      <NodeResizeControl style={controlStyle} minWidth={100} minHeight={50}>
+        <ResizeIcon className="absolute right-1 bottom-1" />
+      </NodeResizeControl>
       <div className="w-full h-full">
         <textarea
           value={content}

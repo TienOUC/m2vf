@@ -1,13 +1,14 @@
 'use client';
 
 import { memo, useState } from 'react';
-import { Handle, Position } from '@xyflow/react';
+import { Handle, Position, NodeResizeControl } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { Image as ImageIcon, SwapHoriz, Close, TextFields, VideoFile } from '@mui/icons-material';
 import NodeToolbar from './NodeToolbar';
 import { useFileUpload } from '../../hooks/useFileUpload';
 import { useNodeBase } from '../../hooks/useNodeBase';
 import { NodeBase } from './NodeBase';
+import ResizeIcon from './ResizeIcon';
 
 export interface ImageNodeData {
   label?: string;
@@ -46,6 +47,11 @@ function ImageNode({ data, id, selected, ...rest }: NodeProps) {
     });
   };
 
+  const controlStyle = {
+    background: 'transparent',
+    border: 'none',
+  };
+
   return (
     <NodeBase
       data={data}
@@ -55,6 +61,9 @@ function ImageNode({ data, id, selected, ...rest }: NodeProps) {
       onReplace={handleButtonClick}
       {...rest}
     >
+      <NodeResizeControl style={controlStyle} minWidth={100} minHeight={50}>
+        <ResizeIcon className="absolute right-1 bottom-1" />
+      </NodeResizeControl>
       <div className='w-full h-full'>
         {imageUrl ? (
           <div className="h-full w-full">
