@@ -65,7 +65,11 @@ export default function LeftSidebar({
   };
 
   return (
-    <div className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm p-3 rounded-xl shadow-lg border border-gray-200 z-10 flex flex-col items-center gap-3">
+    <div
+      className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm p-3 rounded-xl shadow-lg border border-gray-200 z-10 flex flex-col items-center gap-3"
+      // 阻止侧边栏容器上的点击事件冒泡
+      onClick={(e) => e.stopPropagation()}
+    >
       {/* 添加按钮 */}
       <div className="relative">
         <SidebarButton

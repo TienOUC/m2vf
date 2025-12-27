@@ -37,6 +37,8 @@ export default function FloatingMenu({
     <div
       ref={menuRef}
       className={`absolute ${positionClasses[position]} bg-white rounded-lg shadow-xl border border-gray-200 ${width} z-20`}
+      // 阻止菜单内部的点击事件冒泡，避免误关闭
+      onClick={(e) => e.stopPropagation()}
     >
       <div className="p-2 bg-gray-100 rounded-t-lg">
         <span className="text-xs font-medium text-gray-600">{title}</span>

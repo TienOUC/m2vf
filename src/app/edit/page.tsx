@@ -184,6 +184,8 @@ function FlowCanvas() {
 
         addTextNode(position);
       }
+      // 单击事件：不需要额外处理，因为 useClickOutside 应该能处理
+      // 但如果 ReactFlow 阻止了事件冒泡，我们需要手动关闭菜单
     },
     [addTextNode, screenToFlowPosition]
   );
@@ -215,7 +217,9 @@ function FlowCanvas() {
       {/* 操作提示 */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-md border border-gray-200 z-10 flex items-center gap-2">
         <Add fontSize="small" />
-        <span className="text-sm text-gray-600">双击画布添加文本节点</span>
+        <span className="text-sm text-gray-600">
+          双击画布添加文本节点，点击节点工具栏切换按钮切换节点类型
+        </span>
       </div>
 
       {/* 左侧悬浮工具栏 */}

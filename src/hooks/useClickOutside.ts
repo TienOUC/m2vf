@@ -20,9 +20,10 @@ export function useClickOutside(
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    // 使用捕获阶段来确保能捕获到所有点击事件
+    document.addEventListener('mousedown', handleClickOutside, true);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside, true);
     };
   }, [refs, callback]);
 }
