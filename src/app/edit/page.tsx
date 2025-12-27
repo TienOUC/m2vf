@@ -2,10 +2,10 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { getUserProfile } from '@/lib/api/auth';
-import { isUserLoggedIn } from '@/lib/utils/token';
-import { ROUTES } from '@/lib/config/api.config';
+// import { useRouter } from 'next/navigation';
+// import { getUserProfile } from '@/lib/api/auth';
+// import { isUserLoggedIn } from '@/lib/utils/token';
+// import { ROUTES } from '@/lib/config/api.config';
 import Navbar from '@/components/layout/Navbar';
 import LeftSidebar from '@/components/layout/LeftSidebar';
 import { TextNode, ImageNode, VideoNode, AudioNode } from '@/components/nodes';
@@ -183,53 +183,56 @@ function FlowCanvas() {
 }
 
 export default function EditPage() {
-  const router = useRouter();
+  // const router = useRouter();
   const [user, setUser] = useState<{ name: string; email: string } | null>(
-    null
+    { name: 'Guest User', email: 'guest@example.com' } // 模拟用户数据
   );
-  const [isLoading, setIsLoading] = useState(true);
-  const [authChecked, setAuthChecked] = useState(false); // 新增状态来跟踪认证检查是否完成
+  // const [isLoading, setIsLoading] = useState(true);
+  // const [authChecked, setAuthChecked] = useState(false); // 新增状态来跟踪认证检查是否完成
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      // 先检查本地是否有 token
-      if (!isUserLoggedIn()) {
-        console.warn('未找到 token，跳转到登录页');
-        router.replace(`${ROUTES.LOGIN}?redirect=${ROUTES.EDIT}`);
-        setAuthChecked(true); // 设置认证检查完成，避免显示页面内容
-        return;
-      }
+  // useEffect(() => {
+  //   const checkAuth = async () => {
+  //     // 先检查本地是否有 token
+  //     if (!isUserLoggedIn()) {
+  //       console.warn('未找到 token，跳转到登录页');
+  //       router.replace(`${ROUTES.LOGIN}?redirect=${ROUTES.EDIT}`);
+  //       setAuthChecked(true); // 设置认证检查完成，避免显示页面内容
+  //       return;
+  //     }
 
-      try {
-        const response = await getUserProfile();
-        if (response.ok) {
-          const userData = await response.json();
-          setUser(userData);
-        } else {
-          throw new Error('未认证');
-        }
-      } catch (error) {
-        // 如果后端返回未认证，跳转到登录页
-        console.warn('用户未认证，跳转到登录页');
-        router.replace(`${ROUTES.LOGIN}?redirect=${ROUTES.EDIT}`);
-      } finally {
-        setIsLoading(false);
-        setAuthChecked(true); // 设置认证检查完成
-      }
-    };
+  //     try {
+  //       const response = await getUserProfile();
+  //       if (response.ok) {
+  //         const userData = await response.json();
+  //         setUser(userData);
+  //       } else {
+  //         throw new Error('未认证');
+  //       }
+  //     } catch (error) {
+  //       // 如果后端返回未认证，跳转到登录页
+  //       console.warn('用户未认证，跳转到登录页');
+  //       router.replace(`${ROUTES.LOGIN}?redirect=${ROUTES.EDIT}`);
+  //     } finally {
+  //       setIsLoading(false);
+  //       setAuthChecked(true); // 设置认证检查完成
+  //     }
+  //   };
 
-    checkAuth();
-  }, [router]);
+  //   checkAuth();
+  // }, [router]);
 
-  // 在认证检查完成前不渲染任何内容，让全局loading组件处理
-  if (!authChecked) {
-    return null; // 让Next.js的loading组件处理加载状态
-  }
+  // 模拟认证检查已完成
+  const authChecked = true;
 
-  // 如果认证失败，已经重定向，这里也返回null
-  if (!isUserLoggedIn() || !authChecked) {
-    return null;
-  }
+  // // 在认证检查完成前不渲染任何内容，让全局loading组件处理
+  // if (!authChecked) {
+  //   return null; // 让Next.js的loading组件处理加载状态
+  // }
+
+  // // 如果认证失败，已经重定向，这里也返回null
+  // if (!isUserLoggedIn() || !authChecked) {
+  //   return null;
+  // }
 
   return (
     <div className="h-screen flex flex-col">
