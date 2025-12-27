@@ -11,24 +11,31 @@ export interface BaseNodeProps extends NodeProps {
   onReplace?: (nodeId: string) => void;
 }
 
-export function NodeBase({ 
-  data, 
-  id, 
-  selected, 
-  children, 
+export function NodeBase({
+  data,
+  id,
+  selected,
+  children,
   nodeType,
-  icon,
-  title,
   onReplace,
   ...rest
 }: BaseNodeProps) {
   const nodeData = data as NodeData;
-  
+
   return (
-    <div className="bg-white rounded-lg w-full h-full relative transition-colors duration-150 shadow-sm hover:shadow-md" style={{ minWidth: '240px', minHeight: '160px' }} {...rest}>
+    <div
+      className="bg-white rounded-lg w-full h-full relative transition-colors duration-150 shadow-sm hover:shadow-md"
+      style={{ minWidth: '240px', minHeight: '160px' }}
+      {...rest}
+    >
       {/* 输入连接点 */}
-      <Handle type="target" position={Position.Left} className="w-3 h-3 bg-gray-800" isConnectable={true} />
-      
+      <Handle
+        type="target"
+        position={Position.Left}
+        className="w-3 h-3 bg-gray-800"
+        isConnectable={true}
+      />
+
       {/* 节点工具栏 */}
       <NodeToolbar
         nodeId={id}
@@ -38,14 +45,19 @@ export function NodeBase({
         selected={selected}
         type={nodeType}
       />
-      
+
       {/* 节点内容 */}
       <div className="w-full h-full p-2 flex items-center justify-center">
         {children}
       </div>
-      
+
       {/* 输出连接点 */}
-      <Handle type="source" position={Position.Right} className="w-3 h-3 bg-gray-800" isConnectable={true} />
+      <Handle
+        type="source"
+        position={Position.Right}
+        className="w-3 h-3 bg-gray-800"
+        isConnectable={true}
+      />
     </div>
   );
 }
