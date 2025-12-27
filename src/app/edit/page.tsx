@@ -23,10 +23,16 @@ import {
   type Edge,
   BackgroundVariant,
   useReactFlow,
-  ReactFlowProvider,
+  ReactFlowProvider
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Add, TextFields, Image as ImageIcon, VideoFile, Audiotrack } from '@mui/icons-material';
+import {
+  Add,
+  TextFields,
+  Image as ImageIcon,
+  VideoFile,
+  Audiotrack
+} from '@mui/icons-material';
 
 // 初始节点（空数组，画布初始为空）
 const initialNodes: Node[] = [];
@@ -46,7 +52,9 @@ function FlowCanvas() {
   const handleDelete = useCallback(
     (nodeId: string) => {
       setNodes((nds) => nds.filter((node) => node.id !== nodeId));
-      setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
+      setEdges((eds) =>
+        eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)
+      );
     },
     [setNodes, setEdges]
   );
@@ -59,16 +67,24 @@ function FlowCanvas() {
           if (node.id === nodeId) {
             const baseData = {
               ...node.data,
-              label: newType === 'text' ? '文本节点'
-                    : newType === 'image' ? '图片节点'
-                    : newType === 'video' ? '视频节点'
-                    : '音频节点',
+              label:
+                newType === 'text'
+                  ? '文本节点'
+                  : newType === 'image'
+                  ? '图片节点'
+                  : newType === 'video'
+                  ? '视频节点'
+                  : '音频节点',
               onTypeChange: handleTypeChange,
-              onDelete: handleDelete,
+              onDelete: handleDelete
             };
-            
+
             // 为图片、视频和音频节点添加onReplace回调
-            if (newType === 'image' || newType === 'video' || newType === 'audio') {
+            if (
+              newType === 'image' ||
+              newType === 'video' ||
+              newType === 'audio'
+            ) {
               return {
                 ...node,
                 type: newType,
@@ -77,16 +93,16 @@ function FlowCanvas() {
                   onReplace: (id: string) => {
                     // 这里可以添加具体的替换逻辑
                     console.log(`替换节点 ${id} 的文件`);
-                  },
-                },
+                  }
+                }
               };
             }
-            
+
             // 文本节点不需要onReplace回调
             return {
               ...node,
               type: newType,
-              data: baseData,
+              data: baseData
             };
           }
           return node;
@@ -102,7 +118,7 @@ function FlowCanvas() {
       text: TextNode,
       image: ImageNode,
       video: VideoNode,
-      audio: AudioNode,
+      audio: AudioNode
     }),
     []
   );
@@ -114,13 +130,46 @@ function FlowCanvas() {
   );
 
   // 使用节点添加 hooks
-  const { addTextNode, addImageNode, addVideoNode, addAudioNode } = useNodeAddition({
-    nodeId,
-    setNodeId,
-    setNodes,
-    handleTypeChange,
-    handleDelete,
-  });
+  const { addTextNode, addImageNode, addVideoNode, addAudioNode } =
+    useNodeAddition({
+      nodeId,
+      setNodeId,
+      setNodes,
+      handleTypeChange,
+      handleDelete
+    });
+
+  // 资产库上传功能回调
+  const handleUploadFile = useCallback(() => {
+    console.log('上传文件功能');
+    // 这里可以添加文件上传逻辑
+    alert('上传文件功能即将实现');
+  }, []);
+
+  const handleUploadImage = useCallback(() => {
+    console.log('上传图片功能');
+    // 这里可以添加图片上传逻辑
+    alert('上传图片功能即将实现');
+  }, []);
+
+  const handleUploadVideo = useCallback(() => {
+    console.log('上传视频功能');
+    // 这里可以添加视频上传逻辑
+    alert('上传视频功能即将实现');
+  }, []);
+
+  const handleUploadAudio = useCallback(() => {
+    console.log('上传音频功能');
+    // 这里可以添加音频上传逻辑
+    alert('上传音频功能即将实现');
+  }, []);
+
+  // 查看所有资产功能回调
+  const handleViewAllAssets = useCallback(() => {
+    console.log('查看所有资产功能');
+    // 这里可以添加查看所有资产的逻辑
+    alert('查看所有资产功能即将实现');
+  }, []);
 
   // 双击画布添加节点（默认添加文本节点）
   const handlePaneClick = useCallback(
@@ -130,9 +179,9 @@ function FlowCanvas() {
         // 将屏幕坐标转换为流程图坐标（考虑缩放和平移）
         const position = screenToFlowPosition({
           x: event.clientX,
-          y: event.clientY,
+          y: event.clientY
         });
-        
+
         addTextNode(position);
       }
     },
@@ -162,21 +211,24 @@ function FlowCanvas() {
       <Controls />
       {/* 缩略图 */}
       <MiniMap />
-      
+
       {/* 操作提示 */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-md border border-gray-200 z-10 flex items-center gap-2">
         <Add fontSize="small" />
-        <span className="text-sm text-gray-600">
-          双击画布添加文本节点
-        </span>
+        <span className="text-sm text-gray-600">双击画布添加文本节点</span>
       </div>
-      
+
       {/* 左侧悬浮工具栏 */}
       <LeftSidebar
         onAddTextNode={addTextNode}
         onAddImageNode={addImageNode}
         onAddVideoNode={addVideoNode}
         onAddAudioNode={addAudioNode}
+        onUploadFile={handleUploadFile}
+        onUploadImage={handleUploadImage}
+        onUploadVideo={handleUploadVideo}
+        onUploadAudio={handleUploadAudio}
+        onViewAllAssets={handleViewAllAssets}
       />
     </ReactFlow>
   );
