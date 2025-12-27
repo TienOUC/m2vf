@@ -1,12 +1,10 @@
 'use client';
 
-import { memo, useState } from 'react';
-import { Handle, Position, NodeResizeControl } from '@xyflow/react';
+import { memo, useEffect } from 'react';
+import { NodeResizeControl } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
-import { VideoFile, SwapHoriz, Close, TextFields, Image as ImageIcon } from '@mui/icons-material';
-import NodeToolbar from './NodeToolbar';
+import { VideoFile } from '@mui/icons-material';
 import { useFileUpload } from '../../hooks/useFileUpload';
-import { useNodeBase } from '../../hooks/useNodeBase';
 import { NodeBase } from './NodeBase';
 import ResizeIcon from './ResizeIcon';
 
@@ -20,10 +18,7 @@ export interface VideoNodeData {
 
 function VideoNode({ data, id, selected, ...rest }: NodeProps) {
   const nodeData = data as VideoNodeData;
-  
-  // 使用公共 hook 处理基础节点逻辑
-  const { handleTypeChange, handleDelete } = useNodeBase(data, id);
-  
+
   // 使用公共 hook 处理文件上传
   const {
     fileInputRef,
@@ -32,14 +27,14 @@ function VideoNode({ data, id, selected, ...rest }: NodeProps) {
     handleFileSelect,
     handleButtonClick
   } = useFileUpload('video/');
-  
-  // 如果初始有视频 URL，使用它
-  useState(() => {
+
+  // 如果初始有视频 URL，使用它 - 修复为useEffect
+  useEffect(() => {
     if (nodeData?.videoUrl && !videoUrl) {
       setVideoUrl(nodeData.videoUrl);
     }
-  });
-  
+  }, [nodeData?.videoUrl, videoUrl, setVideoUrl]);
+
   // 视频选择回调，更新 videoUrl
   const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleFileSelect(e, (url) => {
@@ -49,7 +44,7 @@ function VideoNode({ data, id, selected, ...rest }: NodeProps) {
 
   const controlStyle = {
     background: 'transparent',
-    border: 'none',
+    border: 'none'
   };
 
   return (
@@ -66,7 +61,7 @@ function VideoNode({ data, id, selected, ...rest }: NodeProps) {
       <NodeResizeControl style={controlStyle} minWidth={100} minHeight={50}>
         <ResizeIcon className="absolute right-1 bottom-1" />
       </NodeResizeControl>
-      <div className='w-full h-full'>
+      <div className="absolute inset-0 p-2">
         {videoUrl ? (
           <div className="h-full w-full">
             <video
@@ -97,7 +92,5 @@ function VideoNode({ data, id, selected, ...rest }: NodeProps) {
     </NodeBase>
   );
 }
-
-
 
 export default memo(VideoNode);

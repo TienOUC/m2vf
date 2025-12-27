@@ -3,7 +3,6 @@
 import { memo, useState, useCallback } from 'react';
 import { NodeResizeControl } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
-import { useNodeBase } from '../../hooks/useNodeBase';
 import { NodeBase } from './NodeBase';
 import ResizeIcon from './ResizeIcon';
 
@@ -17,9 +16,6 @@ export interface TextNodeData {
 function TextNode({ data, id, selected, ...rest }: NodeProps) {
   const nodeData = data as TextNodeData;
   const [content, setContent] = useState(nodeData?.content || '');
-
-  // 使用公共 hook 处理基础节点逻辑
-  const { handleTypeChange, handleDelete } = useNodeBase(data, id);
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {

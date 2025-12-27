@@ -1,14 +1,13 @@
 'use client';
 
-import { memo, useState } from 'react';
-import { Handle, Position, NodeResizeControl } from '@xyflow/react';
+import { memo, useEffect } from 'react';
+import { NodeResizeControl } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
-import { Image as ImageIcon, SwapHoriz, Close, TextFields, VideoFile } from '@mui/icons-material';
-import NodeToolbar from './NodeToolbar';
+import { Image as ImageIcon } from '@mui/icons-material';
 import { useFileUpload } from '../../hooks/useFileUpload';
-import { useNodeBase } from '../../hooks/useNodeBase';
 import { NodeBase } from './NodeBase';
 import ResizeIcon from './ResizeIcon';
+import Image from 'next/image';
 
 export interface ImageNodeData {
   label?: string;
@@ -20,10 +19,7 @@ export interface ImageNodeData {
 
 function ImageNode({ data, id, selected, ...rest }: NodeProps) {
   const nodeData = data as ImageNodeData;
-  
-  // 使用公共 hook 处理基础节点逻辑
-  const { handleTypeChange, handleDelete } = useNodeBase(data, id);
-  
+
   // 使用公共 hook 处理文件上传
   const {
     fileInputRef,
@@ -32,14 +28,14 @@ function ImageNode({ data, id, selected, ...rest }: NodeProps) {
     handleFileSelect,
     handleButtonClick
   } = useFileUpload('image/');
-  
-  // 如果初始有图片 URL，使用它
-  useState(() => {
+
+  // 如果初始有图片 URL，使用它 - 修复为useEffect
+  useEffect(() => {
     if (nodeData?.imageUrl && !imageUrl) {
       setImageUrl(nodeData.imageUrl);
     }
-  });
-  
+  }, [nodeData?.imageUrl, imageUrl, setImageUrl]);
+
   // 图片选择回调，更新 imageUrl
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleFileSelect(e, (url) => {
@@ -49,7 +45,7 @@ function ImageNode({ data, id, selected, ...rest }: NodeProps) {
 
   const controlStyle = {
     background: 'transparent',
-    border: 'none',
+    border: 'none'
   };
 
   return (
@@ -64,13 +60,16 @@ function ImageNode({ data, id, selected, ...rest }: NodeProps) {
       <NodeResizeControl style={controlStyle} minWidth={100} minHeight={50}>
         <ResizeIcon className="absolute right-1 bottom-1" />
       </NodeResizeControl>
-      <div className='w-full h-full'>
+      <div className="absolute inset-0 p-2">
         {imageUrl ? (
-          <div className="h-full w-full">
-            <img
+          <div className="h-full w-full relative">
+            {' '}
+            {/* 添加 relative */}
+            <Image
               src={imageUrl}
               alt="上传的图片"
-              className="w-full h-full object-contain rounded-md"
+              fill
+              className="object-contain rounded-md"
             />
           </div>
         ) : (
