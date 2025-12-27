@@ -77,64 +77,6 @@ export default function Error({ error, reset }: ErrorProps) {
             </div>
           )}
         </div>
-
-        {/* 操作按钮 */}
-        <div className="space-y-4 mb-8">
-          <button
-            onClick={handleReset}
-            className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold text-lg px-8 py-3 rounded-xl shadow-lg hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-200"
-          >
-            重试操作
-          </button>
-
-          <button
-            onClick={handleReload}
-            className="block mx-auto text-blue-600 hover:text-blue-700 font-medium underline text-sm"
-          >
-            重新加载页面
-          </button>
-        </div>
-
-        {/* 故障排除建议 */}
-        <div className="bg-white/50 backdrop-blur-sm rounded-xl p-6 mb-8">
-          <h3 className="font-semibold text-gray-900 mb-4">故障排除建议</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-left">
-            <div className="space-y-2">
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                <span>检查网络连接</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                <span>清除浏览器缓存</span>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                <span>等待几分钟后重试</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                <span>联系技术支持</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 技术支持信息 */}
-        <div className="text-sm text-gray-500">
-          <p>
-            如果问题持续存在，请联系{' '}
-            <a
-              href="mailto:support@m2vflow.com"
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
-              技术支持
-            </a>
-          </p>
-          {error.digest && <p className="mt-1">错误ID: {error.digest}</p>}
-        </div>
       </div>
     </div>
   );

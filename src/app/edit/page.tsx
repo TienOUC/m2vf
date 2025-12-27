@@ -188,6 +188,7 @@ export default function EditPage() {
     null
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false); // 新增状态来跟踪认证检查是否完成
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -195,6 +196,7 @@ export default function EditPage() {
       if (!isUserLoggedIn()) {
         console.warn('未找到 token，跳转到登录页');
         router.replace(`${ROUTES.LOGIN}?redirect=${ROUTES.EDIT}`);
+        setAuthChecked(true); // 设置认证检查完成，避免显示页面内容
         return;
       }
 
@@ -212,21 +214,21 @@ export default function EditPage() {
         router.replace(`${ROUTES.LOGIN}?redirect=${ROUTES.EDIT}`);
       } finally {
         setIsLoading(false);
+        setAuthChecked(true); // 设置认证检查完成
       }
     };
 
     checkAuth();
   }, [router]);
 
-  if (isLoading) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">加载中...</p>
-        </div>
-      </div>
-    );
+  // 在认证检查完成前不渲染任何内容，让全局loading组件处理
+  if (!authChecked) {
+    return null; // 让Next.js的loading组件处理加载状态
+  }
+
+  // 如果认证失败，已经重定向，这里也返回null
+  if (!isUserLoggedIn() || !authChecked) {
+    return null;
   }
 
   return (

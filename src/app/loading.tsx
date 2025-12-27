@@ -6,10 +6,9 @@ export default function Loading() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              M2VFlow
+              M2VF
             </span>
           </h1>
-          <p className="text-gray-600">AI工作流编辑器</p>
         </div>
 
         {/* 加载动画 */}
@@ -28,36 +27,7 @@ export default function Loading() {
                 style={{ animationDirection: 'reverse' }}
               ></div>
             </div>
-          </div>
-
-          {/* 加载文本 */}
-          <div className="space-y-2">
-            <p className="text-gray-700 font-medium">正在加载...</p>
-            <div className="flex justify-center space-x-1">
-              <div
-                className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
-                style={{ animationDelay: '0ms' }}
-              ></div>
-              <div
-                className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
-                style={{ animationDelay: '150ms' }}
-              ></div>
-              <div
-                className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
-                style={{ animationDelay: '300ms' }}
-              ></div>
-            </div>
-          </div>
-
-          {/* 进度指示器 */}
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full animate-pulse"></div>
-          </div>
-        </div>
-
-        {/* 底部提示信息 */}
-        <div className="mt-8 text-sm text-gray-500">
-          <p>请稍等，正在为您准备最佳体验</p>
+          </div>  
         </div>
       </div>
     </div>
