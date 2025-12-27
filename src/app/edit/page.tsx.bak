@@ -2,12 +2,14 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { getUserProfile } from '@/lib/api/auth';
-import { isUserLoggedIn } from '@/lib/utils/token';
-import { ROUTES } from '@/lib/config/api.config';
+// import { useRouter } from 'next/navigation';
+// import { getUserProfile } from '@/lib/api/auth';
+// import { isUserLoggedIn } from '@/lib/utils/token';
+// import { ROUTES } from '@/lib/config/api.config';
 import Navbar from '@/components/layout/Navbar';
-import { TextNode, ImageNode, VideoNode } from '@/components/nodes';
+import LeftSidebar from '@/components/layout/LeftSidebar';
+import { TextNode, ImageNode, VideoNode, AudioNode } from '@/components/nodes';
+import { useNodeAddition } from '@/hooks/useNodeAddition';
 import {
   ReactFlow,
   Background,
@@ -24,7 +26,7 @@ import {
   ReactFlowProvider,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Add, TextFields, Image as ImageIcon, VideoFile } from '@mui/icons-material';
+import { Add, TextFields, Image as ImageIcon, VideoFile, Audiotrack } from '@mui/icons-material';
 
 // 初始节点（空数组，画布初始为空）
 const initialNodes: Node[] = [];
@@ -40,32 +42,6 @@ function FlowCanvas() {
   const [nodeId, setNodeId] = useState(1); // 用于生成唯一节点ID（从1开始）
   const { screenToFlowPosition } = useReactFlow();
 
-  // 节点类型切换回调
-  const handleTypeChange = useCallback(
-    (nodeId: string, newType: 'text' | 'image' | 'video') => {
-      setNodes((nds) =>
-        nds.map((node) => {
-          if (node.id === nodeId) {
-            return {
-              ...node,
-              type: newType,
-              data: {
-                ...node.data,
-                label: newType === 'text' ? '文本节点'
-                      : newType === 'image' ? '图片节点'
-                      : '视频节点',
-                onTypeChange: handleTypeChange,
-                onDelete: handleDelete,
-              },
-            };
-          }
-          return node;
-        })
-      );
-    },
-    [setNodes]
-  );
-
   // 节点删除回调
   const handleDelete = useCallback(
     (nodeId: string) => {
@@ -75,12 +51,58 @@ function FlowCanvas() {
     [setNodes, setEdges]
   );
 
+  // 节点类型切换回调
+  const handleTypeChange = useCallback(
+    (nodeId: string, newType: 'text' | 'image' | 'video' | 'audio') => {
+      setNodes((nds) =>
+        nds.map((node) => {
+          if (node.id === nodeId) {
+            const baseData = {
+              ...node.data,
+              label: newType === 'text' ? '文本节点'
+                    : newType === 'image' ? '图片节点'
+                    : newType === 'video' ? '视频节点'
+                    : '音频节点',
+              onTypeChange: handleTypeChange,
+              onDelete: handleDelete,
+            };
+            
+            // 为图片、视频和音频节点添加onReplace回调
+            if (newType === 'image' || newType === 'video' || newType === 'audio') {
+              return {
+                ...node,
+                type: newType,
+                data: {
+                  ...baseData,
+                  onReplace: (id: string) => {
+                    // 这里可以添加具体的替换逻辑
+                    console.log(`替换节点 ${id} 的文件`);
+                  },
+                },
+              };
+            }
+            
+            // 文本节点不需要onReplace回调
+            return {
+              ...node,
+              type: newType,
+              data: baseData,
+            };
+          }
+          return node;
+        })
+      );
+    },
+    [setNodes, handleDelete]
+  );
+
   // 注册自定义节点类型
   const nodeTypes = useMemo(
     () => ({
       text: TextNode,
       image: ImageNode,
       video: VideoNode,
+      audio: AudioNode,
     }),
     []
   );
@@ -90,6 +112,15 @@ function FlowCanvas() {
     (params) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
   );
+
+  // 使用节点添加 hooks
+  const { addTextNode, addImageNode, addVideoNode, addAudioNode } = useNodeAddition({
+    nodeId,
+    setNodeId,
+    setNodes,
+    handleTypeChange,
+    handleDelete,
+  });
 
   // 双击画布添加节点（默认添加文本节点）
   const handlePaneClick = useCallback(
@@ -101,23 +132,11 @@ function FlowCanvas() {
           x: event.clientX,
           y: event.clientY,
         });
-
-        const newNode: Node = {
-          id: `node-${nodeId}`,
-          type: 'text', // 默认添加文本节点
-          position,
-          data: { 
-            label: '文本节点',
-            onTypeChange: handleTypeChange,
-            onDelete: handleDelete,
-          },
-        };
-
-        setNodes((nds) => nds.concat(newNode));
-        setNodeId((id) => id + 1);
+        
+        addTextNode(position);
       }
     },
-    [nodeId, setNodes, screenToFlowPosition, handleTypeChange]
+    [addTextNode, screenToFlowPosition]
   );
 
   return (
@@ -130,6 +149,7 @@ function FlowCanvas() {
       onPaneClick={handlePaneClick}
       nodeTypes={nodeTypes}
       fitView
+      proOptions={{ hideAttribution: true }}
     >
       {/* 点状背景 */}
       <Background
@@ -150,57 +170,69 @@ function FlowCanvas() {
           双击画布添加文本节点
         </span>
       </div>
+      
+      {/* 左侧悬浮工具栏 */}
+      <LeftSidebar
+        onAddTextNode={addTextNode}
+        onAddImageNode={addImageNode}
+        onAddVideoNode={addVideoNode}
+        onAddAudioNode={addAudioNode}
+      />
     </ReactFlow>
   );
 }
 
 export default function EditPage() {
-  const router = useRouter();
+  // const router = useRouter();
   const [user, setUser] = useState<{ name: string; email: string } | null>(
-    null
+    { name: 'Guest User', email: 'guest@example.com' } // 模拟用户数据
   );
-  const [isLoading, setIsLoading] = useState(true);
+  // const [isLoading, setIsLoading] = useState(true);
+  // const [authChecked, setAuthChecked] = useState(false); // 新增状态来跟踪认证检查是否完成
 
-  useEffect(() => {
-    // 组件加载时检查用户是否已认证
-    const checkAuth = async () => {
-      // 先检查本地是否有 token
-      if (!isUserLoggedIn()) {
-        console.warn('未找到 token，跳转到登录页');
-        router.replace(`${ROUTES.LOGIN}?redirect=${ROUTES.EDIT}`);
-        return;
-      }
+  // useEffect(() => {
+  //   const checkAuth = async () => {
+  //     // 先检查本地是否有 token
+  //     if (!isUserLoggedIn()) {
+  //       console.warn('未找到 token，跳转到登录页');
+  //       router.replace(`${ROUTES.LOGIN}?redirect=${ROUTES.EDIT}`);
+  //       setAuthChecked(true); // 设置认证检查完成，避免显示页面内容
+  //       return;
+  //     }
 
-      try {
-        const response = await getUserProfile();
-        if (response.ok) {
-          const userData = await response.json();
-          setUser(userData);
-        } else {
-          throw new Error('未认证');
-        }
-      } catch (error) {
-        // 如果后端返回未认证，跳转到登录页
-        console.warn('用户未认证，跳转到登录页');
-        router.replace(`${ROUTES.LOGIN}?redirect=${ROUTES.EDIT}`);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  //     try {
+  //       const response = await getUserProfile();
+  //       if (response.ok) {
+  //         const userData = await response.json();
+  //         setUser(userData);
+  //       } else {
+  //         throw new Error('未认证');
+  //       }
+  //     } catch (error) {
+  //       // 如果后端返回未认证，跳转到登录页
+  //       console.warn('用户未认证，跳转到登录页');
+  //       router.replace(`${ROUTES.LOGIN}?redirect=${ROUTES.EDIT}`);
+  //     } finally {
+  //       setIsLoading(false);
+  //       setAuthChecked(true); // 设置认证检查完成
+  //     }
+  //   };
 
-    checkAuth();
-  }, [router]);
+  //   checkAuth();
+  // }, [router]);
 
-  if (isLoading) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">加载中...</p>
-        </div>
-      </div>
-    );
-  }
+  // 模拟认证检查已完成
+  const authChecked = true;
+
+  // // 在认证检查完成前不渲染任何内容，让全局loading组件处理
+  // if (!authChecked) {
+  //   return null; // 让Next.js的loading组件处理加载状态
+  // }
+
+  // // 如果认证失败，已经重定向，这里也返回null
+  // if (!isUserLoggedIn() || !authChecked) {
+  //   return null;
+  // }
 
   return (
     <div className="h-screen flex flex-col">
