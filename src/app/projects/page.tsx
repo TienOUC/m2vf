@@ -212,7 +212,7 @@ export default function ProjectsPage() {
 
         {/* 项目列表 */}
         {isProjectLoading && (
-          <div className="flex items-center justify-center py-12">
+          <div className="fixed inset-0 flex items-center justify-center z-[1000] bg-white bg-opacity-70">
             <div className="relative w-16 h-16">
               {/* 外圈旋转动画 */}
               <div className="w-16 h-16 border-4 border-blue-200 rounded-full"></div>
