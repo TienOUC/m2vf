@@ -77,7 +77,7 @@ function AudioNode({ data, id, selected, ...rest }: NodeProps) {
             className="w-full h-full border border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center hover:border-gray-500 hover:bg-gray-50 transition-colors text-gray-500"
           >
             <Audiotrack className="text-3xl mb-2" />
-            <span className="text-sm">点击上传音频</span>
+            <span className="text-xs">点击上传音频</span>
           </button>
         )}
         <input

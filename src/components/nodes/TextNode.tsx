@@ -38,7 +38,7 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
         <textarea
           value={content}
           onChange={handleChange}
-          className="w-full h-full p-1 border border-gray-200 rounded-md focus:outline-none focus:ring-gray-200 focus:border-gray-300 resize-none text-sm transition-colors"
+          className="w-full h-full p-1 border border-gray-200 rounded-md focus:outline-none focus:ring-gray-200 focus:border-gray-300 resize-none text-xs transition-colors"
           placeholder="输入文本内容..."
         />
       </div>
