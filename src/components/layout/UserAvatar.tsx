@@ -41,10 +41,15 @@ export default function UserAvatar({ user }: UserAvatarProps) {
           <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-20">
             {/* 用户信息 */}
             <div className="px-4 py-3 border-b border-gray-100">
-              <p className="text-sm font-medium text-gray-900">
-                {user.name || '用户'}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">{user.email}</p>
+              <div className="flex items-center gap-2">
+                <Person fontSize="small" className="text-gray-600" />
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-gray-900">
+                    {user.name}
+                  </span>
+                  <span className="text-xs text-gray-700">{user.email}</span>
+                </div>
+              </div>
             </div>
 
             {/* 菜单项 */}

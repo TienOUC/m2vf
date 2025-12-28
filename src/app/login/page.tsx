@@ -174,7 +174,7 @@ export default function LoginPage() {
       if (response.access_token) {
         // 登录成功，跳转到目标页面
         setError('');
-        
+
         // 使用 replace 而不是 push，避免用户点击后退时回到登录页
         router.replace(redirectTo);
       } else {
@@ -252,7 +252,6 @@ export default function LoginPage() {
               <h2 className="text-3xl font-bold text-gray-900 mb-2">
                 欢迎回来
               </h2>
-              <p className="text-sm text-gray-600">登录以进入AI工作流编辑器</p>
             </div>
 
             <form className="space-y-6" onSubmit={handleSubmit}>

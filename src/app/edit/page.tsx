@@ -265,6 +265,7 @@ export default function EditPage() {
           throw new Error('未认证');
         }
       } catch (error) {
+        console.log(error);
         // 如果后端返回未认证，跳转到登录页
         console.warn('用户未认证，跳转到登录页');
         router.replace(`${ROUTES.LOGIN}?redirect=${ROUTES.EDIT}`);
