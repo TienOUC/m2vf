@@ -10,7 +10,7 @@ interface MessageProps {
 const Message: React.FC<MessageProps> = ({ 
   message, 
   type = 'info', 
-  duration = 1000, 
+  duration = 2000, 
   onClose 
 }) => {
   const [visible, setVisible] = useState(false);
