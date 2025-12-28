@@ -139,18 +139,18 @@ export default function ProjectsPage() {
         </div>
 
         {/* 项目列表 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {projects.map((project) => (
             <div 
               key={project.id} 
-              className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 border border-gray-200"
+              className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 border border-gray-200 flex flex-col h-64 group"
             >
               <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{project.name}</h3>
-                  <p className="text-gray-600 mt-2 text-sm">{project.description}</p>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900 truncate">{project.name}</h3>
+                  <p className="text-gray-600 mt-2 text-sm line-clamp-3">{project.description}</p>
                 </div>
-                <div className="flex space-x-2">
+                <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => handleEditProject(project.id)}
                     className="text-blue-600 hover:text-blue-800 p-1 rounded"
@@ -171,7 +171,7 @@ export default function ProjectsPage() {
                   </button>
                 </div>
               </div>
-              <div className="mt-4 text-xs text-gray-500">
+              <div className="mt-auto text-xs text-gray-500">
                 <p>创建时间: {new Date(project.created_at).toLocaleDateString()}</p>
                 <p>更新时间: {new Date(project.updated_at).toLocaleDateString()}</p>
               </div>
@@ -201,40 +201,47 @@ export default function ProjectsPage() {
         {pagination.totalPages > 1 && (
           <div className="mt-8 flex flex-col items-center">
             <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-700 mr-4">
+                共 {pagination.total} 条
+              </span>
+              
               <button
                 onClick={goToPrevPage}
                 disabled={pagination.page === 1}
-                className={`px-3 py-2 rounded-md ${pagination.page === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                className={`flex items-center justify-center w-8 h-8 p-1 rounded border ${pagination.page === 1 ? 'text-gray-400 border-gray-300 cursor-not-allowed' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}
               >
-                上一页
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
               </button>
               
-              <span className="text-gray-700">
-                第 {pagination.page} 页，共 {pagination.totalPages} 页
+              <span className="text-sm text-gray-700 mx-2">
+                {pagination.page} / {pagination.totalPages}
               </span>
               
               <button
                 onClick={goToNextPage}
                 disabled={pagination.page === pagination.totalPages}
-                className={`px-3 py-2 rounded-md ${pagination.page === pagination.totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                className={`flex items-center justify-center w-8 h-8 p-1 rounded border ${pagination.page === pagination.totalPages ? 'text-gray-400 border-gray-300 cursor-not-allowed' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}
               >
-                下一页
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </button>
-            </div>
-            
-            <div className="mt-4 flex items-center space-x-4 text-sm text-gray-600">
-              <span>每页显示：</span>
-              <select
-                value={pagination.pageSize}
-                onChange={(e) => setPageSize(Number(e.target.value))}
-                className="border border-gray-300 rounded px-2 py-1"
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-              </select>
-              <span>共 {pagination.total} 个项目</span>
+              
+              <div className="flex items-center ml-4">
+                <span className="text-sm text-gray-700 mr-2">每页</span>
+                <select
+                  value={pagination.pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  className="border border-gray-300 rounded text-sm px-2 py-1 h-8"
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={30}>30</option>
+                </select>
+                <span className="text-sm text-gray-700 ml-2">条</span>
+              </div>
             </div>
             
             <div className="mt-4 flex flex-wrap justify-center gap-1">
@@ -242,7 +249,7 @@ export default function ProjectsPage() {
                 <button
                   key={pageNum}
                   onClick={() => goToPage(pageNum)}
-                  className={`w-8 h-8 rounded-full ${pagination.page === pageNum ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  className={`w-8 h-8 text-sm ${pagination.page === pageNum ? 'bg-blue-600 text-white border border-blue-600' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
                 >
                   {pageNum}
                 </button>
