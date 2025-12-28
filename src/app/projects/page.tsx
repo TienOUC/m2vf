@@ -212,8 +212,19 @@ export default function ProjectsPage() {
 
         {/* 项目列表 */}
         {isProjectLoading && (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="flex items-center justify-center py-12">
+            <div className="relative w-16 h-16">
+              {/* 外圈旋转动画 */}
+              <div className="w-16 h-16 border-4 border-blue-200 rounded-full"></div>
+              <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
+              
+              {/* 内圈旋转动画 */}
+              <div className="w-8 h-8 border-2 border-purple-200 rounded-full absolute top-4 left-4"></div>
+              <div 
+                className="w-8 h-8 border-2 border-purple-600 border-b-transparent rounded-full animate-spin absolute top-4 left-4"
+                style={{ animationDirection: 'reverse' }}
+              ></div>
+            </div>
           </div>
         )}
         {!isProjectLoading && (
