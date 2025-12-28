@@ -14,7 +14,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: 'M2VFlow - AI工作流编辑器',
+  title: 'M2VF - AI工作流编辑器',
   description:
     '一个强大的AI工作流编辑器，帮助您轻松创建和管理复杂的多模态工作流程',
   icons: {
