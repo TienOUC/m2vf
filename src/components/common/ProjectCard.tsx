@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import ProjectEditModal from './ProjectEditModal';
-import ConfirmDialog from './ConfirmDialog';
 
 interface Project {
   id: number;
@@ -21,7 +20,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onEditProjec
   const [showEditModal, setShowEditModal] = useState(false);
   const [editProjectName, setEditProjectName] = useState(project.name);
   const [editProjectDescription, setEditProjectDescription] = useState(project.description);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
   const handleSaveProject = async () => {
     try {
@@ -41,16 +39,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onEditProjec
   
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setShowDeleteConfirm(true);
-  };
-  
-  const handleConfirmDelete = () => {
     onDelete(project.name);
-    setShowDeleteConfirm(false);
-  };
-  
-  const handleCancelDelete = () => {
-    setShowDeleteConfirm(false);
   };
   
   return (
@@ -99,16 +88,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onEditProjec
         onSave={handleSaveProject}
         onProjectNameChange={setEditProjectName}
         onProjectDescriptionChange={setEditProjectDescription}
-      />
-      
-      <ConfirmDialog
-        isOpen={showDeleteConfirm}
-        title="删除项目"
-        message={`确定要删除项目 "${project.name}" 吗？此操作无法撤销。`}
-        confirmText="确认删除"
-        cancelText="取消"
-        onConfirm={handleConfirmDelete}
-        onCancel={handleCancelDelete}
       />
     </>
   );

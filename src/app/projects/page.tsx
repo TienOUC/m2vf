@@ -13,6 +13,7 @@ import Paginator from '@/components/common/Paginator';
 import CreateProjectModal from '@/components/common/CreateProjectModal';
 import ProjectCard from '@/components/common/ProjectCard';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
+import Toast from '@/components/common/Toast';
 
 interface Project {
   id: number;
@@ -30,6 +31,7 @@ export default function ProjectsPage() {
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectDescription, setNewProjectDescription] = useState('');
   const [deleteConfirmProject, setDeleteConfirmProject] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   
   const {
     projects,
@@ -92,8 +94,20 @@ export default function ProjectsPage() {
       setNewProjectName('');
       setNewProjectDescription('');
       setShowCreateModal(false);
+      
+      // 显示成功消息
+      setToast({
+        message: `项目 "${newProjectName}" 创建成功`,
+        type: 'success'
+      });
     } catch (error) {
       console.error('创建项目错误:', error);
+      
+      // 显示错误消息
+      setToast({
+        message: '项目创建失败',
+        type: 'error'
+      });
     }
   };
 
@@ -105,8 +119,20 @@ export default function ProjectsPage() {
     if (deleteConfirmProject) {
       try {
         await deleteProjectAPI(deleteConfirmProject);
+        
+        // 显示成功消息
+        setToast({
+          message: `项目 "${deleteConfirmProject}" 删除成功`,
+          type: 'success'
+        });
       } catch (error) {
         console.error('删除项目错误:', error);
+        
+        // 显示错误消息
+        setToast({
+          message: '项目删除失败',
+          type: 'error'
+        });
       } finally {
         setDeleteConfirmProject(null);
       }
@@ -126,9 +152,20 @@ export default function ProjectsPage() {
       await updateProject(projectId, { name, description });
       // 重新获取项目列表以显示更新后的数据
       await fetchProjects(pagination.page, pagination.pageSize);
+      
+      // 显示成功消息
+      setToast({
+        message: `项目 "${name}" 更新成功`,
+        type: 'success'
+      });
     } catch (error) {
       console.error('更新项目信息失败:', error);
-      alert('更新项目信息失败');
+      
+      // 显示错误消息
+      setToast({
+        message: '更新项目信息失败',
+        type: 'error'
+      });
     }
   };
 
@@ -233,6 +270,15 @@ export default function ProjectsPage() {
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
       />
+      
+      {/* Toast消息提示 */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }
