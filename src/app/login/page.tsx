@@ -33,8 +33,8 @@ export default function LoginPage() {
     password: false
   });
 
-  // 获取跳转目标，默认为 edit 页面
-  const redirectTo = searchParams.get('redirect') || ROUTES.EDIT;
+  // 获取跳转目标，默认为项目管理页面
+  const redirectTo = searchParams.get('redirect') || ROUTES.PROJECTS;
 
   // 组件加载时检查是否已登录
   useEffect(() => {

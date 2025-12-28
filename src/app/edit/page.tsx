@@ -251,7 +251,7 @@ export default function EditPage() {
       // 先检查本地是否有 token
       if (!isUserLoggedIn()) {
         console.warn('未找到 token，跳转到登录页');
-        router.replace(`${ROUTES.LOGIN}?redirect=${ROUTES.EDIT}`);
+        router.replace(`${ROUTES.LOGIN}?redirect=${window.location.pathname}${window.location.search}`);
         setAuthChecked(true); // 设置认证检查完成，避免显示页面内容
         return;
       }
@@ -268,7 +268,7 @@ export default function EditPage() {
         console.log(error);
         // 如果后端返回未认证，跳转到登录页
         console.warn('用户未认证，跳转到登录页');
-        router.replace(`${ROUTES.LOGIN}?redirect=${ROUTES.EDIT}`);
+        router.replace(`${ROUTES.LOGIN}?redirect=${window.location.pathname}${window.location.search}`);
       } finally {
         setIsLoading(false);
         setAuthChecked(true); // 设置认证检查完成

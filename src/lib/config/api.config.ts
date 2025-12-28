@@ -106,6 +106,7 @@ export const API_ENDPOINTS = {
 export const ROUTES = {
   LOGIN: '/login',
   REGISTER: '/register',
+  PROJECTS: '/projects',
   EDIT: '/edit',
   EDITOR: '/editor',
   HOME: '/',
