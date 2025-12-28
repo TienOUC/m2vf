@@ -110,7 +110,7 @@ const Paginator: React.FC<PaginatorProps> = ({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-3 flex justify-center z-[100]">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-3 flex justify-center z-[10]">
       <div className="flex items-center space-x-2">
         <span className="text-sm text-gray-700 mr-4">
           共 {pagination.total} 条
