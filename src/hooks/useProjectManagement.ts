@@ -3,7 +3,8 @@ import {
   getProjects as getProjectsAPI, 
   createProject as createProjectAPI, 
   deleteProject as deleteProjectAPI,
-  getProjectDetail as getProjectDetailAPI
+  getProjectDetail as getProjectDetailAPI,
+  updateProject as updateProjectAPI
 } from '@/lib/api/projects';
 
 interface Project {
@@ -162,6 +163,35 @@ export const useProjectManagement = ({ initialProjects = [] }: UseProjectManagem
     }
   }, []);
 
+  // 更新项目
+  const updateProject = useCallback(async (projectId: string | number, projectData: { name: string; description: string }) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const response = await updateProjectAPI(projectId.toString(), projectData);
+      
+      if (response.ok) {
+        const result = await response.json().catch(() => ({}));
+        setSuccess('项目更新成功！');
+        
+        // 重新获取项目列表以包含更新的项目
+        await fetchProjects();
+        
+        return result;
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `更新项目失败: ${response.status}`);
+      }
+    } catch (err: any) {
+      setError(err.message || '更新项目时发生错误');
+      console.error('更新项目错误:', err);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchProjects]);
+  
   // 重置错误和成功消息
   const resetMessages = useCallback(() => {
     setError(null);
@@ -201,6 +231,7 @@ export const useProjectManagement = ({ initialProjects = [] }: UseProjectManagem
     createProject,
     deleteProject,
     getProjectDetail,
+    updateProject,
     resetMessages,
     goToPage,
     goToNextPage,

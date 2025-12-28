@@ -218,7 +218,8 @@ export default function ProjectsPage() {
           {projects.map((project) => (
             <div 
               key={project.id} 
-              className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 border border-gray-200 flex flex-col h-64 group"
+              className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 border border-gray-200 flex flex-col h-64 group cursor-pointer"
+              onClick={() => handleEditProject(project.id)}
             >
               <div className="flex justify-between items-start">
                 <div className="flex-1">
@@ -227,7 +228,10 @@ export default function ProjectsPage() {
                 </div>
                 <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
-                    onClick={() => handleEditProject(project.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditProject(project.id);
+                    }}
                     className="text-blue-600 hover:text-blue-800 p-1 rounded"
                     title="编辑项目"
                   >
@@ -236,7 +240,10 @@ export default function ProjectsPage() {
                     </svg>
                   </button>
                   <button
-                    onClick={() => handleDeleteProject(project.name)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteProject(project.name);
+                    }}
                     className="text-red-600 hover:text-red-800 p-1 rounded"
                     title="删除项目"
                   >

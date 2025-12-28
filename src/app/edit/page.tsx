@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { getUserProfile } from '@/lib/api/auth';
 import { isUserLoggedIn } from '@/lib/utils/token';
 import { ROUTES } from '@/lib/config/api.config';
@@ -10,6 +10,8 @@ import Navbar from '@/components/layout/Navbar';
 import LeftSidebar from '@/components/layout/LeftSidebar';
 import { TextNode, ImageNode, VideoNode, AudioNode } from '@/components/nodes';
 import { useNodeAddition } from '@/hooks/useNodeAddition';
+import { useProjectEditing } from '@/hooks/useProjectEditing';
+import ProjectEditModal from '@/components/common/ProjectEditModal';
 import {
   ReactFlow,
   Background,
@@ -240,12 +242,31 @@ function FlowCanvas() {
 
 export default function EditPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const projectId = searchParams.get('projectId');
+  
   const [user, setUser] = useState<{ name: string; email: string } | null>(
     { name: 'Guest User', email: 'guest@example.com' } // 模拟用户数据
   );
   const [isLoading, setIsLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false); // 新增状态来跟踪认证检查是否完成
-
+  const [projectDetail, setProjectDetail] = useState<any>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  
+  const { 
+    projectName: editProjectName, 
+    setProjectName,
+    projectDescription: editProjectDescription, 
+    setProjectDescription,
+    fetchProjectDetail,
+    updateProjectInfo,
+    resetForm,
+  } = useProjectEditing({
+    onProjectUpdate: (updatedProject) => {
+      setProjectDetail(updatedProject);
+    }
+  });
+  
   useEffect(() => {
     const checkAuth = async () => {
       // 先检查本地是否有 token
@@ -261,6 +282,12 @@ export default function EditPage() {
         if (response.ok) {
           const userData = await response.json();
           setUser(userData);
+          
+          // 如果有项目ID参数，获取项目详情
+          if (projectId) {
+            const projectData = await fetchProjectDetail(projectId);
+            setProjectDetail(projectData);
+          }
         } else {
           throw new Error('未认证');
         }
@@ -276,7 +303,7 @@ export default function EditPage() {
     };
 
     checkAuth();
-  }, [router]);
+  }, [router, projectId, fetchProjectDetail]);
 
   // 在认证检查完成前不渲染任何内容，让全局loading组件处理
   if (!authChecked) {
@@ -287,11 +314,38 @@ export default function EditPage() {
   if (!isUserLoggedIn() || !authChecked) {
     return null;
   }
+  
+  // 编辑项目信息的函数
+  const handleEditProject = async () => {
+    if (!projectId) return;
+    
+    try {
+      await updateProjectInfo(projectId);
+      
+      alert('项目信息更新成功！');
+      setShowEditModal(false);
+    } catch (error: any) {
+      console.error('更新项目信息错误:', error);
+      alert(`更新项目信息失败: ${error.message}`);
+    }
+  };
+  
+  // 打开编辑模态框的函数
+  const openEditModal = () => {
+    if (projectDetail) {
+      setProjectName(projectDetail.name);
+      setProjectDescription(projectDetail.description);
+      setShowEditModal(true);
+    }
+  };
 
   return (
     <div className="h-screen flex flex-col">
       {/* 顶部导航栏 */}
-      <Navbar user={user} />
+      <Navbar 
+        user={user} 
+        onEditProject={openEditModal}
+      />
 
       {/* 主编辑器区域 - ReactFlow画布 */}
       <main className="flex-1 bg-gray-50">
@@ -301,6 +355,20 @@ export default function EditPage() {
           </ReactFlowProvider>
         </div>
       </main>
+      
+      {/* 编辑项目基础信息的模态框 */}
+      <ProjectEditModal
+        isOpen={showEditModal}
+        projectName={editProjectName}
+        projectDescription={editProjectDescription}
+        onClose={() => {
+          setShowEditModal(false);
+          resetForm();
+        }}
+        onSave={handleEditProject}
+        onProjectNameChange={setProjectName}
+        onProjectDescriptionChange={setProjectDescription}
+      />
     </div>
   );
 }

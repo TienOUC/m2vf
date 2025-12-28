@@ -4,3 +4,4 @@ export { useFileUpload } from './useFileUpload';
 export { useNodeAddition } from './useNodeAddition';
 export { useClickOutside } from './useClickOutside';
 export { useProjectManagement } from './useProjectManagement';
+export { useProjectEditing } from './useProjectEditing';

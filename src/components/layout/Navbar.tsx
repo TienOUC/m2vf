@@ -11,9 +11,10 @@ interface NavbarProps {
     name: string;
     email: string;
   } | null;
+  onEditProject?: () => void;
 }
 
-export default function Navbar({ user }: NavbarProps) {
+export default function Navbar({ user, onEditProject }: NavbarProps) {
   const pathname = usePathname();
 
   return (
@@ -45,7 +46,17 @@ export default function Navbar({ user }: NavbarProps) {
         </nav>
       </div>
 
-      {user && <UserAvatar user={user} />}
+      <div className="flex items-center space-x-4">
+        {onEditProject && pathname === ROUTES.EDIT && (
+          <button
+            onClick={onEditProject}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          >
+            编辑项目信息
+          </button>
+        )}
+        {user && <UserAvatar user={user} />}
+      </div>
     </header>
   );
 }
