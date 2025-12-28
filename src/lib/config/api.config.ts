@@ -130,7 +130,7 @@ export const DEFAULT_CONFIG = {
   // 分页配置
   PAGINATION: {
     DEFAULT_PAGE: 1,
-    DEFAULT_PAGE_SIZE: 10,
+    DEFAULT_PAGE_SIZE: 20,
   },
   
   // Token 存储 keys

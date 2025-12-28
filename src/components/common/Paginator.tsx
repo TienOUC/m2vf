@@ -27,7 +27,18 @@ const Paginator: React.FC<PaginatorProps> = ({
   const renderPageButtons = () => {
     const buttons = [];
     
-    if (pagination.totalPages <= maxVisiblePages) {
+    if (pagination.totalPages <= 1) {
+      // 如果只有一页或没有页，显示第一页按钮
+      buttons.push(
+        <button
+          key={1}
+          onClick={() => goToPage(1)}
+          className={`w-8 h-8 text-sm rounded ${pagination.page === 1 ? 'bg-blue-600 text-white border border-blue-600' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+        >
+          {1}
+        </button>
+      );
+    } else if (pagination.totalPages <= maxVisiblePages) {
       // 如果总页数不超过最大显示数，显示所有页码
       for (let i = 1; i <= pagination.totalPages; i++) {
         buttons.push(
@@ -99,7 +110,7 @@ const Paginator: React.FC<PaginatorProps> = ({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-3 flex justify-center">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-3 flex justify-center z-[100]">
       <div className="flex items-center space-x-2">
         <span className="text-sm text-gray-700 mr-4">
           共 {pagination.total} 条
@@ -121,8 +132,8 @@ const Paginator: React.FC<PaginatorProps> = ({
         
         <button
           onClick={goToNextPage}
-          disabled={pagination.page === pagination.totalPages}
-          className={`flex items-center justify-center w-8 h-8 p-1 rounded ${pagination.page === pagination.totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-50'}`}
+          disabled={pagination.page === pagination.totalPages || pagination.totalPages <= 1}
+          className={`flex items-center justify-center w-8 h-8 p-1 rounded ${(pagination.page === pagination.totalPages || pagination.totalPages <= 1) ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-50'}`}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -136,9 +147,9 @@ const Paginator: React.FC<PaginatorProps> = ({
             onChange={(e) => setPageSize(Number(e.target.value))}
             className="border border-gray-300 rounded text-sm px-2 py-1 h-8 bg-white text-gray-700 focus:ring-0 focus:outline-none"
           >
-            <option value={10}>10</option>
             <option value={20}>20</option>
-            <option value={30}>30</option>
+            <option value={40}>40</option>
+            <option value={60}>60</option>
           </select>
           <span className="text-sm text-gray-700 ml-2">条</span>
         </div>

@@ -70,8 +70,8 @@ export default function ProjectsPage() {
           setUser({ name: '用户', email: 'user@example.com' });
         }
 
-        // 获取项目列表，默认获取第一页，每页10个项目
-        await fetchProjects(1, 10);
+        // 获取项目列表，默认获取第一页，每页20个项目
+        await fetchProjects(1, 20);
       } catch (error) {
         console.error('认证检查失败:', error);
         router.replace(`${ROUTES.LOGIN}?redirect=${ROUTES.PROJECTS}`);
@@ -260,15 +260,13 @@ export default function ProjectsPage() {
         )}
 
         {/* 分页器 */}
-        {pagination.totalPages > 1 && (
-          <Paginator
-            pagination={pagination}
-            goToPage={goToPage}
-            goToNextPage={goToNextPage}
-            goToPrevPage={goToPrevPage}
-            setPageSize={setPageSize}
-          />
-        )}
+        <Paginator
+          pagination={pagination}
+          goToPage={goToPage}
+          goToNextPage={goToNextPage}
+          goToPrevPage={goToPrevPage}
+          setPageSize={setPageSize}
+        />
       </main>
 
       {/* 创建项目模态框 */}

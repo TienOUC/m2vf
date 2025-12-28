@@ -33,13 +33,13 @@ export const useProjectManagement = ({ initialProjects = [] }: UseProjectManagem
   const [success, setSuccess] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
     page: 1,
-    pageSize: 10,
+    pageSize: 20,
     total: 0,
     totalPages: 0,
   });
 
   // 获取项目列表
-  const fetchProjects = useCallback(async (page: number = 1, pageSize: number = 10) => {
+  const fetchProjects = useCallback(async (page: number = 1, pageSize: number = 20) => {
     setIsLoading(true);
     setError(null);
     
