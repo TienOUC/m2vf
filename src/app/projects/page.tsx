@@ -12,6 +12,7 @@ import {
 import Paginator from '@/components/common/Paginator';
 import CreateProjectModal from '@/components/common/CreateProjectModal';
 import ProjectCard from '@/components/common/ProjectCard';
+import ConfirmDialog from '@/components/common/ConfirmDialog';
 
 interface Project {
   id: number;
@@ -28,6 +29,7 @@ export default function ProjectsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectDescription, setNewProjectDescription] = useState('');
+  const [deleteConfirmProject, setDeleteConfirmProject] = useState<string | null>(null);
   
   const {
     projects,
@@ -96,15 +98,23 @@ export default function ProjectsPage() {
   };
 
   const handleDeleteProject = async (projectName: string) => {
-    if (!confirm(`确定要删除项目 "${projectName}" 吗？此操作不可撤销。`)) {
-      return;
-    }
+    setDeleteConfirmProject(projectName);
+  };
 
-    try {
-      await deleteProjectAPI(projectName);
-    } catch (error) {
-      console.error('删除项目错误:', error);
+  const handleConfirmDelete = async () => {
+    if (deleteConfirmProject) {
+      try {
+        await deleteProjectAPI(deleteConfirmProject);
+      } catch (error) {
+        console.error('删除项目错误:', error);
+      } finally {
+        setDeleteConfirmProject(null);
+      }
     }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteConfirmProject(null);
   };
 
   const handleEditProject = (projectId: number) => {
@@ -211,6 +221,17 @@ export default function ProjectsPage() {
         onProjectDescriptionChange={setNewProjectDescription}
         onSubmit={handleCreateProject}
         onResetMessages={resetMessages}
+      />
+      
+      {/* 删除确认对话框 */}
+      <ConfirmDialog
+        isOpen={deleteConfirmProject !== null}
+        title="删除项目"
+        message={`确定要删除项目 "${deleteConfirmProject || ''}" 吗？此操作无法撤销。`}
+        confirmText="确认删除"
+        cancelText="取消"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
       />
     </div>
   );
