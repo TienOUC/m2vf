@@ -30,10 +30,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import {
   Add,
-  TextFields,
-  Image as ImageIcon,
-  VideoFile,
-  Audiotrack
+  SwapHoriz
 } from '@mui/icons-material';
 
 // 初始节点（空数组，画布初始为空）
@@ -219,9 +216,7 @@ function FlowCanvas() {
       {/* 操作提示 */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-md border border-gray-200 z-10 flex items-center gap-2">
         <Add fontSize="small" />
-        <span className="text-sm text-gray-600">
-          双击画布添加文本节点，点击节点工具栏切换按钮切换节点类型
-        </span>
+        <span className="text-sm text-gray-600">双击画布添加文本节点，点击节点工具栏 <SwapHoriz fontSize="small" /> 按钮切换节点类型</span>
       </div>
 
       {/* 左侧悬浮工具栏 */}
