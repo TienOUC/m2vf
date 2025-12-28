@@ -94,8 +94,8 @@ export const useProjectManagement = ({ initialProjects = [] }: UseProjectManagem
         const result = await response.json().catch(() => ({}));
         setSuccess('项目创建成功！');
         
-        // 重新获取项目列表以包含新创建的项目
-        await fetchProjects();
+        // 重新获取项目列表以包含新创建的项目，使用当前分页设置
+        await fetchProjects(pagination.page, pagination.pageSize);
         
         return result;
       } else {
@@ -123,7 +123,7 @@ export const useProjectManagement = ({ initialProjects = [] }: UseProjectManagem
         setSuccess('项目删除成功！');
         
         // 重新获取项目列表以移除已删除的项目
-        await fetchProjects();
+        await fetchProjects(pagination.page, pagination.pageSize);
         
         return true;
       } else {
@@ -137,7 +137,7 @@ export const useProjectManagement = ({ initialProjects = [] }: UseProjectManagem
     } finally {
       setIsLoading(false);
     }
-  }, [fetchProjects]);
+  }, [fetchProjects, pagination]);
 
   // 获取单个项目详情
   const getProjectDetail = useCallback(async (projectId: string | number) => {
@@ -175,8 +175,8 @@ export const useProjectManagement = ({ initialProjects = [] }: UseProjectManagem
         const result = await response.json().catch(() => ({}));
         setSuccess('项目更新成功！');
         
-        // 重新获取项目列表以包含更新的项目
-        await fetchProjects();
+        // 重新获取项目列表以包含更新的项目，使用当前分页设置
+        await fetchProjects(pagination.page, pagination.pageSize);
         
         return result;
       } else {
@@ -190,7 +190,7 @@ export const useProjectManagement = ({ initialProjects = [] }: UseProjectManagem
     } finally {
       setIsLoading(false);
     }
-  }, [fetchProjects]);
+  }, [fetchProjects, pagination]);
   
   // 重置错误和成功消息
   const resetMessages = useCallback(() => {
