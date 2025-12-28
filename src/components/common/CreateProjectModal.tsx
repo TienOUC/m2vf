@@ -5,8 +5,6 @@ interface CreateProjectModalProps {
   projectName: string;
   projectDescription: string;
   isLoading: boolean;
-  error?: string | null;
-  success?: string | null;
   onClose: () => void;
   onProjectNameChange: (name: string) => void;
   onProjectDescriptionChange: (description: string) => void;
@@ -19,8 +17,6 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   projectName,
   projectDescription,
   isLoading,
-  error,
-  success,
   onClose,
   onProjectNameChange,
   onProjectDescriptionChange,
@@ -47,18 +43,6 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               </svg>
             </button>
           </div>
-
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg text-sm">
-              {success}
-            </div>
-          )}
 
           <form onSubmit={onSubmit}>
             <div className="mb-4">

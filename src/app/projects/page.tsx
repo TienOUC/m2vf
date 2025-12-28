@@ -13,7 +13,7 @@ import Paginator from '@/components/common/Paginator';
 import CreateProjectModal from '@/components/common/CreateProjectModal';
 import ProjectCard from '@/components/common/ProjectCard';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
-import Toast from '@/components/common/Toast';
+import Message from '@/components/common/Message';
 
 interface Project {
   id: number;
@@ -32,6 +32,8 @@ export default function ProjectsPage() {
   const [newProjectDescription, setNewProjectDescription] = useState('');
   const [deleteConfirmProject, setDeleteConfirmProject] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const {
     projects,
@@ -84,7 +86,8 @@ export default function ProjectsPage() {
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     resetMessages();
-
+    setIsCreating(true);
+    
     try {
       await createProjectAPI({
         name: newProjectName,
@@ -108,6 +111,8 @@ export default function ProjectsPage() {
         message: '项目创建失败',
         type: 'error'
       });
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -117,6 +122,8 @@ export default function ProjectsPage() {
 
   const handleConfirmDelete = async () => {
     if (deleteConfirmProject) {
+      setIsDeleting(true);
+      
       try {
         await deleteProjectAPI(deleteConfirmProject);
         
@@ -135,6 +142,7 @@ export default function ProjectsPage() {
         });
       } finally {
         setDeleteConfirmProject(null);
+        setIsDeleting(false);
       }
     }
   };
@@ -203,17 +211,24 @@ export default function ProjectsPage() {
         </div>
 
         {/* 项目列表 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {projects.map((project) => (
-            <ProjectCard 
-              key={project.id} 
-              project={project}
-              onEdit={handleEditProject}
-              onEditProjectInfo={handleEditProjectInfo}
-              onDelete={handleDeleteProject}
-            />
-          ))}
-        </div>
+        {isProjectLoading && (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        )}
+        {!isProjectLoading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {projects.map((project) => (
+              <ProjectCard 
+                key={project.id} 
+                project={project}
+                onEdit={handleEditProject}
+                onEditProjectInfo={handleEditProjectInfo}
+                onDelete={handleDeleteProject}
+              />
+            ))}
+          </div>
+        )}
 
         {projects.length === 0 && !isProjectLoading && (
           <div className="text-center py-12">
@@ -250,9 +265,7 @@ export default function ProjectsPage() {
         isOpen={showCreateModal}
         projectName={newProjectName}
         projectDescription={newProjectDescription}
-        isLoading={isProjectLoading}
-        error={projectError}
-        success={projectSuccess}
+        isLoading={isCreating}
         onClose={() => setShowCreateModal(false)}
         onProjectNameChange={setNewProjectName}
         onProjectDescriptionChange={setNewProjectDescription}
@@ -269,11 +282,13 @@ export default function ProjectsPage() {
         cancelText="取消"
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
+        isConfirming={isDeleting}
       />
       
-      {/* Toast消息提示 */}
+      
+      {/* Message消息提示 */}
       {toast && (
-        <Toast
+        <Message
           message={toast.message}
           type={toast.type}
           onClose={() => setToast(null)}
@@ -281,4 +296,4 @@ export default function ProjectsPage() {
       )}
     </div>
   );
-}
+};
