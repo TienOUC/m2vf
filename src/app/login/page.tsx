@@ -3,11 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { loginUser } from '@/lib/api/auth';
-import { getAccessToken, clearTokens } from '@/lib/utils/token';
 import { validateLoginCredential, validatePassword } from '@/lib/utils/validation';
 import { ROUTES } from '@/lib/config/api.config';
 import { useForm } from '@/hooks/useForm';
+import { useAuthStore } from '@/lib/stores';
 import {
   EnvelopeIcon,
   LockClosedIcon,
@@ -23,6 +22,7 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState('');
+  const { login, isAuthenticated } = useAuthStore();
   
   const {
     values,
@@ -56,7 +56,7 @@ export default function LoginPage() {
       
       try {
         console.log('正在发送登录请求...', credentials);
-        const response = await loginUser(credentials);
+        const response = await login(credentials);
         
         console.log('登录响应:', response);
         
@@ -88,9 +88,6 @@ export default function LoginPage() {
           }
           
           setError(errorMessage);
-          
-          // 登录失败时清除本地存储
-          clearTokens();
         }
       } catch (err: any) {
         console.error('登录请求错误:', err);
@@ -111,9 +108,6 @@ export default function LoginPage() {
         }
         
         setError(errorMessage);
-        
-        // 登录失败时清除本地存储
-        clearTokens();
       }
     }
   });
@@ -136,16 +130,11 @@ export default function LoginPage() {
 
   // 组件加载时检查是否已登录
   useEffect(() => {
-    const checkLoginStatus = async () => {
-      const token = getAccessToken();
-      if (token) {
-        // 如果有token，跳转到目标页面
-        router.replace(redirectTo);
-      }
-    };
-
-    checkLoginStatus();
-  }, [router, redirectTo]);
+    if (isAuthenticated) {
+      // 如果已经认证，跳转到目标页面
+      router.replace(redirectTo);
+    }
+  }, [router, redirectTo, isAuthenticated]);
 
   return (
     <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-6">

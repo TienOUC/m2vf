@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import ProjectEditModal from './ProjectEditModal';
 import { Tooltip } from '@mui/material';
 import { AutoAwesome } from '@mui/icons-material';
+import { useProjectEditingStore } from '@/lib/stores';
 
 interface Project {
   id: number;
@@ -14,14 +15,21 @@ interface Project {
 interface ProjectCardProps {
   project: Project;
   onEdit: (projectId: number) => void; // 这个现在用于点击卡片时跳转到编辑页面
-  onEditProjectInfo: (projectId: number, name: string, description: string) => Promise<void>; // 用于更新项目信息
   onDelete: (projectName: string) => void;
 }
 
-const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onEditProjectInfo, onDelete }) => {
+const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) => {
+  const { 
+    projectName, 
+    projectDescription, 
+    setProjectName, 
+    setProjectDescription, 
+    fetchProjectDetail, 
+    updateProjectInfo,
+    resetForm
+  } = useProjectEditingStore();
+  
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editProjectName, setEditProjectName] = useState(project.name);
-  const [editProjectDescription, setEditProjectDescription] = useState(project.description);
   
   const titleRef = useRef<HTMLHeadingElement>(null);
   const descRef = useRef<HTMLParagraphElement>(null);
@@ -65,11 +73,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onEditProjec
       setShowDescTooltip(isOverflowing);
     }
   }, [project.name, project.description]);
-  
+
   const handleSaveProject = async () => {
     try {
-      await onEditProjectInfo(project.id, editProjectName, editProjectDescription);
+      await updateProjectInfo(project.id);
       setShowEditModal(false);
+      resetForm(); // 重置表单状态
     } catch (error) {
       console.error('更新项目信息失败:', error);
     }
@@ -77,8 +86,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onEditProjec
   
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setEditProjectName(project.name);
-    setEditProjectDescription(project.description);
+    // 设置当前项目信息到store
+    setProjectName(project.name);
+    setProjectDescription(project.description);
     setShowEditModal(true);
   };
   
@@ -166,12 +176,15 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onEditProjec
       
       <ProjectEditModal
         isOpen={showEditModal}
-        projectName={editProjectName}
-        projectDescription={editProjectDescription}
-        onClose={() => setShowEditModal(false)}
+        projectName={projectName}
+        projectDescription={projectDescription}
+        onClose={() => {
+          setShowEditModal(false);
+          resetForm(); // 关闭模态框时重置表单
+        }}
         onSave={handleSaveProject}
-        onProjectNameChange={setEditProjectName}
-        onProjectDescriptionChange={setEditProjectDescription}
+        onProjectNameChange={setProjectName}
+        onProjectDescriptionChange={setProjectDescription}
       />
     </>
   );

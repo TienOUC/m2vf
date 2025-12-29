@@ -4,7 +4,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/lib/config/api.config';
 import { Navbar } from '@/components/layout';
-import { useProjectManagement } from '@/hooks/useProjectManagement';
+import { 
+  useProjectManagementStore,
+  useUIStore 
+} from '@/lib/stores';
 import { 
   isUserLoggedIn,
   getAccessToken 
@@ -50,7 +53,7 @@ export default function ProjectsPage() {
     goToNextPage,
     goToPrevPage,
     setPageSize,
-  } = useProjectManagement();
+  } = useProjectManagementStore();
 
   // 检查用户认证状态
   useEffect(() => {
@@ -155,6 +158,8 @@ export default function ProjectsPage() {
     router.push(`${ROUTES.EDIT}?projectId=${projectId}`);
   };
 
+  // 由于ProjectCard现在使用zustand store，我们不再需要传递onEditProjectInfo
+  // 但保留这个函数以兼容其他可能的用途
   const handleEditProjectInfo = async (projectId: number, name: string, description: string) => {
     try {
       await updateProject(projectId, { name, description });
@@ -234,7 +239,6 @@ export default function ProjectsPage() {
                 key={project.id} 
                 project={project}
                 onEdit={handleEditProject}
-                onEditProjectInfo={handleEditProjectInfo}
                 onDelete={handleDeleteProject}
               />
             ))}
@@ -305,4 +309,4 @@ export default function ProjectsPage() {
       )}
     </div>
   );
-};
+}

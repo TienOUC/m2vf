@@ -10,7 +10,10 @@ import Navbar from '@/components/layout/Navbar';
 import LeftSidebar from '@/components/layout/LeftSidebar';
 import { TextNode, ImageNode, VideoNode, AudioNode } from '@/components/nodes';
 import { useNodeAddition } from '@/hooks/useNodeAddition';
-import { useProjectEditing } from '@/hooks/useProjectEditing';
+import { 
+  useProjectEditingStore,
+  useProjectManagementStore 
+} from '@/lib/stores';
 import ProjectEditModal from '@/components/common/ProjectEditModal';
 import {
   ReactFlow,
@@ -164,7 +167,6 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
   }, []);
 
 
-
   // 双击画布添加节点（默认添加文本节点）
   const handlePaneClick = useCallback(
     (event: React.MouseEvent) => {
@@ -251,11 +253,9 @@ export default function EditPage() {
     fetchProjectDetail,
     updateProjectInfo,
     resetForm,
-  } = useProjectEditing({
-    onProjectUpdate: (updatedProject) => {
-      setProjectDetail(updatedProject);
-    }
-  });
+  } = useProjectEditingStore();
+  
+  const { updateProject } = useProjectManagementStore();
   
   useEffect(() => {
     const checkAuth = async () => {
