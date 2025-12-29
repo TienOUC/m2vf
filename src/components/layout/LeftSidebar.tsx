@@ -20,7 +20,7 @@ interface LeftSidebarProps {
   onAddImageNode?: () => void;
   onAddVideoNode?: () => void;
   onAddAudioNode?: () => void;
-  onUploadFile?: () => void;
+
   onUploadImage?: () => void;
   onUploadVideo?: () => void;
   onUploadAudio?: () => void;
@@ -34,7 +34,6 @@ export default function LeftSidebar({
   onAddImageNode,
   onAddVideoNode,
   onAddAudioNode,
-  onUploadFile,
   onUploadImage,
   onUploadVideo,
   onUploadAudio,
@@ -155,14 +154,7 @@ export default function LeftSidebar({
           {/* 分割线 */}
           <div className="border-t border-gray-200 my-2"></div>
 
-          <MenuButton
-            icon={<UploadFile fontSize="small" />}
-            label="上传文件"
-            onClick={() => {
-              onUploadFile?.();
-              closeAllMenus();
-            }}
-          />
+
           <MenuButton
             icon={<ImageIcon fontSize="small" />}
             label="上传图片"

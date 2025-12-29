@@ -141,12 +141,7 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
       handleDelete
     });
 
-  // 资产库上传功能回调
-  const handleUploadFile = useCallback(() => {
-    console.log('上传文件功能');
-    // 这里可以添加文件上传逻辑
-    alert('上传文件功能即将实现');
-  }, []);
+
 
   const handleUploadImage = useCallback(() => {
     console.log('上传图片功能');
@@ -222,7 +217,6 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
         onAddImageNode={addImageNode}
         onAddVideoNode={addVideoNode}
         onAddAudioNode={addAudioNode}
-        onUploadFile={handleUploadFile}
         onUploadImage={handleUploadImage}
         onUploadVideo={handleUploadVideo}
         onUploadAudio={handleUploadAudio}
