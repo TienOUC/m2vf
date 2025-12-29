@@ -33,7 +33,7 @@ const Paginator: React.FC<PaginatorProps> = ({
         <button
           key={1}
           onClick={() => goToPage(1)}
-          className={`w-8 h-8 text-sm rounded ${pagination.page === 1 ? 'bg-blue-600 text-white border border-blue-600' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+          className={`w-8 h-8 text-sm rounded ${pagination.page === 1 ? 'bg-primary-600 text-white border border-primary-600' : 'border border-neutral-300 text-foreground hover:bg-neutral-50'}`}
         >
           {1}
         </button>
@@ -45,7 +45,7 @@ const Paginator: React.FC<PaginatorProps> = ({
           <button
             key={i}
             onClick={() => goToPage(i)}
-            className={`w-8 h-8 text-sm rounded ${pagination.page === i ? 'bg-blue-600 text-white border border-blue-600' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+            className={`w-8 h-8 text-sm rounded ${pagination.page === i ? 'bg-primary-600 text-white border border-primary-600' : 'border border-neutral-300 text-foreground hover:bg-neutral-50'}`}
           >
             {i}
           </button>
@@ -57,7 +57,7 @@ const Paginator: React.FC<PaginatorProps> = ({
         <button
           key={1}
           onClick={() => goToPage(1)}
-          className={`w-8 h-8 text-sm rounded ${pagination.page === 1 ? 'bg-blue-600 text-white border border-blue-600' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+          className={`w-8 h-8 text-sm rounded ${pagination.page === 1 ? 'bg-primary-600 text-white border border-primary-600' : 'border border-neutral-300 text-foreground hover:bg-neutral-50'}`}
         >
           {1}
         </button>
@@ -65,7 +65,7 @@ const Paginator: React.FC<PaginatorProps> = ({
       
       if (pagination.page > 3) {
         buttons.push(
-          <span key="ellipsis-start" className="w-8 h-8 flex items-center justify-center text-sm text-gray-500">...</span>
+          <span key="ellipsis-start" className="w-8 h-8 flex items-center justify-center text-sm text-neutral-500">...</span>
         );
       }
       
@@ -79,7 +79,7 @@ const Paginator: React.FC<PaginatorProps> = ({
             <button
               key={i}
               onClick={() => goToPage(i)}
-              className={`w-8 h-8 text-sm rounded ${pagination.page === i ? 'bg-blue-600 text-white border border-blue-600' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+              className={`w-8 h-8 text-sm rounded ${pagination.page === i ? 'bg-primary-600 text-white border border-primary-600' : 'border border-neutral-300 text-foreground hover:bg-neutral-50'}`}
             >
               {i}
             </button>
@@ -89,7 +89,7 @@ const Paginator: React.FC<PaginatorProps> = ({
       
       if (pagination.page < pagination.totalPages - 2) {
         buttons.push(
-          <span key="ellipsis-end" className="w-8 h-8 flex items-center justify-center text-sm text-gray-500">...</span>
+          <span key="ellipsis-end" className="w-8 h-8 flex items-center justify-center text-sm text-neutral-500">...</span>
         );
       }
       
@@ -98,7 +98,7 @@ const Paginator: React.FC<PaginatorProps> = ({
           <button
             key={pagination.totalPages}
             onClick={() => goToPage(pagination.totalPages)}
-            className={`w-8 h-8 text-sm rounded ${pagination.page === pagination.totalPages ? 'bg-blue-600 text-white border border-blue-600' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+            className={`w-8 h-8 text-sm rounded ${pagination.page === pagination.totalPages ? 'bg-primary-600 text-white border border-primary-600' : 'border border-neutral-300 text-foreground hover:bg-neutral-50'}`}
           >
             {pagination.totalPages}
           </button>
@@ -110,16 +110,16 @@ const Paginator: React.FC<PaginatorProps> = ({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-3 flex justify-center z-[10]">
+    <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-neutral-200 py-3 flex justify-center z-[10]">
       <div className="flex items-center space-x-2">
-        <span className="text-sm text-gray-700 mr-4">
+        <span className="text-sm text-foreground mr-4">
           共 {pagination.total} 条
         </span>
         
         <button
           onClick={goToPrevPage}
           disabled={pagination.page === 1}
-          className={`flex items-center justify-center w-8 h-8 p-1 rounded ${pagination.page === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-50'}`}
+          className={`flex items-center justify-center w-8 h-8 p-1 rounded ${pagination.page === 1 ? 'text-neutral-400 cursor-not-allowed' : 'text-foreground hover:bg-neutral-50'}`}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -133,7 +133,7 @@ const Paginator: React.FC<PaginatorProps> = ({
         <button
           onClick={goToNextPage}
           disabled={pagination.page === pagination.totalPages || pagination.totalPages <= 1}
-          className={`flex items-center justify-center w-8 h-8 p-1 rounded ${(pagination.page === pagination.totalPages || pagination.totalPages <= 1) ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-50'}`}
+          className={`flex items-center justify-center w-8 h-8 p-1 rounded ${(pagination.page === pagination.totalPages || pagination.totalPages <= 1) ? 'text-neutral-400 cursor-not-allowed' : 'text-foreground hover:bg-neutral-50'}`}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -141,17 +141,17 @@ const Paginator: React.FC<PaginatorProps> = ({
         </button>
         
         <div className="flex items-center ml-4">
-          <span className="text-sm text-gray-700 mr-2">每页</span>
+          <span className="text-sm text-foreground mr-2">每页</span>
           <select
             value={pagination.pageSize}
             onChange={(e) => setPageSize(Number(e.target.value))}
-            className="border border-gray-300 rounded text-sm px-2 py-1 h-8 bg-white text-gray-700 focus:ring-0 focus:outline-none"
+            className="border border-neutral-300 rounded text-sm px-2 py-1 h-8 bg-background text-foreground focus:ring-0 focus:outline-none"
           >
             <option value={20}>20</option>
             <option value={40}>40</option>
             <option value={60}>60</option>
           </select>
-          <span className="text-sm text-gray-700 ml-2">条</span>
+          <span className="text-sm text-foreground ml-2">条</span>
         </div>
       </div>
     </div>

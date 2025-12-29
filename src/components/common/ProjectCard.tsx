@@ -90,12 +90,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onEditProjec
   return (
     <>
       <div 
-        className="relative bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-4 border border-gray-200 flex flex-col aspect-[5/3] group cursor-pointer overflow-hidden"
+        className="relative bg-background rounded-xl shadow-md hover:shadow-lg transition-shadow p-4 border border-neutral-200 flex flex-col aspect-[5/3] group cursor-pointer overflow-hidden"
         onClick={() => onEdit(project.id)}
       >
         {/* 图标背景层 */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <AutoAwesome className="text-gray-100" style={{ fontSize: 140 }} />
+          <AutoAwesome className="text-neutral-100" style={{ fontSize: 140 }} />
         </div>
         
         {/* 内容层 */}
@@ -105,15 +105,15 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onEditProjec
             <div className="flex justify-between items-start mb-4">
               {showTitleTooltip ? (
                 <Tooltip title={project.name} placement="top" arrow>
-                  <h3 ref={titleRef} className="text-xl font-bold text-gray-900 truncate flex-1 cursor-default">{project.name}</h3>
+                  <h3 ref={titleRef} className="text-xl font-bold text-foreground truncate flex-1 cursor-default">{project.name}</h3>
                 </Tooltip>
               ) : (
-                <h3 ref={titleRef} className="text-xl font-bold text-gray-900 truncate flex-1 cursor-default">{project.name}</h3>
+                <h3 ref={titleRef} className="text-xl font-bold text-foreground truncate flex-1 cursor-default">{project.name}</h3>
               )}
               <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={handleEditClick}
-                  className="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50 transition-colors"
+                  className="text-primary-600 hover:text-primary-800 p-2 rounded-full hover:bg-primary-50 transition-colors"
                   title="编辑项目"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -122,7 +122,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onEditProjec
                 </button>
                 <button
                   onClick={handleDeleteClick}
-                  className="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50 transition-colors"
+                  className="text-error-600 hover:text-error-800 p-2 rounded-full hover:bg-error-50 transition-colors"
                   title="删除项目"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -136,17 +136,17 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onEditProjec
             <div className="flex-1 mb-4">
               {showDescTooltip ? (
                 <Tooltip title={project.description} placement="top" arrow>
-                  <p ref={descRef} className="text-gray-600 text-sm line-clamp-4 cursor-default">{project.description}</p>
+                  <p ref={descRef} className="text-foreground text-sm line-clamp-4 cursor-default">{project.description}</p>
                 </Tooltip>
               ) : (
-                <p ref={descRef} className="text-gray-600 text-sm line-clamp-4 cursor-default">{project.description}</p>
+                <p ref={descRef} className="text-foreground text-sm line-clamp-4 cursor-default">{project.description}</p>
               )}
             </div>
           </div>
           
           {/* 底部信息区域 */}
-          <div className="pt-4 border-t border-gray-100">
-            <div className="text-xs text-gray-500 space-y-1">
+          <div className="pt-4 border-t border-neutral-100">
+            <div className="text-xs text-foreground space-y-1">
               <p className="flex items-center">
                 <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />

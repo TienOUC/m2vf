@@ -188,7 +188,7 @@ export default function ProjectsPage() {
 
   
   return (
-    <div className="min-h-screen bg-gray-50 pb-16">
+    <div className="min-h-screen bg-neutral-50 pb-16">
       {/* 顶部导航栏 */}
       <Navbar user={user} />
 
@@ -196,12 +196,12 @@ export default function ProjectsPage() {
       <main className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">项目管理</h1>
-            <p className="text-gray-600 mt-2">管理您的所有项目</p>
+            <h1 className="text-3xl font-bold text-foreground">项目管理</h1>
+            <p className="text-neutral-600 mt-2">管理您的所有项目</p>
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center"
+            className="bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -212,16 +212,16 @@ export default function ProjectsPage() {
 
         {/* 项目列表 */}
         {isProjectLoading && (
-          <div className="fixed inset-0 flex items-center justify-center z-[1000] bg-white bg-opacity-70">
+          <div className="fixed inset-0 flex items-center justify-center z-[1000] bg-background bg-opacity-70">
             <div className="relative w-16 h-16">
               {/* 外圈旋转动画 */}
-              <div className="w-16 h-16 border-4 border-blue-200 rounded-full"></div>
-              <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
+              <div className="w-16 h-16 border-4 border-primary-200 rounded-full"></div>
+              <div className="w-16 h-16 border-4 border-primary-600 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
               
               {/* 内圈旋转动画 */}
-              <div className="w-8 h-8 border-2 border-purple-200 rounded-full absolute top-4 left-4"></div>
+              <div className="w-8 h-8 border-2 border-secondary-200 rounded-full absolute top-4 left-4"></div>
               <div 
-                className="w-8 h-8 border-2 border-purple-600 border-b-transparent rounded-full animate-spin absolute top-4 left-4"
+                className="w-8 h-8 border-2 border-secondary-600 border-b-transparent rounded-full animate-spin absolute top-4 left-4"
                 style={{ animationDirection: 'reverse' }}
               ></div>
             </div>
@@ -243,16 +243,16 @@ export default function ProjectsPage() {
 
         {projects.length === 0 && !isProjectLoading && (
           <div className="text-center py-12">
-            <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="mx-auto w-24 h-24 bg-neutral-100 rounded-full flex items-center justify-center mb-4">
+              <svg className="w-12 h-12 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-1">暂无项目</h3>
-            <p className="text-gray-500 mb-6">您还没有创建任何项目，点击下方按钮创建一个新项目</p>
+            <h3 className="text-lg font-medium text-foreground mb-1">暂无项目</h3>
+            <p className="text-neutral-500 mb-6">您还没有创建任何项目，点击下方按钮创建一个新项目</p>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+              className="bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
             >
               创建第一个项目
             </button>

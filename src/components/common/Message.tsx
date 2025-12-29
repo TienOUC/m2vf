@@ -35,14 +35,14 @@ const Message: React.FC<MessageProps> = ({
   const getMessageStyle = () => {
     switch (type) {
       case 'success':
-        return 'bg-green-500 text-white';
+        return 'bg-success-500 text-white';
       case 'error':
-        return 'bg-red-500 text-white';
+        return 'bg-error-500 text-white';
       case 'warning':
-        return 'bg-yellow-500 text-white';
+        return 'bg-warning-500 text-white';
       case 'info':
       default:
-        return 'bg-blue-500 text-white';
+        return 'bg-primary-500 text-white';
     }
   };
 

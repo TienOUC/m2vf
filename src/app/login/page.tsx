@@ -236,20 +236,20 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 p-6 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-neutral-50 via-background to-primary-50 p-6 relative overflow-hidden">
       {/* 装饰背景元素 */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-      <div className="absolute top-40 right-10 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-      <div className="absolute bottom-20 left-1/2 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+      <div className="absolute top-20 left-10 w-72 h-72 bg-secondary-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+      <div className="absolute top-40 right-10 w-72 h-72 bg-warning-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+      <div className="absolute bottom-20 left-1/2 w-72 h-72 bg-error-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
 
       <div className="max-w-md w-full relative z-10">
         {/* 玻璃拟态卡片 */}
         <div className="group relative">
-          <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
-          <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/20">
+          <div className="absolute -inset-1 bg-gradient-to-r from-primary-600 via-secondary-600 to-primary-800 rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+          <div className="relative bg-background/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-background/20">
             {/* 标题部分 */}
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              <h2 className="text-3xl font-bold text-foreground mb-2">
                 欢迎回来
               </h2>
             </div>
@@ -257,8 +257,8 @@ export default function LoginPage() {
             <form className="space-y-6" onSubmit={handleSubmit}>
               {/* 错误提示 */}
               {error && (
-                <div className="p-4 rounded-lg bg-red-50/80 backdrop-blur-sm border border-red-200">
-                  <p className="text-sm text-red-700 text-center">
+                <div className="p-4 rounded-lg bg-error-50/80 backdrop-blur-sm border border-error-200">
+                  <p className="text-sm text-error-700 text-center">
                     {error.includes('网络') ||
                     error.includes('超时') ||
                     error.includes('服务器') ? (
@@ -266,7 +266,7 @@ export default function LoginPage() {
                         <span className="font-medium">系统提示：</span>
                         {error}
                         <br />
-                        <span className="text-xs text-red-600 mt-1 block">
+                        <span className="text-xs text-error-600 mt-1 block">
                           请检查网络连接或联系管理员
                         </span>
                       </>
@@ -282,33 +282,33 @@ export default function LoginPage() {
                 <div className="group">
                   <label
                     htmlFor="email"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-sm font-medium text-foreground mb-2"
                   >
                     邮箱地址
                   </label>
                   <div className="relative">
-                    <EnvelopeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <EnvelopeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-foreground" />
                     <input
                       id="email"
                       name="email"
                       type="email"
                       autoComplete="email"
                       required
-                      className={`w-full pl-10 pr-10 py-3 bg-white/50 border rounded-xl focus:ring-2 focus:border-blue-500/50 transition-all duration-300 placeholder-gray-400 ${
+                      className={`w-full pl-10 pr-10 py-3 bg-background/50 border rounded-xl focus:ring-2 focus:border-primary-500/50 transition-all duration-300 placeholder-foreground ${
                         touched.email && formErrors.email
-                          ? 'border-red-300 focus:ring-red-500/50'
-                          : 'border-gray-200/50 focus:ring-blue-500/50'
+                          ? 'border-error-300 focus:ring-error-500/50'
+                          : 'border-neutral-200/50 focus:ring-primary-500/50'
                       }`}
                       placeholder="输入您的邮箱地址"
                       onBlur={handleBlur}
                       onChange={handleInputChange}
                     />
                     {touched.email && formErrors.email && (
-                      <ExclamationCircleIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-red-500" />
+                      <ExclamationCircleIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-error-500" />
                     )}
                   </div>
                   {touched.email && formErrors.email && (
-                    <p className="mt-1 text-sm text-red-600">
+                    <p className="mt-1 text-sm text-error-600">
                       {formErrors.email}
                     </p>
                   )}
@@ -317,33 +317,33 @@ export default function LoginPage() {
                 <div className="group">
                   <label
                     htmlFor="password"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-sm font-medium text-foreground mb-2"
                   >
                     密码
                   </label>
                   <div className="relative">
-                    <LockClosedIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <LockClosedIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-foreground" />
                     <input
                       id="password"
                       name="password"
                       type="password"
                       autoComplete="current-password"
                       required
-                      className={`w-full pl-10 pr-10 py-3 bg-white/50 border rounded-xl focus:ring-2 focus:border-blue-500/50 transition-all duration-300 placeholder-gray-400 ${
+                      className={`w-full pl-10 pr-10 py-3 bg-background/50 border rounded-xl focus:ring-2 focus:border-primary-500/50 transition-all duration-300 placeholder-foreground ${
                         touched.password && formErrors.password
-                          ? 'border-red-300 focus:ring-red-500/50'
-                          : 'border-gray-200/50 focus:ring-blue-500/50'
+                          ? 'border-error-300 focus:ring-error-500/50'
+                          : 'border-neutral-200/50 focus:ring-primary-500/50'
                       }`}
                       placeholder="输入您的密码"
                       onBlur={handleBlur}
                       onChange={handleInputChange}
                     />
                     {touched.password && formErrors.password && (
-                      <ExclamationCircleIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-red-500" />
+                      <ExclamationCircleIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-error-500" />
                     )}
                   </div>
                   {touched.password && formErrors.password && (
-                    <p className="mt-1 text-sm text-red-600">
+                    <p className="mt-1 text-sm text-error-600">
                       {formErrors.password}
                     </p>
                   )}
@@ -355,7 +355,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={isLoading || !isFormValid()}
-                  className="w-full group relative flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  className="w-full group relative flex items-center justify-center bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 text-white font-semibold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
                   {isLoading ? (
                     <span className="flex items-center justify-center">
@@ -391,10 +391,10 @@ export default function LoginPage() {
 
               {/* 注册链接 */}
               <div className="text-center text-sm">
-                <span className="text-gray-600">还没有账户？</span>
+                <span className="text-foreground">还没有账户？</span>
                 <Link
                   href="/register"
-                  className="font-medium text-blue-600 hover:text-blue-500 ml-1 transition-colors"
+                  className="font-medium text-primary-600 hover:text-primary-500 ml-1 transition-colors"
                 >
                   立即注册
                 </Link>

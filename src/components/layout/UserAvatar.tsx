@@ -23,7 +23,7 @@ export default function UserAvatar({ user }: UserAvatarProps) {
       {/* 圆形头像按钮 */}
       <button
         onClick={() => setIsMenuOpen(!isMenuOpen)}
-        className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full text-white font-medium hover:from-blue-600 hover:to-blue-700 transition"
+        className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-primary-500 to-primary-600 rounded-full text-white font-medium hover:from-primary-600 hover:to-primary-700 transition"
       >
         <Person fontSize="small" />
       </button>
@@ -38,16 +38,16 @@ export default function UserAvatar({ user }: UserAvatarProps) {
           ></div>
 
           {/* 菜单内容 */}
-          <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-20">
+          <div className="absolute right-0 mt-2 w-56 bg-background rounded-lg shadow-lg border border-neutral-200 z-20">
             {/* 用户信息 */}
-            <div className="px-4 py-3 border-b border-gray-100">
+            <div className="px-4 py-3 border-b border-neutral-100">
               <div className="flex items-center gap-2">
-                <Person fontSize="small" className="text-gray-600" />
+                <Person fontSize="small" className="text-neutral-600" />
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium text-gray-900">
+                  <span className="text-sm font-medium text-foreground">
                     {user.name}
                   </span>
-                  <span className="text-xs text-gray-700">{user.email}</span>
+                  <span className="text-xs text-foreground">{user.email}</span>
                 </div>
               </div>
             </div>
@@ -56,7 +56,7 @@ export default function UserAvatar({ user }: UserAvatarProps) {
             <div className="py-1">
               <button
                 onClick={handleLogout}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2"
+                className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-neutral-50 transition flex items-center gap-2"
               >
                 <Logout fontSize="small" />
                 退出登录

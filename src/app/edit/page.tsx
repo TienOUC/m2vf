@@ -206,7 +206,7 @@ function FlowCanvas() {
         variant={BackgroundVariant.Dots}
         gap={12}
         size={1}
-        color="#94a3b8"
+        color="var(--color-neutral-400)"
       />
       {/* 控制面板 */}
       <Controls />
@@ -214,9 +214,9 @@ function FlowCanvas() {
       <MiniMap />
 
       {/* 操作提示 */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-md border border-gray-200 z-10 flex items-center gap-2">
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-background/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-md border border-neutral-200 z-10 flex items-center gap-2">
         <Add fontSize="small" />
-        <span className="text-sm text-gray-600">双击画布添加文本节点，点击节点工具栏 <SwapHoriz fontSize="small" /> 按钮切换节点类型</span>
+        <span className="text-sm text-neutral-600">双击画布添加文本节点，点击节点工具栏 <SwapHoriz fontSize="small" /> 按钮切换节点类型</span>
       </div>
 
       {/* 左侧悬浮工具栏 */}
@@ -343,7 +343,7 @@ export default function EditPage() {
       />
 
       {/* 主编辑器区域 - ReactFlow画布 */}
-      <main className="flex-1 bg-gray-50">
+      <main className="flex-1 bg-neutral-50">
         <div className="w-full h-full">
           <ReactFlowProvider>
             <FlowCanvas />
