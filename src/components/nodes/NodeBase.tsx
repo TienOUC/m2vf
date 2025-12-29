@@ -9,6 +9,8 @@ export interface BaseNodeProps extends NodeProps {
   icon?: React.ReactNode;
   title?: string;
   onReplace?: (nodeId: string) => void;
+  onBackgroundColorChange?: (nodeId: string, color: string) => void;
+  backgroundColor?: string;
 }
 
 export function NodeBase({
@@ -18,14 +20,20 @@ export function NodeBase({
   children,
   nodeType,
   onReplace,
+  onBackgroundColorChange,
+  backgroundColor,
   ...rest
 }: BaseNodeProps) {
   const nodeData = data as NodeData;
 
   return (
     <div
-      className="bg-white rounded-lg w-full h-full relative transition-colors duration-150 shadow-sm hover:shadow-md"
-      style={{ minWidth: '240px', minHeight: '160px' }}
+      className="rounded-lg w-full h-full relative transition-colors duration-150 shadow-sm hover:shadow-md"
+      style={{ 
+        backgroundColor: backgroundColor || 'white',
+        minWidth: '240px', 
+        minHeight: '160px' 
+      }}
       {...rest}
     >
       {/* 输入连接点 */}
@@ -42,6 +50,8 @@ export function NodeBase({
         onTypeChange={nodeData?.onTypeChange}
         onDelete={nodeData?.onDelete}
         onReplace={onReplace}
+        onBackgroundColorChange={onBackgroundColorChange}
+        backgroundColor={backgroundColor}
         selected={selected}
         type={nodeType}
       />

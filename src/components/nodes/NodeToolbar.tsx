@@ -1,13 +1,16 @@
 import { NodeToolbar as ReactFlowNodeToolbar, Position } from '@xyflow/react';
-import { SwapHoriz, Close, TextFields, Image as ImageIcon, VideoFile, Audiotrack } from '@mui/icons-material';
-import { Tooltip } from '@mui/material';
-import { memo } from 'react';
+import { SwapHoriz, Close, TextFields, Image as ImageIcon, VideoFile, Audiotrack, Palette } from '@mui/icons-material';
+import { Tooltip, Popover } from '@mui/material';
+import { memo, useState, useRef, useEffect } from 'react';
+import { useClickOutside } from '@/hooks';
 
 export interface NodeToolbarProps {
   nodeId: string;
   onTypeChange?: (nodeId: string, newType: 'text' | 'image' | 'video' | 'audio') => void;
   onDelete?: (nodeId: string) => void;
   onReplace?: (nodeId: string) => void;
+  onBackgroundColorChange?: (nodeId: string, color: string) => void;
+  backgroundColor?: string;
   selected?: boolean;
   type?: 'text' | 'image' | 'video' | 'audio';
 }
@@ -17,9 +20,22 @@ const NodeToolbar = ({
   onTypeChange, 
   onDelete, 
   onReplace,
+  onBackgroundColorChange,
+  backgroundColor,
   selected = false, 
   type = 'text' 
 }: NodeToolbarProps) => {
+  const colorPickerRef = useRef<HTMLButtonElement>(null);
+  const colorPickerPopoverRef = useRef<HTMLDivElement>(null);
+  const [colorPickerOpen, setColorPickerOpen] = useState(false);
+
+  // 点击外部关闭颜色选择器
+  useClickOutside([colorPickerRef, colorPickerPopoverRef], () => {
+    if (colorPickerOpen) {
+      setColorPickerOpen(false);
+    }
+  });
+
   const handleTypeChange = (newType: 'text' | 'image' | 'video' | 'audio') => {
     if (onTypeChange) {
       onTypeChange(nodeId, newType);
@@ -37,6 +53,24 @@ const NodeToolbar = ({
       onReplace(nodeId);
     }
   };
+
+  const handleBackgroundColorChange = (color: string) => {
+    if (onBackgroundColorChange) {
+      onBackgroundColorChange(nodeId, color);
+    }
+    setColorPickerOpen(false);
+  };
+
+  const colorOptions = [
+    { value: 'transparent', label: '无背景色', cssVar: 'var(--node-bg-transparent)' },
+    { value: 'rgb(150, 66, 67)', label: '暗红色', cssVar: 'var(--node-bg-color1)' },
+    { value: 'rgb(131, 73, 21)', label: '咖啡色', cssVar: 'var(--node-bg-color2)' },
+    { value: 'rgb(143, 128, 48)', label: '橄榄色', cssVar: 'var(--node-bg-color3)' },
+    { value: 'rgb(61, 115, 68)', label: '深绿色', cssVar: 'var(--node-bg-color4)' },
+    { value: 'rgb(51, 114, 130)', label: '青蓝色', cssVar: 'var(--node-bg-color5)' },
+    { value: 'rgb(43, 82, 132)', label: '深蓝色', cssVar: 'var(--node-bg-color6)' },
+    { value: 'rgb(118, 56, 134)', label: '深紫色', cssVar: 'var(--node-bg-color7)' },
+  ];
 
   // 根据当前节点类型确定可切换的类型
   const getAvailableTypes = () => {
@@ -70,6 +104,27 @@ const NodeToolbar = ({
     }
   };
 
+  // 颜色选择器弹窗
+  const ColorPickerPopover = () => (
+    <div 
+      ref={colorPickerPopoverRef}
+      className={`absolute top-9 left-0 bg-white rounded-md shadow-lg border border-gray-200 p-2 z-30 w-40 ${colorPickerOpen ? 'block' : 'hidden'}`}
+    >
+      <div className="grid grid-cols-4 gap-2">
+        {colorOptions.map((color, index) => (
+          <Tooltip key={index} title={color.label} placement="top">
+            <button
+              onClick={() => handleBackgroundColorChange(color.value)}
+              className="w-8 h-8 rounded-full border border-gray-300 hover:scale-110 transition-transform"
+              style={{ backgroundColor: color.cssVar }}
+              aria-label={color.label}
+            />
+          </Tooltip>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <ReactFlowNodeToolbar
       nodeId={nodeId}
@@ -88,8 +143,8 @@ const NodeToolbar = ({
             <SwapHoriz fontSize="small" />
           </button>
         </Tooltip>
-
-        
+            
+            
         {/* 类型选择菜单 - 作为下拉菜单实现 */}
         <div className="absolute left-0 top-9 bg-white rounded-md shadow-sm border border-gray-200 py-1 z-20 min-w-[120px] w-32 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
           {getAvailableTypes().map(({ type: newType, label, icon }) => (
@@ -104,7 +159,7 @@ const NodeToolbar = ({
           ))}
         </div>
       </div>
-      
+          
       {/* 更换文件按钮 - 仅对图片、视频和音频节点显示 */}
       {(type === 'image' || type === 'video' || type === 'audio') && (
         <Tooltip title="更换文件" placement="top">
@@ -117,7 +172,24 @@ const NodeToolbar = ({
           </button>
         </Tooltip>
       )}
-      
+          
+      {/* 背景色选择按钮 - 仅对文本节点显示 */}
+      {type === 'text' && (
+        <div className="relative">
+          <Tooltip title="设置背景色" placement="top">
+            <button
+              ref={colorPickerRef}
+              onClick={() => setColorPickerOpen(!colorPickerOpen)}
+              className="w-8 h-8 p-1 text-gray-500 hover:text-purple-500 hover:bg-purple-50 rounded-md transition-colors"
+              aria-label="设置背景色"
+            >
+              <Palette fontSize="small" />
+            </button>
+          </Tooltip>
+          <ColorPickerPopover />
+        </div>
+      )}
+          
       {/* 删除按钮 */}
       <Tooltip title="删除节点" placement="top">
         <button

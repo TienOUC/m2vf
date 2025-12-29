@@ -5,8 +5,9 @@ interface UseNodeAdditionProps {
   nodeId: number;
   setNodeId: React.Dispatch<React.SetStateAction<number>>;
   setNodes: (nodes: Node[] | ((prevNodes: Node[]) => Node[])) => void;
-  handleTypeChange: (nodeId: string, newType: 'text' | 'image' | 'video') => void;
+  handleTypeChange: (nodeId: string, newType: 'text' | 'image' | 'video' | 'audio') => void;
   handleDelete: (nodeId: string) => void;
+  handleBackgroundColorChange: (nodeId: string, color: string) => void;
 }
 
 export const useNodeAddition = ({
@@ -15,6 +16,7 @@ export const useNodeAddition = ({
   setNodes,
   handleTypeChange,
   handleDelete,
+  handleBackgroundColorChange,
 }: UseNodeAdditionProps) => {
   const { screenToFlowPosition } = useReactFlow();
 
@@ -32,15 +34,17 @@ export const useNodeAddition = ({
         position: pos,
         data: { 
           label: '文本节点',
+          backgroundColor: 'transparent',
           onTypeChange: handleTypeChange,
           onDelete: handleDelete,
+          onBackgroundColorChange: handleBackgroundColorChange,
         },
       };
 
       setNodes((nds) => nds.concat(newNode));
       setNodeId((prevId) => prevId + 1);
     },
-    [nodeId, setNodes, screenToFlowPosition, handleTypeChange, handleDelete, setNodeId]
+    [nodeId, setNodes, screenToFlowPosition, handleTypeChange, handleDelete, handleBackgroundColorChange, setNodeId]
   );
 
   // 添加图片节点函数

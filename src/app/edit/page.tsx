@@ -61,6 +61,24 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
     [setNodes, setEdges]
   );
 
+  // 处理节点背景色更改
+  const handleBackgroundColorChange = useCallback((nodeId: string, color: string) => {
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === nodeId) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              backgroundColor: color,
+            },
+          };
+        }
+        return node;
+      })
+    );
+  }, [setNodes]);
+
   // 节点类型切换回调
   const handleTypeChange = useCallback(
     (nodeId: string, newType: 'text' | 'image' | 'video' | 'audio') => {
@@ -78,7 +96,11 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
                   ? '视频节点'
                   : '音频节点',
               onTypeChange: handleTypeChange,
-              onDelete: handleDelete
+              onDelete: handleDelete,
+              // 如果是文本节点转换为其他类型，移除背景色相关属性
+              ...(node.type === 'text' && newType !== 'text' && { backgroundColor: undefined, onBackgroundColorChange: undefined }),
+              // 如果是其他类型转换为文本节点，添加背景色相关属性
+              ...(node.type !== 'text' && newType === 'text' && { backgroundColor: 'transparent', onBackgroundColorChange: handleBackgroundColorChange }),
             };
 
             // 为图片、视频和音频节点添加onReplace回调
@@ -111,7 +133,7 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
         })
       );
     },
-    [setNodes, handleDelete]
+    [setNodes, handleDelete, handleBackgroundColorChange]
   );
 
   // 注册自定义节点类型
@@ -138,7 +160,8 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
       setNodeId,
       setNodes,
       handleTypeChange,
-      handleDelete
+      handleDelete,
+      handleBackgroundColorChange
     });
 
 

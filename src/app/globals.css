@@ -123,6 +123,16 @@
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
   --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+
+  /* 节点背景颜色变量 */
+  --node-bg-white: #ffffff;
+  --node-bg-color1: rgb(150, 66, 67);
+  --node-bg-color2: rgb(131, 73, 21);
+  --node-bg-color3: rgb(143, 128, 48);
+  --node-bg-color4: rgb(61, 115, 68);
+  --node-bg-color5: rgb(51, 114, 130);
+  --node-bg-color6: rgb(43, 82, 132);
+  --node-bg-color7: rgb(118, 56, 134);
 }
 
 @media (prefers-color-scheme: dark) {

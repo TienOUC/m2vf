@@ -9,8 +9,10 @@ import ResizeIcon from './ResizeIcon';
 export interface TextNodeData {
   label?: string;
   content?: string;
-  onTypeChange?: (nodeId: string, newType: 'text' | 'image' | 'video') => void;
+  backgroundColor?: string;
+  onTypeChange?: (nodeId: string, newType: 'text' | 'image' | 'video' | 'audio') => void;
   onDelete?: (nodeId: string) => void;
+  onBackgroundColorChange?: (nodeId: string, color: string) => void;
 }
 
 function TextNode({ data, id, selected, ...rest }: NodeProps) {
@@ -30,7 +32,15 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
   };
 
   return (
-    <NodeBase data={data} id={id} selected={selected} nodeType="text" {...rest}>
+    <NodeBase 
+      data={data} 
+      id={id} 
+      selected={selected} 
+      nodeType="text"
+      onBackgroundColorChange={nodeData?.onBackgroundColorChange}
+      backgroundColor={nodeData?.backgroundColor}
+      {...rest}
+    >
       <NodeResizeControl style={controlStyle} minWidth={100} minHeight={50}>
         <ResizeIcon className="absolute right-1 bottom-1" />
       </NodeResizeControl>
@@ -38,7 +48,7 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
         <textarea
           value={content}
           onChange={handleChange}
-          className="w-full h-full p-1 border border-gray-200 rounded-md focus:outline-none focus:ring-gray-200 focus:border-gray-300 resize-none text-xs transition-colors"
+          className="w-full h-full p-1 border border-gray-200 rounded-md focus:outline-none focus:ring-gray-200 focus:border-gray-300 resize-none text-xs transition-colors bg-transparent"
           placeholder="输入文本内容..."
         />
       </div>

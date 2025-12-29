@@ -3,8 +3,10 @@ import type { NodeProps } from '@xyflow/react';
 
 export interface NodeData {
   label?: string;
+  backgroundColor?: string;
   onTypeChange?: (nodeId: string, newType: 'text' | 'image' | 'video' | 'audio') => void;
   onDelete?: (nodeId: string) => void;
+  onBackgroundColorChange?: (nodeId: string, color: string) => void;
 }
 
 export interface NodeType {
