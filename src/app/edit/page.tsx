@@ -40,7 +40,7 @@ const initialNodes: Node[] = [];
 const initialEdges: Edge[] = [];
 
 // ReactFlow 包装组件
-function FlowCanvas() {
+function FlowCanvas({ projectId }: { projectId: string | null }) {
   // ReactFlow 状态管理
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -230,6 +230,7 @@ function FlowCanvas() {
         onUploadVideo={handleUploadVideo}
         onUploadAudio={handleUploadAudio}
         onViewAllAssets={handleViewAllAssets}
+        projectId={projectId ? parseInt(projectId) : undefined}
       />
     </ReactFlow>
   );
@@ -346,7 +347,7 @@ export default function EditPage() {
       <main className="flex-1 bg-neutral-50">
         <div className="w-full h-full">
           <ReactFlowProvider>
-            <FlowCanvas />
+            <FlowCanvas projectId={projectId} />
           </ReactFlowProvider>
         </div>
       </main>

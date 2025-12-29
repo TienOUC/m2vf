@@ -11,7 +11,7 @@ import {
   UploadFile,
   Collections
 } from '@mui/icons-material';
-import { FloatingMenu, MenuButton, SidebarButton } from '../common';
+import { FloatingMenu, MenuButton, SidebarButton, AssetDrawer } from '../common';
 
 interface LeftSidebarProps {
   onAddClick?: () => void;
@@ -25,6 +25,7 @@ interface LeftSidebarProps {
   onUploadVideo?: () => void;
   onUploadAudio?: () => void;
   onViewAllAssets?: () => void;
+  projectId?: number;
 }
 
 export default function LeftSidebar({
@@ -38,10 +39,12 @@ export default function LeftSidebar({
   onUploadImage,
   onUploadVideo,
   onUploadAudio,
-  onViewAllAssets
+  onViewAllAssets,
+  projectId
 }: LeftSidebarProps) {
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [showAssetMenu, setShowAssetMenu] = useState(false);
+  const [showAssetDrawer, setShowAssetDrawer] = useState(false);
 
   const handleAddClick = () => {
     if (onAddClick) {
@@ -65,6 +68,7 @@ export default function LeftSidebar({
   };
 
   return (
+    <div>
     <div
       className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm p-3 rounded-xl shadow-lg border border-gray-200 z-10 flex flex-col items-center gap-3"
       // 阻止侧边栏容器上的点击事件冒泡
@@ -144,6 +148,10 @@ export default function LeftSidebar({
             onClick={() => {
               onViewAllAssets?.();
               closeAllMenus();
+              // 显示资产抽屉，需要有项目ID
+              if (projectId) {
+                setShowAssetDrawer(true);
+              }
             }}
           />
 
@@ -185,5 +193,15 @@ export default function LeftSidebar({
         </FloatingMenu>
       </div>
     </div>
+    
+    {/* 资产管理抽屉 */}
+    {projectId && (
+      <AssetDrawer
+        isOpen={showAssetDrawer}
+        onClose={() => setShowAssetDrawer(false)}
+        projectId={projectId}
+      />
+    )}
+  </div>
   );
 }
