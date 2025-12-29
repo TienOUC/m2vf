@@ -61,8 +61,8 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full my-8">
+    <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-6">
+      <div className="max-w-md w-full">
         {/* 卡片 */}
         <div className="bg-white rounded-lg p-6 shadow-sm border border-neutral-200">
           {/* 标题部分 */}
