@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Folder as FolderIcon, Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
-import { getProjectImageTree, createFolder } from '@/lib/api/images';
+import { getProjectImageTree, createFolder, getFolderImages, getFolderVideos } from '@/lib/api/images';
 import CreateFolderDialog from './CreateFolderDialog';
 
 interface AssetDrawerProps {
@@ -20,21 +20,36 @@ interface Folder {
   image_count: number;
 }
 
+interface AssetFile {
+  id: number;
+  name: string;
+  type: string;
+  size: number;
+  created_at: string;
+  url: string;
+}
+
 export default function AssetDrawer({ isOpen, onClose, projectId }: AssetDrawerProps) {
   const [folders, setFolders] = useState<Folder[]>([]);
+  const [files, setFiles] = useState<AssetFile[]>([]); // 添加文件列表状态
   const [loading, setLoading] = useState(true);
+  const [currentFolderId, setCurrentFolderId] = useState<number | null>(null); // 当前选中的文件夹ID
   const [showCreateFolderDialog, setShowCreateFolderDialog] = useState(false);
 
-
-  // 获取文件夹列表
-  const fetchFolders = useCallback(async () => {
-    if (!projectId) return;
+  // 获取指定文件夹的子文件夹列表
+  const fetchFolders = useCallback(async (folderId: number | null = null) => {
+    if (!projectId) return [];
     
     try {
-      setLoading(true);
+      // 只在加载子文件夹时显示loading状态
+      if (folderId !== null) {
+        setLoading(true);
+      }
+      
       const response = await getProjectImageTree(projectId, { 
+        folderId: folderId,
         includeResources: false,
-        fullTree: false 
+        fullTree: false  // 逐层加载
       });
       
       if (!response.ok) {
@@ -43,33 +58,151 @@ export default function AssetDrawer({ isOpen, onClose, projectId }: AssetDrawerP
       
       const data = await response.json();
       
-      // 处理返回的数据，提取顶层文件夹
-      // API响应可能直接是数组或包含folders字段的对象
-      let topLevelFolders: Folder[] = [];
-      if (Array.isArray(data)) {
-        topLevelFolders = data;
-      } else if (data && typeof data === 'object' && Array.isArray(data.folders)) {
-        topLevelFolders = data.folders;
-      } else {
-        // 如果响应结构不符合预期，确保返回一个空数组
-        console.warn('API响应结构不符合预期:', data);
-        topLevelFolders = [];
+      // 正确处理API响应格式: { code: 200, message: '...', data: { folder: {...}, folders: [...] } }
+      let childFolders: Folder[] = [];
+      if (data && typeof data === 'object' && data.data) {
+        if (Array.isArray(data.data.folders)) {
+          // 将返回的子文件夹转换为组件期望的格式
+          childFolders = data.data.folders.map((folder: any) => ({
+            id: folder.id,
+            name: folder.name,
+            parent: folder.parent,
+            created_at: folder.created_at,
+            children: [],
+            image_count: folder.images_count || folder.image_count || 0
+          }));
+        }
       }
       
-      setFolders(topLevelFolders);
+      // 如果是获取根目录的文件夹列表，设置到状态
+      if (folderId === null) {
+        setFolders(childFolders);
+      }
+      
+      return childFolders;
     } catch (error) {
       console.error('获取文件夹列表失败:', error);
-      setFolders([]); // 确保在错误情况下也设置一个空数组
+      if (folderId === null) {
+        setFolders([]); // 确保在错误情况下也设置一个空数组
+      }
+      return [];
+    } finally {
+      // 只在加载子文件夹时设置loading状态
+      if (folderId !== null) {
+        setLoading(false);
+      }
+    }
+  }, [projectId]);
+
+  // 获取指定文件夹下的文件列表
+  const fetchFiles = useCallback(async (folderId: number | null) => {
+    if (!projectId) return;
+    
+    try {
+      setLoading(true);
+      // 使用 getProjectImageTree API 获取文件夹内容，包含资源
+      const response = await getProjectImageTree(projectId, { 
+        folderId: folderId,
+        includeResources: true,
+        fullTree: false
+      });
+      
+      if (!response.ok) {
+        throw new Error(`获取文件列表失败: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // 处理返回的数据，提取文件资源
+      let filesList: AssetFile[] = [];
+      if (data && typeof data === 'object') {
+        // 检查是否是完整的API响应格式 { code: 200, message: '...', data: { images: [...], videos: [...] } }
+        if (data.data) {
+          // 合并图片和视频文件
+          const images = Array.isArray(data.data.images) ? data.data.images : [];
+          const videos = Array.isArray(data.data.videos) ? data.data.videos : [];
+          
+          filesList = [
+            ...images.map((img: any) => ({
+              id: img.id,
+              name: img.name || '未命名图片',
+              type: 'image',
+              size: img.size || 0,
+              created_at: img.created_at || new Date().toISOString(),
+              url: img.url || img.image_url || ''
+            })),
+            ...videos.map((vid: any) => ({
+              id: vid.id,
+              name: vid.name || '未命名视频',
+              type: 'video',
+              size: vid.size || 0, // 视频可能没有size字段，需要从其他地方获取
+              created_at: vid.created_at || new Date().toISOString(),
+              url: vid.url || vid.video_url || ''
+            }))
+          ];
+        } else if (Array.isArray(data.images) || Array.isArray(data.videos)) {
+          // 处理 { images: [...], videos: [...] } 格式
+          const images = Array.isArray(data.images) ? data.images : [];
+          const videos = Array.isArray(data.videos) ? data.videos : [];
+          
+          filesList = [
+            ...images.map((img: any) => ({
+              id: img.id,
+              name: img.name || '未命名图片',
+              type: 'image',
+              size: img.size || 0,
+              created_at: img.created_at || new Date().toISOString(),
+              url: img.url || img.image_url || ''
+            })),
+            ...videos.map((vid: any) => ({
+              id: vid.id,
+              name: vid.name || '未命名视频',
+              type: 'video',
+              size: vid.size || 0,
+              created_at: vid.created_at || new Date().toISOString(),
+              url: vid.url || vid.video_url || ''
+            }))
+          ];
+        } else if (Array.isArray(data.resources)) {
+          // 处理 { resources: [...] } 格式
+          filesList = data.resources.map((res: any) => ({
+            id: res.id,
+            name: res.name || '未命名文件',
+            type: res.type || 'file',
+            size: res.size || 0,
+            created_at: res.created_at || new Date().toISOString(),
+            url: res.url || ''
+          }));
+        } else if (Array.isArray(data)) {
+          // 如果直接返回数组
+          filesList = data.map((item: any) => ({
+            id: item.id,
+            name: item.name || '未命名文件',
+            type: item.type || 'file',
+            size: item.size || 0,
+            created_at: item.created_at || new Date().toISOString(),
+            url: item.url || ''
+          }));
+        }
+      }
+      
+      setFiles(filesList);
+    } catch (error) {
+      console.error('获取文件列表失败:', error);
+      setFiles([]);
     } finally {
       setLoading(false);
     }
   }, [projectId]);
 
+  // 在抽屉打开时获取根目录的文件
   useEffect(() => {
     if (isOpen && projectId) {
-      fetchFolders();
+      fetchFolders(null); // 获取根目录的文件夹
+      fetchFiles(null); // 获取根目录文件
+      setCurrentFolderId(null); // 默认选中根目录
     }
-  }, [isOpen, projectId, fetchFolders]);
+  }, [isOpen, projectId, fetchFolders, fetchFiles]);
 
   // 处理新建文件夹
   const handleCreateFolder = async (name: string, parent: number | null = null) => {
@@ -87,6 +220,79 @@ export default function AssetDrawer({ isOpen, onClose, projectId }: AssetDrawerP
     } catch (error) {
       console.error('创建文件夹失败:', error);
     }
+  };
+
+  // 定义 FolderItem 组件
+  const FolderItem = ({ folder, projectId, level = 0 }: { folder: Folder, projectId: number, level?: number }) => {
+    const [expanded, setExpanded] = useState(false);
+    const [children, setChildren] = useState<Folder[]>([]);
+    const [loadingChildren, setLoadingChildren] = useState(false);
+    const paddingLeft = `${level * 20}px`;
+    const isSelected = currentFolderId === folder.id;
+
+    const toggleExpanded = async () => {
+      if (!expanded) {
+        // 展开时加载子文件夹
+        setLoadingChildren(true);
+        const childFolders = await fetchFolders(folder.id);
+        setChildren(childFolders);
+        setLoadingChildren(false);
+      }
+      setExpanded(!expanded);
+    };
+
+    const handleFolderClick = () => {
+      setCurrentFolderId(folder.id);
+      fetchFiles(folder.id); // 获取该文件夹下的文件
+    };
+
+    return (
+      <div className="w-full">
+        <div 
+          className={`flex items-center gap-2 p-2 rounded cursor-pointer ${isSelected ? 'bg-blue-100' : 'hover:bg-gray-100'}`}
+          style={{ paddingLeft }}
+          onClick={toggleExpanded}
+        >
+          <FolderIcon 
+            className={`w-5 h-5 text-blue-500 transition-transform ${expanded ? 'rotate-90' : ''}`} 
+            onClick={(e) => {
+              e.stopPropagation();
+              handleFolderClick();
+            }}
+          />
+          <div className="flex-1 min-w-0" onClick={handleFolderClick}>
+            <h3 className="font-medium truncate">{folder.name}</h3>
+            <p className="text-xs text-gray-500">
+              {folder.image_count} 个文件
+            </p>
+          </div>
+          <p className="text-xs text-gray-400">
+            {new Date(folder.created_at).toLocaleDateString()}
+          </p>
+        </div>
+        
+        {/* 加载子文件夹指示器 */}
+        {expanded && loadingChildren && (
+          <div className="ml-6 pl-2 text-sm text-gray-500">
+            加载中...
+          </div>
+        )}
+        
+        {/* 子文件夹 */}
+        {expanded && children && children.length > 0 && (
+          <div className="ml-4 border-l border-gray-200 pl-2">
+            {children.map((childFolder) => (
+              <FolderItem 
+                key={childFolder.id} 
+                folder={childFolder} 
+                projectId={projectId}
+                level={level + 1}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
   };
 
   // 渲染加载状态
@@ -151,47 +357,78 @@ export default function AssetDrawer({ isOpen, onClose, projectId }: AssetDrawerP
         </div>
 
         {/* 主体内容 */}
-        <div className="p-4 overflow-y-auto h-[calc(80vh-60px)]">
-          {folders.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500">
-              <FolderIcon className="w-16 h-16 mb-4" />
-              <p>暂无文件夹</p>
-              <button
-                onClick={() => setShowCreateFolderDialog(true)}
-                className="mt-4 text-primary-600 hover:underline"
-              >
-                点击创建第一个文件夹
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {Array.isArray(folders) ? (
-                folders.map((folder) => (
+        <div className="flex h-[calc(80vh-60px)]">
+          {/* 文件夹列表侧边栏 */}
+          <div className="w-1/3 border-r p-4 overflow-y-auto">
+            <h3 className="font-semibold mb-2">文件夹</h3>
+            {folders.length === 0 ? (
+              <div className="text-center text-gray-500 py-4">
+                暂无文件夹
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {/* 根目录 */}
+                <div 
+                  className={`flex items-center gap-2 p-2 rounded cursor-pointer ${currentFolderId === null ? 'bg-blue-100 font-semibold' : 'hover:bg-gray-100'}`}
+                  onClick={() => {
+                    setCurrentFolderId(null);
+                    fetchFiles(null);
+                  }}
+                >
+                  <FolderIcon className="w-5 h-5 text-blue-500" />
+                  <span>根目录</span>
+                </div>
+                
+                {Array.isArray(folders) ? (
+                  folders.map((folder) => (
+                    <FolderItem 
+                      key={folder.id} 
+                      folder={folder}
+                      projectId={projectId}
+                    />
+                  ))
+                ) : (
+                  <div className="text-center text-gray-500 py-4">
+                    数据格式错误
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          
+          {/* 文件列表区域 */}
+          <div className="w-2/3 p-4 overflow-y-auto">
+            <h3 className="font-semibold mb-2">
+              {currentFolderId === null ? '根目录文件' : 
+                folders.find(f => f.id === currentFolderId)?.name + ' 文件'}
+            </h3>
+            {files.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                <FolderIcon className="w-16 h-16 mb-4" />
+                <p>暂无文件</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {files.map((file) => (
                   <div 
-                    key={folder.id} 
-                    className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                    key={file.id}
+                    className="border rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer"
                   >
-                    <div className="flex items-center gap-3">
-                      <FolderIcon className="w-8 h-8 text-blue-500" />
+                    <div className="flex items-center gap-2">
+                      <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16" />
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium truncate">{folder.name}</h3>
-                        <p className="text-sm text-gray-500">
-                          {folder.image_count} 个文件
-                        </p>
+                        <h4 className="font-medium truncate">{file.name}</h4>
+                        <p className="text-xs text-gray-500">{file.type} | {(file.size / 1024).toFixed(2)}KB</p>
                       </div>
                     </div>
                     <p className="text-xs text-gray-400 mt-2">
-                      {new Date(folder.created_at).toLocaleDateString()}
+                      {new Date(file.created_at).toLocaleDateString()}
                     </p>
                   </div>
-                ))
-              ) : (
-                <div className="text-center text-gray-500 py-8">
-                  数据格式错误
-                </div>
-              )}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* 新建文件夹对话框 */}
