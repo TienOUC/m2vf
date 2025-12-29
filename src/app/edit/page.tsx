@@ -334,7 +334,6 @@ export default function EditPage() {
       {/* 顶部导航栏 */}
       <Navbar 
         user={user} 
-        onEditProject={openEditModal}
       />
 
       {/* 主编辑器区域 - ReactFlow画布 */}
