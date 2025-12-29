@@ -236,182 +236,150 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-neutral-50 via-background to-primary-50 p-6 relative overflow-hidden">
-      {/* 装饰背景元素 */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-secondary-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-      <div className="absolute top-40 right-10 w-72 h-72 bg-warning-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-      <div className="absolute bottom-20 left-1/2 w-72 h-72 bg-error-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+    <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-6">
+      <div className="max-w-md w-full">
+        {/* 卡片 */}
+        <div className="bg-white rounded-lg p-8 shadow-sm border border-neutral-200">
+          {/* 标题部分 */}
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-neutral-900 mb-2">
+              欢迎回来
+            </h2>
+          </div>
 
-      <div className="max-w-md w-full relative z-10">
-        {/* 玻璃拟态卡片 */}
-        <div className="group relative">
-          <div className="absolute -inset-1 bg-gradient-to-r from-primary-600 via-secondary-600 to-primary-800 rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
-          <div className="relative bg-background/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-background/20">
-            {/* 标题部分 */}
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-foreground mb-2">
-                欢迎回来
-              </h2>
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* 错误提示 */}
+            {error && (
+              <div className="p-4 rounded-lg bg-red-50 border border-red-200">
+                <p className="text-sm text-red-700 text-center">
+                  {error.includes('网络') ||
+                  error.includes('超时') ||
+                  error.includes('服务器') ? (
+                    <>
+                      <span className="font-medium">系统提示：</span>
+                      {error}
+                      <br />
+                      <span className="text-xs text-red-600 mt-1 block">
+                        请检查网络连接或联系管理员
+                      </span>
+                    </>
+                  ) : (
+                    error
+                  )}
+                </p>
+              </div>
+            )}
+
+            {/* 表单输入 */}
+            <div className="space-y-4">
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-neutral-700 mb-2"
+                >
+                  邮箱地址
+                </label>
+                <div className="relative">
+                  <EnvelopeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors placeholder-neutral-400"
+                    placeholder="请输入邮箱地址"
+                    onBlur={handleBlur}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                {touched.email && formErrors.email && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {formErrors.email}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-neutral-700 mb-2"
+                >
+                  密码
+                </label>
+                <div className="relative">
+                  <LockClosedIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors placeholder-neutral-400"
+                    placeholder="请输入密码"
+                    onBlur={handleBlur}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                {touched.password && formErrors.password && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {formErrors.password}
+                  </p>
+                )}
+              </div>
             </div>
 
-            <form className="space-y-6" onSubmit={handleSubmit}>
-              {/* 错误提示 */}
-              {error && (
-                <div className="p-4 rounded-lg bg-error-50/80 backdrop-blur-sm border border-error-200">
-                  <p className="text-sm text-error-700 text-center">
-                    {error.includes('网络') ||
-                    error.includes('超时') ||
-                    error.includes('服务器') ? (
-                      <>
-                        <span className="font-medium">系统提示：</span>
-                        {error}
-                        <br />
-                        <span className="text-xs text-error-600 mt-1 block">
-                          请检查网络连接或联系管理员
-                        </span>
-                      </>
-                    ) : (
-                      error
-                    )}
-                  </p>
-                </div>
-              )}
+            {/* 登录按钮 */}
+            <div>
+              <button
+                type="submit"
+                disabled={isLoading || !isFormValid()}
+                className="w-full flex items-center justify-center bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? (
+                  <span className="flex items-center justify-center">
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    登录中...
+                  </span>
+                ) : (
+                  <>
+                    <span>立即登录</span>
+                  </>
+                )}
+              </button>
+            </div>
 
-              {/* 表单输入 */}
-              <div className="space-y-4">
-                <div className="group">
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-foreground mb-2"
-                  >
-                    邮箱地址
-                  </label>
-                  <div className="relative">
-                    <EnvelopeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-foreground" />
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      autoComplete="email"
-                      required
-                      className={`w-full pl-10 pr-10 py-3 bg-background/50 border rounded-xl focus:ring-2 focus:border-primary-500/50 transition-all duration-300 placeholder-foreground ${
-                        touched.email && formErrors.email
-                          ? 'border-error-300 focus:ring-error-500/50'
-                          : 'border-neutral-200/50 focus:ring-primary-500/50'
-                      }`}
-                      placeholder="输入您的邮箱地址"
-                      onBlur={handleBlur}
-                      onChange={handleInputChange}
-                    />
-                    {touched.email && formErrors.email && (
-                      <ExclamationCircleIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-error-500" />
-                    )}
-                  </div>
-                  {touched.email && formErrors.email && (
-                    <p className="mt-1 text-sm text-error-600">
-                      {formErrors.email}
-                    </p>
-                  )}
-                </div>
-
-                <div className="group">
-                  <label
-                    htmlFor="password"
-                    className="block text-sm font-medium text-foreground mb-2"
-                  >
-                    密码
-                  </label>
-                  <div className="relative">
-                    <LockClosedIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-foreground" />
-                    <input
-                      id="password"
-                      name="password"
-                      type="password"
-                      autoComplete="current-password"
-                      required
-                      className={`w-full pl-10 pr-10 py-3 bg-background/50 border rounded-xl focus:ring-2 focus:border-primary-500/50 transition-all duration-300 placeholder-foreground ${
-                        touched.password && formErrors.password
-                          ? 'border-error-300 focus:ring-error-500/50'
-                          : 'border-neutral-200/50 focus:ring-primary-500/50'
-                      }`}
-                      placeholder="输入您的密码"
-                      onBlur={handleBlur}
-                      onChange={handleInputChange}
-                    />
-                    {touched.password && formErrors.password && (
-                      <ExclamationCircleIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-error-500" />
-                    )}
-                  </div>
-                  {touched.password && formErrors.password && (
-                    <p className="mt-1 text-sm text-error-600">
-                      {formErrors.password}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* 登录按钮 */}
-              <div>
-                <button
-                  type="submit"
-                  disabled={isLoading || !isFormValid()}
-                  className="w-full group relative flex items-center justify-center bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 text-white font-semibold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                >
-                  {isLoading ? (
-                    <span className="flex items-center justify-center">
-                      <svg
-                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      登录中...
-                    </span>
-                  ) : (
-                    <>
-                      <span>立即登录</span>
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {/* 注册链接 */}
-              <div className="text-center text-sm">
-                <span className="text-foreground">还没有账户？</span>
-                <Link
-                  href="/register"
-                  className="font-medium text-primary-600 hover:text-primary-500 ml-1 transition-colors"
-                >
-                  立即注册
-                </Link>
-              </div>
-            </form>
-          </div>
+            {/* 注册链接 */}
+            <div className="text-center text-sm">
+              <span className="text-neutral-600">还没有账户？</span>
+              <Link
+                href="/register"
+                className="font-medium text-primary-600 hover:text-primary-500 ml-1 transition-colors"
+              >
+                立即注册
+              </Link>
+            </div>
+          </form>
         </div>
-
-        {/* 返回首页链接 */}
-        {/* <div className="text-center mt-6">
-          <Link
-            href="/"
-            className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            返回首页
-          </Link>
-        </div> */}
       </div>
     </div>
   );
