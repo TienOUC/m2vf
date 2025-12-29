@@ -16,6 +16,33 @@ export const loginUser = async (
     process.env.NEXT_PUBLIC_API_BASE_URL
   );
   console.log('[loginUser] 实际请求 URL:', loginUrl);
+  
+  // 根据用户输入的凭证类型动态确定参数名
+  // 检查是否为邮箱格式
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // 检查是否为手机号格式
+  const phoneRegex = /^1[3-9]\d{9}$/;
+  
+  let loginData: any;
+  if (emailRegex.test(credentials.credential)) {
+    // 如果是邮箱格式，使用email参数名
+    loginData = {
+      email: credentials.credential,
+      password: credentials.password
+    };
+  } else if (phoneRegex.test(credentials.credential)) {
+    // 如果是手机号格式，使用phone参数名
+    loginData = {
+      phone: credentials.credential,
+      password: credentials.password
+    };
+  } else {
+    // 如果都不是有效格式，仍然尝试发送（后端可能需要验证）
+    loginData = {
+      email: credentials.credential, // 默认使用email参数
+      password: credentials.password
+    };
+  }
 
   try {
     const response = await fetch(loginUrl, {
@@ -23,7 +50,7 @@ export const loginUser = async (
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(credentials),
+      body: JSON.stringify(loginData),
       redirect: 'manual' // 关键：禁止自动跟随重定向
     });
 
@@ -41,18 +68,6 @@ export const loginUser = async (
   }
 };
 
-// 获取用户信息
-export const getUserProfile = async (): Promise<Response> => {
-  const profileUrl = buildApiUrl(API_ENDPOINTS.AUTH.PROFILE);
-  return apiRequest(profileUrl, { method: 'GET' });
-};
-
-// 登出用户
-export const logoutUser = (): void => {
-  clearTokens();
-  window.location.href = ROUTES.LOGIN;
-};
-
 // 用户注册
 export const registerUser = async (userData: {
   email: string;
@@ -63,13 +78,21 @@ export const registerUser = async (userData: {
 }): Promise<{ success: boolean; message?: string }> => {
   const registerUrl = buildApiUrl(API_ENDPOINTS.AUTH.REGISTER);
 
+  // 准备发送到服务器的数据，只发送需要的字段
+  const requestData = {
+    email: userData.email,
+    phoneNumber: userData.phoneNumber,
+    password: userData.password,
+    name: userData.name
+  };
+
   try {
     const response = await fetch(registerUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(userData)
+      body: JSON.stringify(requestData)
     });
 
     if (response.ok) {
@@ -86,4 +109,16 @@ export const registerUser = async (userData: {
     console.error('注册请求失败:', error);
     return { success: false, message: '网络请求失败，请稍后重试' };
   }
+}
+
+// 获取用户信息
+export const getUserProfile = async (): Promise<Response> => {
+  const profileUrl = buildApiUrl(API_ENDPOINTS.AUTH.PROFILE);
+  return apiRequest(profileUrl, { method: 'GET' });
+};
+
+// 登出用户
+export const logoutUser = (): void => {
+  clearTokens();
+  window.location.href = ROUTES.LOGIN;
 };

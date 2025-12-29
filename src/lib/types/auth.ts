@@ -12,7 +12,7 @@ export interface TokenResponse {
 
 // 登录凭据
 export interface LoginCredentials {
-  email: string;
+  credential: string; // 邮箱或手机号
   password: string;
 }
 

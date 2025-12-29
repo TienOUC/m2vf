@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { registerUser } from '@/lib/api/auth';
+import { validateEmail, validatePhone, validatePassword, validateConfirmPassword, validateName } from '@/lib/utils/validation';
+import { useForm } from '@/hooks/useForm';
 import {
   UserIcon,
   EnvelopeIcon,
@@ -12,51 +14,111 @@ import {
   CheckCircleIcon
 } from '@heroicons/react/24/outline';
 
+interface RegisterFormValues {
+  name: string;
+  email: string;
+  phoneNumber: string;
+  password: string;
+  confirmPassword: string;
+  registerMethod: 'email' | 'phone';
+}
+
 export default function RegisterPage() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
-    setSuccess('');
-
-    const formData = new FormData(e.currentTarget);
-    const userData = {
-      email: formData.get('email') as string,
-      phoneNumber: formData.get('phoneNumber') as string,
-      password: formData.get('password') as string,
-      confirmPassword: formData.get('confirmPassword') as string,
-      name: formData.get('name') as string
-    };
-
-    // 前端基础验证
-    if (userData.password !== userData.confirmPassword) {
-      setError('两次输入的密码不一致');
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const response = await registerUser(userData);
-
-      if (response.success) {
-        setSuccess('账户创建成功！正在跳转到登录页...');
-        // 3秒后自动跳转到登录页
-        setTimeout(() => {
-          router.push('/login');
-        }, 3000);
+  const {
+    values,
+    errors,
+    touched,
+    isLoading,
+    handleChange,
+    handleBlur,
+    handleSubmit: handleFormSubmit
+  } = useForm<RegisterFormValues>({
+    initialValues: {
+      name: '',
+      email: '',
+      phoneNumber: '',
+      password: '',
+      confirmPassword: '',
+      registerMethod: 'email'
+    },
+    validate: (values) => {
+      const formErrors: Partial<RegisterFormValues> = {};
+      
+      // 验证姓名
+      formErrors.name = validateName(values.name);
+      
+      // 根据注册方式验证邮箱或手机号
+      if (values.registerMethod === 'email') {
+        formErrors.email = validateEmail(values.email);
       } else {
-        setError(response.message || '注册失败');
+        formErrors.phoneNumber = validatePhone(values.phoneNumber);
       }
-    } catch (err) {
-      setError('注册请求失败，请检查网络');
-      console.error('注册请求错误:', err);
-    } finally {
-      setIsLoading(false);
+      
+      // 验证密码
+      formErrors.password = validatePassword(values.password);
+      
+      // 验证确认密码
+      formErrors.confirmPassword = validateConfirmPassword(values.password, values.confirmPassword);
+      
+      return formErrors;
+    },
+    onSubmit: async (values) => {
+      setError('');
+      setSuccess('');
+      
+      // 准备注册数据
+      const userData = {
+        email: values.registerMethod === 'email' ? values.email : '',
+        phoneNumber: values.registerMethod === 'phone' ? values.phoneNumber : '',
+        password: values.password,
+        confirmPassword: values.confirmPassword,
+        name: values.name
+      };
+      
+      try {
+        const response = await registerUser(userData);
+        
+        if (response.success) {
+          setSuccess('账户创建成功！正在跳转到登录页...');
+          // 3秒后自动跳转到登录页
+          setTimeout(() => {
+            router.push('/login');
+          }, 3000);
+        } else {
+          setError(response.message || '注册失败');
+        }
+      } catch (err) {
+        setError('注册请求失败，请检查网络');
+        console.error('注册请求错误:', err);
+      }
+    }
+  });
+  
+  // 创建适配器函数用于处理输入事件
+  const handleInputBlur = (fieldName: keyof RegisterFormValues) => {
+    return () => {
+      handleBlur(fieldName);
+    };
+  };
+  
+  const handleInputChange = (fieldName: keyof RegisterFormValues) => {
+    return (e: React.ChangeEvent<HTMLInputElement>) => {
+      handleChange(fieldName, e.target.value);
+    };
+  };
+  
+  // 切换注册方式
+  const handleRegisterMethodChange = (method: 'email' | 'phone') => {
+    handleChange('registerMethod', method);
+    // 清除另一方式的错误
+    if (method === 'email') {
+      handleChange('phoneNumber', '');
+    } else {
+      handleChange('email', '');
     }
   };
 
@@ -72,7 +134,7 @@ export default function RegisterPage() {
             </h2>
           </div>
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleFormSubmit}>
             {/* 错误提示 */}
             {error && (
               <div className="p-4 rounded-lg bg-red-50 border border-red-200">
@@ -88,6 +150,24 @@ export default function RegisterPage() {
             )}
 
             <div className="space-y-4">
+              {/* 注册方式切换 */}
+              <div className="flex space-x-4 mb-4">
+                <button
+                  type="button"
+                  className={`flex-1 py-2 px-4 rounded-lg border transition-colors ${values.registerMethod === 'email' ? 'bg-primary-100 border-primary-500 text-primary-700' : 'bg-white border-neutral-300 text-neutral-700'}`}
+                  onClick={() => handleRegisterMethodChange('email')}
+                >
+                  邮箱注册
+                </button>
+                <button
+                  type="button"
+                  className={`flex-1 py-2 px-4 rounded-lg border transition-colors ${values.registerMethod === 'phone' ? 'bg-primary-100 border-primary-500 text-primary-700' : 'bg-white border-neutral-300 text-neutral-700'}`}
+                  onClick={() => handleRegisterMethodChange('phone')}
+                >
+                  手机注册
+                </button>
+              </div>
+
               {/* 姓名 */}
               <div>
                 <label
@@ -106,53 +186,81 @@ export default function RegisterPage() {
                     required
                     className="w-full pl-10 pr-4 py-3 bg-white border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors placeholder-neutral-400"
                     placeholder="请输入您的姓名"
+                    value={values.name}
+                    onBlur={() => handleInputBlur('name')}
+                    onChange={handleInputChange('name')}
                   />
                 </div>
+                {touched.name && errors.name && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.name}
+                  </p>
+                )}
               </div>
 
-              {/* 邮箱地址 */}
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-neutral-700 mb-2"
-                >
-                  邮箱地址 *
-                </label>
-                <div className="relative">
-                  <EnvelopeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    className="w-full pl-10 pr-4 py-3 bg-white border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors placeholder-neutral-400"
-                    placeholder="请输入邮箱地址"
-                  />
+              {/* 邮箱地址 - 仅在邮箱注册模式下显示 */}
+              {values.registerMethod === 'email' && (
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-neutral-700 mb-2"
+                  >
+                    邮箱地址 *
+                  </label>
+                  <div className="relative">
+                    <EnvelopeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      className="w-full pl-10 pr-4 py-3 bg-white border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors placeholder-neutral-400"
+                      placeholder="请输入邮箱地址"
+                      value={values.email}
+                      onBlur={() => handleInputBlur('email')}
+                      onChange={handleInputChange('email')}
+                    />
+                  </div>
+                  {touched.email && errors.email && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.email}
+                    </p>
+                  )}
                 </div>
-              </div>
+              )}
 
-              {/* 手机号码 */}
-              <div>
-                <label
-                  htmlFor="phoneNumber"
-                  className="block text-sm font-medium text-neutral-700 mb-2"
-                >
-                  手机号码 *
-                </label>
-                <div className="relative">
-                  <PhoneIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
-                  <input
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    type="tel"
-                    autoComplete="tel"
-                    required
-                    className="w-full pl-10 pr-4 py-3 bg-white border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors placeholder-neutral-400"
-                    placeholder="请输入手机号码"
-                  />
+              {/* 手机号码 - 仅在手机注册模式下显示 */}
+              {values.registerMethod === 'phone' && (
+                <div>
+                  <label
+                    htmlFor="phoneNumber"
+                    className="block text-sm font-medium text-neutral-700 mb-2"
+                  >
+                    手机号码 *
+                  </label>
+                  <div className="relative">
+                    <PhoneIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
+                    <input
+                      id="phoneNumber"
+                      name="phoneNumber"
+                      type="tel"
+                      autoComplete="tel"
+                      required
+                      className="w-full pl-10 pr-4 py-3 bg-white border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors placeholder-neutral-400"
+                      placeholder="请输入手机号码"
+                      value={values.phoneNumber}
+                      onBlur={() => handleInputBlur('phoneNumber')}
+                      onChange={handleInputChange('phoneNumber')}
+                    />
+                  </div>
+                  {touched.phoneNumber && errors.phoneNumber && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.phoneNumber}
+                    </p>
+                  )}
                 </div>
-              </div>
+              )}
 
               {/* 密码 */}
               <div>
@@ -173,8 +281,16 @@ export default function RegisterPage() {
                     minLength={6}
                     className="w-full pl-10 pr-4 py-3 bg-white border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors placeholder-neutral-400"
                     placeholder="至少6位字符"
+                    value={values.password}
+                    onBlur={() => handleInputBlur('password')}
+                    onChange={handleInputChange('password')}
                   />
                 </div>
+                {touched.password && errors.password && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.password}
+                  </p>
+                )}
               </div>
 
               {/* 确认密码 */}
@@ -196,8 +312,16 @@ export default function RegisterPage() {
                     minLength={6}
                     className="w-full pl-10 pr-4 py-3 bg-white border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors placeholder-neutral-400"
                     placeholder="请再次输入密码"
+                    value={values.confirmPassword}
+                    onBlur={() => handleInputBlur('confirmPassword')}
+                    onChange={handleInputChange('confirmPassword')}
                   />
                 </div>
+                {touched.confirmPassword && errors.confirmPassword && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.confirmPassword}
+                  </p>
+                )}
               </div>
             </div>
 
