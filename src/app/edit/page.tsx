@@ -163,12 +163,7 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
     alert('上传音频功能即将实现');
   }, []);
 
-  // 查看所有资产功能回调
-  const handleViewAllAssets = useCallback(() => {
-    console.log('查看所有资产功能');
-    // 这里可以添加查看所有资产的逻辑
-    alert('查看所有资产功能即将实现');
-  }, []);
+
 
   // 双击画布添加节点（默认添加文本节点）
   const handlePaneClick = useCallback(
@@ -229,7 +224,6 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
         onUploadImage={handleUploadImage}
         onUploadVideo={handleUploadVideo}
         onUploadAudio={handleUploadAudio}
-        onViewAllAssets={handleViewAllAssets}
         projectId={projectId ? parseInt(projectId) : undefined}
       />
     </ReactFlow>

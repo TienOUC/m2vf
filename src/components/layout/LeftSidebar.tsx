@@ -24,7 +24,6 @@ interface LeftSidebarProps {
   onUploadImage?: () => void;
   onUploadVideo?: () => void;
   onUploadAudio?: () => void;
-  onViewAllAssets?: () => void;
   projectId?: number;
 }
 
@@ -39,7 +38,6 @@ export default function LeftSidebar({
   onUploadImage,
   onUploadVideo,
   onUploadAudio,
-  onViewAllAssets,
   projectId
 }: LeftSidebarProps) {
   const [showAddMenu, setShowAddMenu] = useState(false);
@@ -146,7 +144,6 @@ export default function LeftSidebar({
             icon={<Collections fontSize="small" />}
             label="所有资产"
             onClick={() => {
-              onViewAllAssets?.();
               closeAllMenus();
               // 显示资产抽屉，需要有项目ID
               if (projectId) {
