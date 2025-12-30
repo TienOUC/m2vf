@@ -13,6 +13,12 @@ export interface BaseNodeProps extends NodeProps {
   onFontTypeChange?: (nodeId: string, fontType: 'h1' | 'h2' | 'h3' | 'p') => void;
   backgroundColor?: string;
   fontType?: 'h1' | 'h2' | 'h3' | 'p';
+  // 新增：文本格式化功能
+  onBoldToggle?: (nodeId: string) => void;
+  onItalicToggle?: (nodeId: string) => void;
+  onBulletListToggle?: (nodeId: string) => void;
+  onNumberedListToggle?: (nodeId: string) => void;
+  onHorizontalRuleInsert?: (nodeId: string) => void;
 }
 
 export function NodeBase({
@@ -24,6 +30,11 @@ export function NodeBase({
   onReplace,
   onBackgroundColorChange,
   onFontTypeChange,
+  onBoldToggle,
+  onItalicToggle,
+  onBulletListToggle,
+  onNumberedListToggle,
+  onHorizontalRuleInsert,
   backgroundColor,
   fontType,
   ...rest
@@ -56,6 +67,11 @@ export function NodeBase({
         onReplace={onReplace}
         onBackgroundColorChange={onBackgroundColorChange}
         onFontTypeChange={onFontTypeChange}
+        onBoldToggle={onBoldToggle}
+        onItalicToggle={onItalicToggle}
+        onBulletListToggle={onBulletListToggle}
+        onNumberedListToggle={onNumberedListToggle}
+        onHorizontalRuleInsert={onHorizontalRuleInsert}
         backgroundColor={backgroundColor}
         selected={selected}
         type={nodeType}

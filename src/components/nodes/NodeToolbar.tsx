@@ -1,5 +1,5 @@
 import { NodeToolbar as ReactFlowNodeToolbar, Position } from '@xyflow/react';
-import { SwapHoriz, Close, TextFields, Image as ImageIcon, VideoFile, Audiotrack, Palette, ContentCopy } from '@mui/icons-material';
+import { SwapHoriz, Close, TextFields, Image as ImageIcon, VideoFile, Audiotrack, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, Title, HorizontalRule } from '@mui/icons-material';
 import { Tooltip, Popover } from '@mui/material';
 import { memo, useState, useRef, useEffect } from 'react';
 import { useClickOutside } from '@/hooks';
@@ -18,6 +18,12 @@ export interface NodeToolbarProps {
   type?: 'text' | 'image' | 'video' | 'audio';
   fontType?: 'h1' | 'h2' | 'h3' | 'p';
   getContent?: (nodeId: string) => string;
+  // 新增：文本格式化功能
+  onBoldToggle?: (nodeId: string) => void;
+  onItalicToggle?: (nodeId: string) => void;
+  onBulletListToggle?: (nodeId: string) => void;
+  onNumberedListToggle?: (nodeId: string) => void;
+  onHorizontalRuleInsert?: (nodeId: string) => void;
 }
 
 const NodeToolbar = ({ 
@@ -27,6 +33,11 @@ const NodeToolbar = ({
   onReplace,
   onBackgroundColorChange,
   onFontTypeChange,
+  onBoldToggle,
+  onItalicToggle,
+  onBulletListToggle,
+  onNumberedListToggle,
+  onHorizontalRuleInsert,
   backgroundColor,
   selected = false, 
   type = 'text',
@@ -63,6 +74,27 @@ const NodeToolbar = ({
 
   const handleFontTypeChange = (fontType: 'h1' | 'h2' | 'h3' | 'p') => {
     onFontTypeChange && onFontTypeChange(nodeId, fontType);
+  };
+
+  // 新增：文本格式化处理函数
+  const handleBoldToggle = () => {
+    onBoldToggle && onBoldToggle(nodeId);
+  };
+
+  const handleItalicToggle = () => {
+    onItalicToggle && onItalicToggle(nodeId);
+  };
+
+  const handleBulletListToggle = () => {
+    onBulletListToggle && onBulletListToggle(nodeId);
+  };
+
+  const handleNumberedListToggle = () => {
+    onNumberedListToggle && onNumberedListToggle(nodeId);
+  };
+
+  const handleHorizontalRuleInsert = () => {
+    onHorizontalRuleInsert && onHorizontalRuleInsert(nodeId);
   };
 
   const [copySuccess, setCopySuccess] = useState(false);
@@ -163,7 +195,7 @@ const NodeToolbar = ({
           </button>
         </Tooltip>
             
-            
+        
         {/* 类型选择菜单 - 作为下拉菜单实现 */}
         <div className="absolute left-0 top-9 bg-white rounded-md shadow-sm border border-gray-200 py-1 z-20 min-w-[120px] w-32 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
           {getAvailableTypes().map(({ type: newType, label, icon }) => (
@@ -178,7 +210,7 @@ const NodeToolbar = ({
           ))}
         </div>
       </div>
-          
+      
       {/* 更换文件按钮 - 仅对图片、视频和音频节点显示 */}
       {(type === 'image' || type === 'video' || type === 'audio') && (
         <Tooltip title="更换文件" placement="top">
@@ -191,7 +223,7 @@ const NodeToolbar = ({
           </button>
         </Tooltip>
       )}
-          
+      
       {/* 背景色选择按钮 - 仅对文本节点显示 */}
       {type === 'text' && (
         <div className="relative">
@@ -208,7 +240,67 @@ const NodeToolbar = ({
           <ColorPickerPopover />
         </div>
       )}
-            
+      
+      {/* 文本格式化按钮 - 仅对文本节点显示 */}
+      {type === 'text' && (
+        <>
+          {/* 加粗按钮 */}
+          <Tooltip title="加粗" placement="top">
+            <button
+              onClick={handleBoldToggle}
+              className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
+              aria-label="加粗"
+            >
+              <FormatBold fontSize="small" />
+            </button>
+          </Tooltip>
+          
+          {/* 斜体按钮 */}
+          <Tooltip title="斜体" placement="top">
+            <button
+              onClick={handleItalicToggle}
+              className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
+              aria-label="斜体"
+            >
+              <FormatItalic fontSize="small" />
+            </button>
+          </Tooltip>
+          
+          {/* 无序列表按钮 */}
+          <Tooltip title="无序列表" placement="top">
+            <button
+              onClick={handleBulletListToggle}
+              className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
+              aria-label="无序列表"
+            >
+              <FormatListBulleted fontSize="small" />
+            </button>
+          </Tooltip>
+          
+          {/* 有序列表按钮 */}
+          <Tooltip title="有序列表" placement="top">
+            <button
+              onClick={handleNumberedListToggle}
+              className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
+              aria-label="有序列表"
+            >
+              <FormatListNumbered fontSize="small" />
+            </button>
+          </Tooltip>
+          
+          {/* 分割线按钮 */}
+          <Tooltip title="分割线" placement="top">
+            <button
+              onClick={handleHorizontalRuleInsert}
+              className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
+              aria-label="分割线"
+            >
+              <HorizontalRule fontSize="small" />
+            </button>
+          </Tooltip>
+        </>
+      )}
+      
       {/* 字体样式选择按钮 - 仅对文本节点显示 */}
       {type === 'text' && (
         <FontStyleSelector 
@@ -216,7 +308,7 @@ const NodeToolbar = ({
           currentFontType={fontType}
         />
       )}
-            
+      
       {/* 复制文本内容按钮 - 仅对文本节点显示 */}
       {type === 'text' && (
         <Tooltip title={copySuccess ? "已复制！" : "复制文本内容"} placement="top">
@@ -229,7 +321,7 @@ const NodeToolbar = ({
           </button>
         </Tooltip>
       )}
-            
+      
       {/* 删除按钮 */}
       <Tooltip title="删除节点" placement="top">
         <button

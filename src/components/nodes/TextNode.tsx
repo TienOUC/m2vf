@@ -1,11 +1,13 @@
 'use client';
 
-import { memo, useState, useCallback, useEffect } from 'react';
+import { memo, useState, useCallback, useEffect, useRef } from 'react';
 import { NodeResizeControl } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { NodeBase } from './NodeBase';
 import ResizeIcon from './ResizeIcon';
 import { getFontClass } from '@/lib/utils';
+import { M2VFlowLexicalEditor } from './LexicalEditor';
+import { EditorState, LexicalEditor, $getRoot } from 'lexical';
 
 // 简化的颜色判断函数
 function isNotWhiteColor(color: string): boolean {
@@ -29,30 +31,34 @@ export interface TextNodeData {
 function TextNode({ data, id, selected, ...rest }: NodeProps) {
   const nodeData = data as TextNodeData;
   const [content, setContent] = useState(nodeData?.content || '');
+  const lexicalEditorRef = useRef<LexicalEditor | null>(null);
 
-  const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      const newContent = e.target.value;
-      setContent(newContent);
-      if (nodeData?.onContentChange) {
-        nodeData.onContentChange(newContent);
-      }
+  // 处理编辑器内容变化
+  const handleEditorChange = useCallback(
+    (editorState: EditorState, editor: LexicalEditor) => {
+      // 保存编辑器引用
+      lexicalEditorRef.current = editor;
+      
+      // 获取编辑器内容并更新状态
+      editorState.read(() => {
+        const root = $getRoot();
+        const textContent = root.getTextContent();
+        setContent(textContent);
+        if (nodeData?.onContentChange) {
+          nodeData.onContentChange(textContent);
+        }
+      });
     },
-    [setContent, nodeData?.onContentChange]
+    [nodeData?.onContentChange]
   );
 
   // 暴露获取内容的函数到父组件
   useEffect(() => {
     if (nodeData?.getContent) {
-      // 这里需要在全局或React Flow上下文中注册获取内容的函数
-      // 但当前实现方式可能需要修改架构
-      // 暂时将内容更新到data中
-      const updateContent = () => {
-        // 我们需要一种方式将内容变化传递给NodeToolbar
-      };
-      updateContent();
+      // 在组件挂载时更新内容映射
+      nodeData.getContent(id);
     }
-  }, [content, nodeData]);
+  }, [content, nodeData, id]);
 
   const controlStyle = {
     background: 'transparent',
@@ -75,17 +81,24 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
       onFontTypeChange={nodeData?.onFontTypeChange}
       backgroundColor={nodeData?.backgroundColor}
       fontType={nodeData?.fontType}
+      // 传递文本格式化功能（目前为空实现，实际格式化由Lexical编辑器内部工具栏处理）
+      onBoldToggle={() => {}}
+      onItalicToggle={() => {}}
+      onBulletListToggle={() => {}}
+      onNumberedListToggle={() => {}}
+      onHorizontalRuleInsert={() => {}}
       {...rest}
     >
       <NodeResizeControl style={controlStyle} minWidth={100} minHeight={50}>
         <ResizeIcon className="absolute right-1 bottom-1" />
       </NodeResizeControl>
       <div className="absolute inset-0 p-2">
-        <textarea
-          value={content}
-          onChange={handleChange}
-          className={`w-full h-full p-1 focus:outline-none focus:ring-0 resize-none transition-colors bg-transparent ${fontClass} ${isDarkBg ? 'text-white' : 'text-gray-700'}`}
-          placeholder="输入文本内容..."
+        <M2VFlowLexicalEditor
+          initialContent={content}
+          onChange={handleEditorChange}
+          backgroundColor={nodeData?.backgroundColor || 'white'}
+          fontColor={isDarkBg ? 'white' : 'gray-700'}
+          className="w-full h-full"
         />
       </div>
     </NodeBase>
