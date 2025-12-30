@@ -10,7 +10,10 @@ import { M2VFlowLexicalEditorProps as M2VFlowLexicalEditorPropsType } from '@/li
 import { defaultEditorConfig } from '@/lib/utils/editor';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useEffect, useRef } from 'react';
-import { $getRoot, $createParagraphNode, $createTextNode, $getSelection, $setSelection, $createRangeSelection } from 'lexical';
+import { $getRoot, $createParagraphNode, $createTextNode, $getSelection, $setSelection, $createRangeSelection, $createHeadingNode, $isTextNode, $isRangeSelection, $isParagraphNode } from 'lexical';
+import { $setBlocksType } from '@lexical/selection';
+import { HeadingNode, QuoteNode } from '@lexical/rich-text';
+import { TextNode } from 'lexical';
 
 // 用于动态设置编辑器内容的插件
 function InitialContentPlugin({ initialContent }: { initialContent: string }) {
@@ -64,6 +67,80 @@ function MoveCursorToEndPlugin({ initialContent }: { initialContent: string }) {
   return null;
 }
 
+// 字体样式切换插件
+function FontTypePlugin({ 
+  onBoldToggle, 
+  onItalicToggle, 
+  onBulletListToggle, 
+  onNumberedListToggle, 
+  onHorizontalRuleInsert,
+  onFontTypeChange
+}: {
+  onBoldToggle?: () => void;
+  onItalicToggle?: () => void;
+  onBulletListToggle?: () => void;
+  onNumberedListToggle?: () => void;
+  onHorizontalRuleInsert?: () => void;
+  onFontTypeChange?: (fontType: 'h1' | 'h2' | 'h3' | 'p') => void;
+}) {
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    if (onFontTypeChange) {
+      // 注册命令来处理字体类型切换
+      const handleFontTypeChange = (fontType: 'h1' | 'h2' | 'h3' | 'p') => {
+        editor.update(() => {
+          const selection = $getSelection();
+          
+          if ($isRangeSelection(selection)) {
+            // 如果有选中文本，只对选中的块应用字体类型
+            $setBlocksType(selection, () => {
+              switch (fontType) {
+                case 'h1':
+                  return $createHeadingNode('h1');
+                case 'h2':
+                  return $createHeadingNode('h2');
+                case 'h3':
+                  return $createHeadingNode('h3');
+                case 'p':
+                default:
+                  return $createParagraphNode();
+              }
+            });
+          } else {
+            // 如果没有选中文本，改变整个段落的类型
+            const root = $getRoot();
+            const firstChild = root.getFirstChild();
+            if (firstChild) {
+              if (fontType === 'p') {
+                const newPara = $createParagraphNode();
+                firstChild.replace(newPara);
+              } else {
+                const newHeading = $createHeadingNode(fontType);
+                firstChild.replace(newHeading);
+              }
+            } else {
+              // 如果没有内容，创建一个相应类型的节点
+              let node;
+              if (fontType === 'p') {
+                node = $createParagraphNode();
+              } else {
+                node = $createHeadingNode(fontType);
+              }
+              root.append(node);
+            }
+          }
+        });
+      };
+
+      // 将函数暴露给父组件
+      (editor as any)._fontTypeChangeHandler = handleFontTypeChange;
+    }
+  }, [editor, onFontTypeChange]);
+
+  return null;
+}
+
 // 编辑器内容显示插件
 export function Placeholder() {
   return (
@@ -79,8 +156,21 @@ export function M2VFlowLexicalEditor({
   darkMode = false,
   className = '',
   backgroundColor = 'white',
-  fontColor = 'gray-700'
-}: M2VFlowLexicalEditorPropsType) {
+  fontColor = 'gray-700',
+  onBoldToggle,
+  onItalicToggle,
+  onBulletListToggle,
+  onNumberedListToggle,
+  onHorizontalRuleInsert,
+  onFontTypeChange
+}: M2VFlowLexicalEditorPropsType & {
+  onBoldToggle?: () => void;
+  onItalicToggle?: () => void;
+  onBulletListToggle?: () => void;
+  onNumberedListToggle?: () => void;
+  onHorizontalRuleInsert?: () => void;
+  onFontTypeChange?: (fontType: 'h1' | 'h2' | 'h3' | 'p') => void;
+}) {
   const initialConfig = {
     ...defaultEditorConfig,
   };
@@ -107,6 +197,14 @@ export function M2VFlowLexicalEditor({
         <ClearEditorPlugin />
         <InitialContentPlugin initialContent={initialContent} />
         <MoveCursorToEndPlugin initialContent={initialContent} />
+        <FontTypePlugin 
+          onBoldToggle={onBoldToggle}
+          onItalicToggle={onItalicToggle}
+          onBulletListToggle={onBulletListToggle}
+          onNumberedListToggle={onNumberedListToggle}
+          onHorizontalRuleInsert={onHorizontalRuleInsert}
+          onFontTypeChange={onFontTypeChange}
+        />
       </div>
     </LexicalComposer>
   );

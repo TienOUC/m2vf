@@ -230,7 +230,7 @@ const NodeToolbar = ({
             <button
               ref={colorPickerRef}
               onClick={() => setColorPickerOpen(!colorPickerOpen)}
-              className="w-8 h-8 p-1 text-gray-500 hover:text-purple-500 hover:bg-purple-50 rounded-md transition-colors"
+              className="w-8 h-8 p-1 text-gray-500 hover:text-purple-500 hover:bg-purple-50  rounded-md transition-colors"
               aria-label="设置背景色"
             >
               <Palette fontSize="small" />

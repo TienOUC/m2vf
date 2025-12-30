@@ -91,6 +91,34 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
     }
   });
 
+  // 字体类型切换处理函数
+  const handleFontTypeChange = useCallback((fontType: 'h1' | 'h2' | 'h3' | 'p') => {
+    if (nodeData?.onFontTypeChange) {
+      nodeData.onFontTypeChange(id, fontType);
+    }
+  }, [id, nodeData?.onFontTypeChange]);
+
+  // 文本格式化处理函数 - 这些函数现在只是占位符，实际的格式化由Lexical编辑器内部处理
+  const handleBoldToggle = useCallback(() => {
+    // 这些功能由Lexical编辑器内部处理，通过Toolbar按钮实现
+  }, []);
+
+  const handleItalicToggle = useCallback(() => {
+    // 这些功能由Lexical编辑器内部处理，通过Toolbar按钮实现
+  }, []);
+
+  const handleBulletListToggle = useCallback(() => {
+    // 这些功能由Lexical编辑器内部处理，通过Toolbar按钮实现
+  }, []);
+
+  const handleNumberedListToggle = useCallback(() => {
+    // 这些功能由Lexical编辑器内部处理，通过Toolbar按钮实现
+  }, []);
+
+  const handleHorizontalRuleInsert = useCallback(() => {
+    // 这些功能由Lexical编辑器内部处理，通过Toolbar按钮实现
+  }, []);
+
   return (
     <NodeBase 
       ref={nodeRef}
@@ -102,12 +130,12 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
       onFontTypeChange={nodeData?.onFontTypeChange}
       backgroundColor={nodeData?.backgroundColor}
       fontType={nodeData?.fontType}
-      // 传递文本格式化功能（目前为空实现，实际格式化由Lexical编辑器内部工具栏处理）
-      onBoldToggle={() => {}}
-      onItalicToggle={() => {}}
-      onBulletListToggle={() => {}}
-      onNumberedListToggle={() => {}}
-      onHorizontalRuleInsert={() => {}}
+      // 传递文本格式化功能
+      onBoldToggle={handleBoldToggle}
+      onItalicToggle={handleItalicToggle}
+      onBulletListToggle={handleBulletListToggle}
+      onNumberedListToggle={handleNumberedListToggle}
+      onHorizontalRuleInsert={handleHorizontalRuleInsert}
       {...rest}
     >
       <NodeResizeControl style={controlStyle} minWidth={100} minHeight={50}>
@@ -126,6 +154,12 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
             backgroundColor={nodeData?.backgroundColor || 'white'}
             fontColor={isDarkBg ? 'white' : 'gray-700'}
             className={`w-full h-full ${fontClass}`}
+            onFontTypeChange={handleFontTypeChange}
+            onBoldToggle={handleBoldToggle}
+            onItalicToggle={handleItalicToggle}
+            onBulletListToggle={handleBulletListToggle}
+            onNumberedListToggle={handleNumberedListToggle}
+            onHorizontalRuleInsert={handleHorizontalRuleInsert}
           />
         ) : (
           <div className={`w-full h-full ${fontClass} p-2 text-${isDarkBg ? 'white' : 'gray-700'} overflow-hidden`}>
