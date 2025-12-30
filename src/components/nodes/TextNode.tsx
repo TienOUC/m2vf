@@ -8,6 +8,7 @@ import ResizeIcon from './ResizeIcon';
 import { getFontClass } from '@/lib/utils';
 import { M2VFlowLexicalEditor } from './LexicalEditor';
 import { EditorState, LexicalEditor, $getRoot } from 'lexical';
+import { useClickOutside } from '@/hooks';
 
 // 简化的颜色判断函数
 function isNotWhiteColor(color: string): boolean {
@@ -31,6 +32,7 @@ export interface TextNodeData {
 function TextNode({ data, id, selected, ...rest }: NodeProps) {
   const nodeData = data as TextNodeData;
   const [content, setContent] = useState(nodeData?.content || '');
+  const [isEditing, setIsEditing] = useState(false);
   const lexicalEditorRef = useRef<LexicalEditor | null>(null);
 
   // 处理编辑器内容变化
@@ -71,8 +73,23 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
   // 获取字体类名
   const fontClass = getFontClass(nodeData?.fontType);
 
+  // 双击处理函数，进入编辑模式
+  const handleDoubleClick = () => {
+    setIsEditing(true);
+  };
+
+  // 点击外部区域失焦处理函数
+  const nodeRef = useRef<HTMLDivElement>(null);
+  
+  useClickOutside([nodeRef], () => {
+    if (isEditing) {
+      setIsEditing(false);
+    }
+  });
+
   return (
     <NodeBase 
+      ref={nodeRef}
       data={data} 
       id={id} 
       selected={selected} 
@@ -92,14 +109,23 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
       <NodeResizeControl style={controlStyle} minWidth={100} minHeight={50}>
         <ResizeIcon className="absolute right-1 bottom-1" />
       </NodeResizeControl>
-      <div className="absolute inset-0 p-2">
-        <M2VFlowLexicalEditor
-          initialContent={content}
-          onChange={handleEditorChange}
-          backgroundColor={nodeData?.backgroundColor || 'white'}
-          fontColor={isDarkBg ? 'white' : 'gray-700'}
-          className={`w-full h-full ${fontClass}`}
-        />
+      <div 
+        className="absolute inset-0 p-2" 
+        onDoubleClick={handleDoubleClick}
+      >
+        {isEditing ? (
+          <M2VFlowLexicalEditor
+            initialContent={content}
+            onChange={handleEditorChange}
+            backgroundColor={nodeData?.backgroundColor || 'white'}
+            fontColor={isDarkBg ? 'white' : 'gray-700'}
+            className={`w-full h-full ${fontClass}`}
+          />
+        ) : (
+          <div className={`w-full h-full ${fontClass} p-2 text-${isDarkBg ? 'white' : 'gray-700'} overflow-hidden`}>
+            {content || '输入文本内容...'}
+          </div>
+        )}
       </div>
     </NodeBase>
   );

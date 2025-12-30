@@ -44,6 +44,7 @@ export function M2VFlowLexicalEditor({
             contentEditable={
               <ContentEditable 
                 className={`editor-input w-full h-full p-2 min-h-[100px] focus:outline-none bg-${backgroundColor} text-${fontColor}`} 
+                onMouseDown={(e) => e.stopPropagation()}
               />
             }
             placeholder={<Placeholder />}

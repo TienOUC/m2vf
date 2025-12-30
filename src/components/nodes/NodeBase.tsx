@@ -1,5 +1,6 @@
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
+import { forwardRef } from 'react';
 import NodeToolbar from './NodeToolbar';
 import { NodeData } from '../../hooks/useNodeBase';
 
@@ -21,7 +22,7 @@ export interface BaseNodeProps extends NodeProps {
   onHorizontalRuleInsert?: (nodeId: string) => void;
 }
 
-export function NodeBase({
+export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
   data,
   id,
   selected,
@@ -38,11 +39,12 @@ export function NodeBase({
   backgroundColor,
   fontType,
   ...rest
-}: BaseNodeProps) {
+}, ref) => {
   const nodeData = data as NodeData;
 
   return (
     <div
+      ref={ref}
       className="rounded-lg w-full h-full relative transition-colors duration-150 shadow-sm hover:shadow-md"
       style={{ 
         backgroundColor: backgroundColor || 'white',
@@ -93,4 +95,6 @@ export function NodeBase({
       />
     </div>
   );
-}
+});
+
+NodeBase.displayName = 'NodeBase';
