@@ -98,7 +98,7 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
           onChange={handleEditorChange}
           backgroundColor={nodeData?.backgroundColor || 'white'}
           fontColor={isDarkBg ? 'white' : 'gray-700'}
-          className="w-full h-full"
+          className={`w-full h-full ${fontClass}`}
         />
       </div>
     </NodeBase>

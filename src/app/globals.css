@@ -89,6 +89,10 @@
   --font-size-8xl: 6rem;
   --font-size-9xl: 8rem;
   
+  /* 文本节点字体大小变量 */
+  --text-node-font-size: var(--font-size-xs);
+  --text-node-placeholder-size: var(--font-size-xs);
+  
   /* 间距变量 */
   --spacing-0: 0px;
   --spacing-1: 0.25rem;
@@ -151,6 +155,10 @@
     --color-primary-700: #bfdbfe;
     --color-primary-800: #dbeafe;
     --color-primary-900: #eff6ff;
+    
+    /* 深色模式下的文本节点字体大小变量 */
+    --text-node-font-size: var(--font-size-xs);
+    --text-node-placeholder-size: var(--font-size-xs);
   }
 }
 
@@ -205,6 +213,20 @@ body {
   background: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899);
   border-radius: inherit;
   z-index: -1;
+}
+
+/* 文本节点编辑器样式 */
+.editor-input {
+  font-size: var(--text-node-font-size);
+}
+
+.editor-placeholder {
+  font-size: var(--text-node-placeholder-size);
+}
+
+/* 文本节点内容样式 */
+.text-node-content {
+  font-size: var(--text-node-font-size);
 }
 
 @layer utilities {

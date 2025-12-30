@@ -62,6 +62,6 @@ export const getFontClass = (fontType?: 'h1' | 'h2' | 'h3' | 'p'): string => {
     case 'h3':
       return 'text-lg font-medium';
     default: // 'p' or undefined
-      return 'text-sm';
+      return 'text-sm text-node-content';
   }
 };
