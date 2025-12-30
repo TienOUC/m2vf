@@ -191,7 +191,7 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
       video: VideoNode,
       audio: AudioNode
     }),
-    []
+    [handleFontTypeChange]
   );
 
   // 连接节点回调
@@ -211,7 +211,6 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
       handleBackgroundColorChange,
       handleFontTypeChange
     });
-
 
 
   const handleUploadImage = useCallback(() => {
@@ -252,11 +251,28 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
     [addTextNode, screenToFlowPosition]
   );
 
+  // 自定义节点拖拽处理
+  const onNodesChangeWithDragControl = useCallback((changes: any[]) => {
+    // 对于文本节点，如果处于编辑模式，则不允许拖拽
+    const filteredChanges = changes.map(change => {
+      if (change.type === 'position' && change.dragging) {
+        const node = nodes.find(n => n.id === change.id);
+        if (node && node.type === 'text' && node.data?.isEditing) {
+          // 如果是文本节点且正在编辑，则忽略位置变化
+          return { ...change, type: 'position', position: node.position };
+        }
+      }
+      return change;
+    });
+    
+    onNodesChange(filteredChanges);
+  }, [onNodesChange, nodes]);
+
   return (
     <ReactFlow
       nodes={nodes}
       edges={edges}
-      onNodesChange={onNodesChange}
+      onNodesChange={onNodesChangeWithDragControl}
       onEdgesChange={onEdgesChange}
       onConnect={onConnect}
       onPaneClick={handlePaneClick}

@@ -27,12 +27,13 @@ export interface TextNodeData {
   getContent?: (nodeId: string) => string;
   onContentChange?: (content: string) => void;
   onFontTypeChange?: (nodeId: string, fontType: 'h1' | 'h2' | 'h3' | 'p') => void;
+  isEditing?: boolean;
 }
 
 function TextNode({ data, id, selected, ...rest }: NodeProps) {
   const nodeData = data as TextNodeData;
   const [content, setContent] = useState(nodeData?.content || '');
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(nodeData?.isEditing || false);
   const lexicalEditorRef = useRef<LexicalEditor | null>(null);
 
   // 处理编辑器内容变化
@@ -93,7 +94,7 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
   return (
     <NodeBase 
       ref={nodeRef}
-      data={data} 
+      data={{...data, isEditing}} 
       id={id} 
       selected={selected} 
       nodeType="text"
@@ -113,8 +114,9 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
         <ResizeIcon className="absolute right-1 bottom-1" />
       </NodeResizeControl>
       <div 
-        className="absolute inset-0 p-2" 
+        className={`absolute inset-0 p-2 ${isEditing ? 'nodrag' : ''}`} 
         onDoubleClick={handleDoubleClick}
+        style={{ cursor: isEditing ? 'default' : 'grab' }}
       >
         {isEditing ? (
           <M2VFlowLexicalEditor
