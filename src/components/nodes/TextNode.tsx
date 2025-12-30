@@ -127,7 +127,7 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
           />
         ) : (
           <div className={`w-full h-full ${fontClass} p-2 text-${isDarkBg ? 'white' : 'gray-700'} overflow-hidden`}>
-            {content}
+            {content || '双击输入文本'}
           </div>
         )}
       </div>

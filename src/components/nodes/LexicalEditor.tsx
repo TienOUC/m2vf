@@ -60,7 +60,7 @@ function InitialContentPlugin({ initialContent }: { initialContent: string }) {
 export function Placeholder() {
   return (
     <div className="editor-placeholder absolute top-2 left-2 text-gray-400 pointer-events-none">
-      输入中...
+      输入文本内容...
     </div>
   );
 }

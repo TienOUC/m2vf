@@ -246,7 +246,7 @@ const NodeToolbar = ({
           <Tooltip title="H1标题" placement="top">
             <button
               onClick={() => handleFontTypeChange('h1')}
-              className={`w-8 h-8 p-1 text-sm rounded-md transition-colors ${fontType === 'h1' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
+              className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h1' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
               aria-label="H1标题"
             >
               H1
@@ -256,7 +256,7 @@ const NodeToolbar = ({
           <Tooltip title="H2标题" placement="top">
             <button
               onClick={() => handleFontTypeChange('h2')}
-              className={`w-8 h-8 p-1 text-sm rounded-md transition-colors ${fontType === 'h2' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
+              className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h2' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
               aria-label="H2标题"
             >
               H2
@@ -266,7 +266,7 @@ const NodeToolbar = ({
           <Tooltip title="H3标题" placement="top">
             <button
               onClick={() => handleFontTypeChange('h3')}
-              className={`w-8 h-8 p-1 text-sm rounded-md transition-colors ${fontType === 'h3' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
+              className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h3' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
               aria-label="H3标题"
             >
               H3
