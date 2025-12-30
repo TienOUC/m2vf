@@ -10,8 +10,7 @@ import { M2VFlowLexicalEditorProps as M2VFlowLexicalEditorPropsType } from '@/li
 import { defaultEditorConfig } from '@/lib/utils/editor';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useEffect, useRef } from 'react';
-import { $getRoot, $createParagraphNode, $createTextNode, $getSelection, $setSelection } from 'lexical';
-import { $moveSelectionToEnd } from '@lexical/selection';
+import { $getRoot, $createParagraphNode, $createTextNode, $getSelection, $setSelection, $createRangeSelection } from 'lexical';
 
 // 用于动态设置编辑器内容的插件
 function InitialContentPlugin({ initialContent }: { initialContent: string }) {
@@ -19,38 +18,24 @@ function InitialContentPlugin({ initialContent }: { initialContent: string }) {
   const hasSetInitialContent = useRef(false);
 
   useEffect(() => {
-    if (hasSetInitialContent.current) {
-      return; // 已经设置过初始内容，不再设置
-    }
-
-    // 检查编辑器是否已有内容
-    const hasContent = editor.getEditorState().read(() => {
+    // 只在编辑器内容为空且有初始内容时设置
+    editor.update(() => {
       const root = $getRoot();
-      const childrenSize = root.getChildrenSize();
-      if (childrenSize === 0) return false;
-      if (childrenSize === 1) {
-        const firstChild = root.getFirstChild();
-        if (firstChild && firstChild.getTextContent) {
-          return firstChild.getTextContent() !== '';
-        }
-      }
-      return true;
-    });
-
-    if (!hasContent && initialContent) {
-      hasSetInitialContent.current = true;
-      editor.update(() => {
-        const root = $getRoot();
-        root.clear();
-        
+      const rootChildren = root.getChildren();
+      
+      // 如果编辑器内容为空或只包含一个空段落，则设置初始内容
+      if (rootChildren.length === 0 || 
+          (rootChildren.length === 1 && rootChildren[0].getTextContent() === '')) {
         if (initialContent) {
+          root.clear();
           const paragraph = $createParagraphNode();
           const text = $createTextNode(initialContent);
           paragraph.append(text);
           root.append(paragraph);
+          hasSetInitialContent.current = true;
         }
-      });
-    }
+      }
+    });
   }, [editor, initialContent]);
 
   return null;
@@ -64,7 +49,14 @@ function MoveCursorToEndPlugin({ initialContent }: { initialContent: string }) {
     // 只有在有初始内容时才将光标移动到末尾
     if (initialContent) {
       editor.update(() => {
-        $moveSelectionToEnd();
+        const root = $getRoot();
+        const lastNode = root.getLastDescendant();
+        if (lastNode) {
+          const rangeSelection = $createRangeSelection();
+          rangeSelection.anchor.set(lastNode.getKey(), lastNode.getTextContentSize(), 'text');
+          rangeSelection.focus.set(lastNode.getKey(), lastNode.getTextContentSize(), 'text');
+          $setSelection(rangeSelection);
+        }
       });
     }
   }, [editor, initialContent]);
