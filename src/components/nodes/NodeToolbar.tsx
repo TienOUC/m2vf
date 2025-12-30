@@ -347,7 +347,7 @@ const NodeToolbar = ({
       
       {/* 复制文本内容按钮 - 仅对文本节点显示 */}
       {type === 'text' && (
-        <Tooltip title={copySuccess ? "已复制！" : "复制全文"} placement="top">
+        <Tooltip title={copySuccess ? "已复制" : "复制全文"} placement="top">
           <button
             onClick={handleCopyText}
             className={`w-8 h-8 p-1 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-md transition-colors ${copySuccess ? 'text-green-500' : ''}`}
