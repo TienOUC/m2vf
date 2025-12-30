@@ -44,17 +44,13 @@ export default function LeftSidebar({
   const [showAssetDrawer, setShowAssetDrawer] = useState(false);
 
   const handleAddClick = () => {
-    if (onAddClick) {
-      onAddClick();
-    }
+    onAddClick && onAddClick(); 
     setShowAddMenu(!showAddMenu);
     setShowAssetMenu(false);
   };
 
   const handleAssetClick = () => {
-    if (onAssetLibraryClick) {
-      onAssetLibraryClick();
-    }
+    onAssetLibraryClick && onAssetLibraryClick();
     setShowAssetMenu(!showAssetMenu);
     setShowAddMenu(false);
   };

@@ -11,9 +11,7 @@ export function useFileUpload(acceptType: string) {
       reader.onload = (event) => {
         const result = event.target?.result as string;
         setFileUrl(result);
-        if (onFileSelected) {
-          onFileSelected(result);
-        }
+        onFileSelected && onFileSelected(result);
       };
       reader.readAsDataURL(file);
     }
