@@ -6,8 +6,6 @@ import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { ClearEditorPlugin } from '@lexical/react/LexicalClearEditorPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
-import { $getRoot, EditorState, LexicalEditor} from 'lexical';
-import { useCallback } from 'react';
 import { M2VFlowLexicalEditorProps as M2VFlowLexicalEditorPropsType } from '@/lib/types';
 import { defaultEditorConfig } from '@/lib/utils/editor';
 
@@ -21,8 +19,6 @@ export function Placeholder() {
     </div>
   );
 }
-
-
 
 export function M2VFlowLexicalEditor({
   initialContent = '',
@@ -41,7 +37,7 @@ export function M2VFlowLexicalEditor({
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
-      <div className={`editor-container border border-gray-300 rounded-lg overflow-hidden ${className}`}>
+      <div className={`editor-container bg-${backgroundColor} rounded-lg overflow-hidden ${className}`}>
         
         <div className="relative">
           <RichTextPlugin
@@ -54,7 +50,7 @@ export function M2VFlowLexicalEditor({
             ErrorBoundary={LexicalErrorBoundary}
           />
         </div>
-        <HistoryPlugin />
+        {/* <HistoryPlugin /> */}
         <AutoFocusPlugin />
         {onChange && <OnChangePlugin onChange={onChange} />}
         <ClearEditorPlugin />
