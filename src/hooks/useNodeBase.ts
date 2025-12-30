@@ -7,6 +7,7 @@ export interface NodeData {
   onTypeChange?: (nodeId: string, newType: 'text' | 'image' | 'video' | 'audio') => void;
   onDelete?: (nodeId: string) => void;
   onBackgroundColorChange?: (nodeId: string, color: string) => void;
+  getContent?: (nodeId: string) => string;
 }
 
 export interface NodeType {

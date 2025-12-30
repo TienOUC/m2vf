@@ -38,6 +38,7 @@ export const useNodeAddition = ({
           onTypeChange: handleTypeChange,
           onDelete: handleDelete,
           onBackgroundColorChange: handleBackgroundColorChange,
+          content: '',
         },
       };
 

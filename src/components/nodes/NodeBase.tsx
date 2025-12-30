@@ -54,6 +54,7 @@ export function NodeBase({
         backgroundColor={backgroundColor}
         selected={selected}
         type={nodeType}
+        getContent={nodeData?.getContent}
       />
 
       {/* 节点内容 */}

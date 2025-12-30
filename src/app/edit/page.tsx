@@ -1,7 +1,7 @@
 // app/edit/page.tsx
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getUserProfile } from '@/lib/api/auth';
 import { isUserLoggedIn } from '@/lib/utils/token';
@@ -136,10 +136,37 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
     [setNodes, handleDelete, handleBackgroundColorChange]
   );
 
+  // 节点内容管理
+  const nodeContentMap = useRef<Record<string, string>>({});
+  
   // 注册自定义节点类型
   const nodeTypes = useMemo(
     () => ({
-      text: TextNode,
+      text: (props: any) => {
+        const nodeId = props.id;
+        const nodeData = props.data;
+        
+        // 创建获取内容的函数
+        const getContent = (id: string) => {
+          return nodeContentMap.current[id] || '';
+        };
+        
+        // 更新内容的函数
+        const updateContent = (id: string, content: string) => {
+          nodeContentMap.current[id] = content;
+        };
+        
+        return (
+          <TextNode
+            {...props}
+            data={{
+              ...nodeData,
+              getContent,
+              onContentChange: (content: string) => updateContent(nodeId, content)
+            }}
+          />
+        );
+      },
       image: ImageNode,
       video: VideoNode,
       audio: AudioNode

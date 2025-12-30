@@ -1,8 +1,9 @@
 import { NodeToolbar as ReactFlowNodeToolbar, Position } from '@xyflow/react';
-import { SwapHoriz, Close, TextFields, Image as ImageIcon, VideoFile, Audiotrack, Palette } from '@mui/icons-material';
+import { SwapHoriz, Close, TextFields, Image as ImageIcon, VideoFile, Audiotrack, Palette, ContentCopy } from '@mui/icons-material';
 import { Tooltip, Popover } from '@mui/material';
 import { memo, useState, useRef, useEffect } from 'react';
 import { useClickOutside } from '@/hooks';
+import { copyToClipboard } from '@/lib/utils';
 
 export interface NodeToolbarProps {
   nodeId: string;
@@ -13,6 +14,7 @@ export interface NodeToolbarProps {
   backgroundColor?: string;
   selected?: boolean;
   type?: 'text' | 'image' | 'video' | 'audio';
+  getContent?: (nodeId: string) => string;
 }
 
 const NodeToolbar = ({ 
@@ -23,7 +25,8 @@ const NodeToolbar = ({
   onBackgroundColorChange,
   backgroundColor,
   selected = false, 
-  type = 'text' 
+  type = 'text',
+  getContent
 }: NodeToolbarProps) => {
   const colorPickerRef = useRef<HTMLButtonElement>(null);
   const colorPickerPopoverRef = useRef<HTMLDivElement>(null);
@@ -59,6 +62,21 @@ const NodeToolbar = ({
       onBackgroundColorChange(nodeId, color);
     }
     setColorPickerOpen(false);
+  };
+
+  const [copySuccess, setCopySuccess] = useState(false);
+  
+  const handleCopyText = async () => {
+    if (type === 'text' && getContent) {
+      const content = getContent(nodeId);
+      const success = await copyToClipboard(content);
+      if (success) {
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000); // 2秒后重置状态
+      } else {
+        console.error('复制失败');
+      }
+    }
   };
 
   const colorOptions = [
@@ -189,7 +207,20 @@ const NodeToolbar = ({
           <ColorPickerPopover />
         </div>
       )}
-          
+            
+      {/* 复制文本内容按钮 - 仅对文本节点显示 */}
+      {type === 'text' && (
+        <Tooltip title={copySuccess ? "已复制！" : "复制文本内容"} placement="top">
+          <button
+            onClick={handleCopyText}
+            className={`w-8 h-8 p-1 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-md transition-colors ${copySuccess ? 'text-green-500' : ''}`}
+            aria-label="复制文本内容"
+          >
+            <ContentCopy fontSize="small" />
+          </button>
+        </Tooltip>
+      )}
+            
       {/* 删除按钮 */}
       <Tooltip title="删除节点" placement="top">
         <button

@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState, useCallback } from 'react';
+import { memo, useState, useCallback, useEffect } from 'react';
 import { NodeResizeControl } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { NodeBase } from './NodeBase';
@@ -19,6 +19,8 @@ export interface TextNodeData {
   onTypeChange?: (nodeId: string, newType: 'text' | 'image' | 'video' | 'audio') => void;
   onDelete?: (nodeId: string) => void;
   onBackgroundColorChange?: (nodeId: string, color: string) => void;
+  getContent?: (nodeId: string) => string;
+  onContentChange?: (content: string) => void;
 }
 
 function TextNode({ data, id, selected, ...rest }: NodeProps) {
@@ -27,10 +29,27 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      setContent(e.target.value);
+      const newContent = e.target.value;
+      setContent(newContent);
+      if (nodeData?.onContentChange) {
+        nodeData.onContentChange(newContent);
+      }
     },
-    [setContent]
+    [setContent, nodeData?.onContentChange]
   );
+
+  // 暴露获取内容的函数到父组件
+  useEffect(() => {
+    if (nodeData?.getContent) {
+      // 这里需要在全局或React Flow上下文中注册获取内容的函数
+      // 但当前实现方式可能需要修改架构
+      // 暂时将内容更新到data中
+      const updateContent = () => {
+        // 我们需要一种方式将内容变化传递给NodeToolbar
+      };
+      updateContent();
+    }
+  }, [content, nodeData]);
 
   const controlStyle = {
     background: 'transparent',
