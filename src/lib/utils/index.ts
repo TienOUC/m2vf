@@ -11,6 +11,11 @@ export {
 
 export * from './validation';
 
+export {
+  editorTheme,
+  defaultEditorConfig
+} from './editor';
+
 /**
  * 复制文本到剪贴板的工具函数
  * @param text 要复制的文本

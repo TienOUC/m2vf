@@ -6,3 +6,4 @@ export { useClickOutside } from './useClickOutside';
 export { useProjectManagement } from './useProjectManagement';
 export { useProjectEditing } from './useProjectEditing';
 export { useFontStyle } from './useFontStyle';
+export { useLexicalEditorContent } from './useLexicalEditor';

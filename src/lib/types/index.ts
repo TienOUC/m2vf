@@ -12,3 +12,10 @@ export type {
   ParameterSchema,
   AIModelParamsResponse
 } from './ai';
+
+export type {
+  EditorTheme,
+  EditorConfig,
+  M2VFlowLexicalEditorProps,
+  LexicalEditorContent
+} from './editor';
