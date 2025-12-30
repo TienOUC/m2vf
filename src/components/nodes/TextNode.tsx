@@ -5,6 +5,7 @@ import { NodeResizeControl } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { NodeBase } from './NodeBase';
 import ResizeIcon from './ResizeIcon';
+import { getFontClass } from '@/lib/utils';
 
 // 简化的颜色判断函数
 function isNotWhiteColor(color: string): boolean {
@@ -16,11 +17,13 @@ export interface TextNodeData {
   label?: string;
   content?: string;
   backgroundColor?: string;
+  fontType?: 'h1' | 'h2' | 'h3' | 'p';
   onTypeChange?: (nodeId: string, newType: 'text' | 'image' | 'video' | 'audio') => void;
   onDelete?: (nodeId: string) => void;
   onBackgroundColorChange?: (nodeId: string, color: string) => void;
   getContent?: (nodeId: string) => string;
   onContentChange?: (content: string) => void;
+  onFontTypeChange?: (nodeId: string, fontType: 'h1' | 'h2' | 'h3' | 'p') => void;
 }
 
 function TextNode({ data, id, selected, ...rest }: NodeProps) {
@@ -58,6 +61,9 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
 
   // 判断背景色是否非白色，决定文字颜色
   const isDarkBg = isNotWhiteColor(nodeData?.backgroundColor || 'white');
+  
+  // 获取字体类名
+  const fontClass = getFontClass(nodeData?.fontType);
 
   return (
     <NodeBase 
@@ -66,7 +72,9 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
       selected={selected} 
       nodeType="text"
       onBackgroundColorChange={nodeData?.onBackgroundColorChange}
+      onFontTypeChange={nodeData?.onFontTypeChange}
       backgroundColor={nodeData?.backgroundColor}
+      fontType={nodeData?.fontType}
       {...rest}
     >
       <NodeResizeControl style={controlStyle} minWidth={100} minHeight={50}>
@@ -76,7 +84,7 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
         <textarea
           value={content}
           onChange={handleChange}
-          className={`w-full h-full p-1 focus:outline-none focus:ring-0 resize-none text-xs transition-colors bg-transparent ${isDarkBg ? 'text-white' : 'text-gray-700'}`}
+          className={`w-full h-full p-1 focus:outline-none focus:ring-0 resize-none transition-colors bg-transparent ${fontClass} ${isDarkBg ? 'text-white' : 'text-gray-700'}`}
           placeholder="输入文本内容..."
         />
       </div>

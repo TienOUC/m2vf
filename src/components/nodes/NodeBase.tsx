@@ -10,7 +10,9 @@ export interface BaseNodeProps extends NodeProps {
   title?: string;
   onReplace?: (nodeId: string) => void;
   onBackgroundColorChange?: (nodeId: string, color: string) => void;
+  onFontTypeChange?: (nodeId: string, fontType: 'h1' | 'h2' | 'h3' | 'p') => void;
   backgroundColor?: string;
+  fontType?: 'h1' | 'h2' | 'h3' | 'p';
 }
 
 export function NodeBase({
@@ -21,7 +23,9 @@ export function NodeBase({
   nodeType,
   onReplace,
   onBackgroundColorChange,
+  onFontTypeChange,
   backgroundColor,
+  fontType,
   ...rest
 }: BaseNodeProps) {
   const nodeData = data as NodeData;
@@ -51,9 +55,11 @@ export function NodeBase({
         onDelete={nodeData?.onDelete}
         onReplace={onReplace}
         onBackgroundColorChange={onBackgroundColorChange}
+        onFontTypeChange={onFontTypeChange}
         backgroundColor={backgroundColor}
         selected={selected}
         type={nodeType}
+        fontType={fontType}
         getContent={nodeData?.getContent}
       />
 

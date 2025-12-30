@@ -79,6 +79,24 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
     );
   }, [setNodes]);
 
+  // 处理节点字体样式更改
+  const handleFontTypeChange = useCallback((nodeId: string, fontType: 'h1' | 'h2' | 'h3' | 'p') => {
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === nodeId) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              fontType: fontType,
+            },
+          };
+        }
+        return node;
+      })
+    );
+  }, [setNodes]);
+
   // 节点类型切换回调
   const handleTypeChange = useCallback(
     (nodeId: string, newType: 'text' | 'image' | 'video' | 'audio') => {
@@ -161,8 +179,10 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
             {...props}
             data={{
               ...nodeData,
+              fontType: nodeData.fontType,
               getContent,
-              onContentChange: (content: string) => updateContent(nodeId, content)
+              onContentChange: (content: string) => updateContent(nodeId, content),
+              onFontTypeChange: handleFontTypeChange
             }}
           />
         );
@@ -188,7 +208,8 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
       setNodes,
       handleTypeChange,
       handleDelete,
-      handleBackgroundColorChange
+      handleBackgroundColorChange,
+      handleFontTypeChange
     });
 
 

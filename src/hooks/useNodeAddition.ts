@@ -8,6 +8,7 @@ interface UseNodeAdditionProps {
   handleTypeChange: (nodeId: string, newType: 'text' | 'image' | 'video' | 'audio') => void;
   handleDelete: (nodeId: string) => void;
   handleBackgroundColorChange: (nodeId: string, color: string) => void;
+  handleFontTypeChange?: (nodeId: string, fontType: 'h1' | 'h2' | 'h3' | 'p') => void;
 }
 
 export const useNodeAddition = ({
@@ -17,6 +18,7 @@ export const useNodeAddition = ({
   handleTypeChange,
   handleDelete,
   handleBackgroundColorChange,
+  handleFontTypeChange,
 }: UseNodeAdditionProps) => {
   const { screenToFlowPosition } = useReactFlow();
 
@@ -35,9 +37,11 @@ export const useNodeAddition = ({
         data: { 
           label: '文本节点',
           backgroundColor: '#ffffff',
+          fontType: 'p', // 默认为正文样式
           onTypeChange: handleTypeChange,
           onDelete: handleDelete,
           onBackgroundColorChange: handleBackgroundColorChange,
+          ...(handleFontTypeChange && { onFontTypeChange: handleFontTypeChange }),
           content: '',
         },
       };
@@ -45,7 +49,7 @@ export const useNodeAddition = ({
       setNodes((nds) => nds.concat(newNode));
       setNodeId((prevId) => prevId + 1);
     },
-    [nodeId, setNodes, screenToFlowPosition, handleTypeChange, handleDelete, handleBackgroundColorChange, setNodeId]
+    [nodeId, setNodes, screenToFlowPosition, handleTypeChange, handleDelete, handleBackgroundColorChange, handleFontTypeChange, setNodeId]
   );
 
   // 添加图片节点函数

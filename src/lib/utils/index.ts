@@ -42,3 +42,21 @@ export const copyToClipboard = async (text: string): Promise<boolean> => {
     return false;
   }
 };
+
+/**
+ * 根据字体类型获取对应的 CSS 类名
+ * @param fontType 字体类型 ('h1' | 'h2' | 'h3' | 'p')
+ * @returns 对应的 CSS 类名字符串
+ */
+export const getFontClass = (fontType?: 'h1' | 'h2' | 'h3' | 'p'): string => {
+  switch(fontType) {
+    case 'h1':
+      return 'text-2xl font-bold';
+    case 'h2':
+      return 'text-xl font-semibold';
+    case 'h3':
+      return 'text-lg font-medium';
+    default: // 'p' or undefined
+      return 'text-sm';
+  }
+};

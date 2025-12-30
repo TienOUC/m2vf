@@ -3,6 +3,8 @@ export { default as ImageNode } from './ImageNode';
 export { default as VideoNode } from './VideoNode';
 export { default as AudioNode } from './AudioNode';
 export { NodeBase } from './NodeBase';
+export { default as FontStyleSelector } from './FontStyleSelector';
+export { default as ToolbarButton } from './ToolbarButton';
 
 export type { TextNodeData } from './TextNode';
 export type { ImageNodeData } from './ImageNode';

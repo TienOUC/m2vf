@@ -4,6 +4,7 @@ import { Tooltip, Popover } from '@mui/material';
 import { memo, useState, useRef, useEffect } from 'react';
 import { useClickOutside } from '@/hooks';
 import { copyToClipboard } from '@/lib/utils';
+import FontStyleSelector from './FontStyleSelector';
 
 export interface NodeToolbarProps {
   nodeId: string;
@@ -11,9 +12,11 @@ export interface NodeToolbarProps {
   onDelete?: (nodeId: string) => void;
   onReplace?: (nodeId: string) => void;
   onBackgroundColorChange?: (nodeId: string, color: string) => void;
+  onFontTypeChange?: (nodeId: string, fontType: 'h1' | 'h2' | 'h3' | 'p') => void;
   backgroundColor?: string;
   selected?: boolean;
   type?: 'text' | 'image' | 'video' | 'audio';
+  fontType?: 'h1' | 'h2' | 'h3' | 'p';
   getContent?: (nodeId: string) => string;
 }
 
@@ -23,9 +26,11 @@ const NodeToolbar = ({
   onDelete, 
   onReplace,
   onBackgroundColorChange,
+  onFontTypeChange,
   backgroundColor,
   selected = false, 
   type = 'text',
+  fontType,
   getContent
 }: NodeToolbarProps) => {
   const colorPickerRef = useRef<HTMLButtonElement>(null);
@@ -54,6 +59,10 @@ const NodeToolbar = ({
   const handleBackgroundColorChange = (color: string) => {
     onBackgroundColorChange && onBackgroundColorChange(nodeId, color);
     setColorPickerOpen(false);
+  };
+
+  const handleFontTypeChange = (fontType: 'h1' | 'h2' | 'h3' | 'p') => {
+    onFontTypeChange && onFontTypeChange(nodeId, fontType);
   };
 
   const [copySuccess, setCopySuccess] = useState(false);
@@ -198,6 +207,14 @@ const NodeToolbar = ({
           </Tooltip>
           <ColorPickerPopover />
         </div>
+      )}
+            
+      {/* 字体样式选择按钮 - 仅对文本节点显示 */}
+      {type === 'text' && (
+        <FontStyleSelector 
+          onFontTypeChange={handleFontTypeChange}
+          currentFontType={fontType}
+        />
       )}
             
       {/* 复制文本内容按钮 - 仅对文本节点显示 */}
