@@ -40,27 +40,19 @@ const NodeToolbar = ({
   });
 
   const handleTypeChange = (newType: 'text' | 'image' | 'video' | 'audio') => {
-    if (onTypeChange) {
-      onTypeChange(nodeId, newType);
-    }
+    onTypeChange && onTypeChange(nodeId, newType);
   };
 
   const handleDelete = () => {
-    if (onDelete) {
-      onDelete(nodeId);
-    }
+    onDelete && onDelete(nodeId);
   };
 
   const handleReplace = () => {
-    if (onReplace) {
-      onReplace(nodeId);
-    }
+    onReplace && onReplace(nodeId);
   };
 
   const handleBackgroundColorChange = (color: string) => {
-    if (onBackgroundColorChange) {
-      onBackgroundColorChange(nodeId, color);
-    }
+    onBackgroundColorChange && onBackgroundColorChange(nodeId, color);
     setColorPickerOpen(false);
   };
 
