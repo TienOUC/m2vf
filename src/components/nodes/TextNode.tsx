@@ -54,6 +54,9 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
     [nodeData?.onContentChange]
   );
 
+  // 确保编辑器的初始内容正确设置
+  const editorInitialContent = content;
+
   // 暴露获取内容的函数到父组件
   useEffect(() => {
     if (nodeData?.getContent) {
@@ -115,6 +118,7 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
       >
         {isEditing ? (
           <M2VFlowLexicalEditor
+            key={`editor-${id}`}
             initialContent={content}
             onChange={handleEditorChange}
             backgroundColor={nodeData?.backgroundColor || 'white'}
@@ -123,7 +127,7 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
           />
         ) : (
           <div className={`w-full h-full ${fontClass} p-2 text-${isDarkBg ? 'white' : 'gray-700'} overflow-hidden`}>
-            {content || '输入文本内容...'}
+            {content}
           </div>
         )}
       </div>
