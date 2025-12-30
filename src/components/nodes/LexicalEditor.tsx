@@ -10,8 +10,8 @@ import { M2VFlowLexicalEditorProps as M2VFlowLexicalEditorPropsType } from '@/li
 import { defaultEditorConfig } from '@/lib/utils/editor';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useEffect, useRef } from 'react';
-import { $getRoot, $createParagraphNode, $createTextNode } from 'lexical';
-
+import { $getRoot, $createParagraphNode, $createTextNode, $getSelection, $setSelection } from 'lexical';
+import { $moveSelectionToEnd } from '@lexical/selection';
 
 // 用于动态设置编辑器内容的插件
 function InitialContentPlugin({ initialContent }: { initialContent: string }) {
@@ -49,6 +49,22 @@ function InitialContentPlugin({ initialContent }: { initialContent: string }) {
           paragraph.append(text);
           root.append(paragraph);
         }
+      });
+    }
+  }, [editor, initialContent]);
+
+  return null;
+}
+
+// 光标定位到文本末尾的插件
+function MoveCursorToEndPlugin({ initialContent }: { initialContent: string }) {
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    // 只有在有初始内容时才将光标移动到末尾
+    if (initialContent) {
+      editor.update(() => {
+        $moveSelectionToEnd();
       });
     }
   }, [editor, initialContent]);
@@ -98,6 +114,7 @@ export function M2VFlowLexicalEditor({
         {onChange && <OnChangePlugin onChange={onChange} />}
         <ClearEditorPlugin />
         <InitialContentPlugin initialContent={initialContent} />
+        <MoveCursorToEndPlugin initialContent={initialContent} />
       </div>
     </LexicalComposer>
   );
