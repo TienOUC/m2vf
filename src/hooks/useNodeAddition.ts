@@ -34,7 +34,7 @@ export const useNodeAddition = ({
         position: pos,
         data: { 
           label: '文本节点',
-          backgroundColor: 'transparent',
+          backgroundColor: '#ffffff',
           onTypeChange: handleTypeChange,
           onDelete: handleDelete,
           onBackgroundColorChange: handleBackgroundColorChange,

@@ -126,13 +126,13 @@
 
   /* 节点背景颜色变量 */
   --node-bg-white: #ffffff;
-  --node-bg-color1: rgb(150, 66, 67);
-  --node-bg-color2: rgb(131, 73, 21);
-  --node-bg-color3: rgb(143, 128, 48);
-  --node-bg-color4: rgb(61, 115, 68);
-  --node-bg-color5: rgb(51, 114, 130);
-  --node-bg-color6: rgb(43, 82, 132);
-  --node-bg-color7: rgb(118, 56, 134);
+  --node-bg-color1: #964243;
+  --node-bg-color2: #834915;
+  --node-bg-color3: #8f8030;
+  --node-bg-color4: #3d7344;
+  --node-bg-color5: #337282;
+  --node-bg-color6: #2b5284;
+  --node-bg-color7: #763886;
 }
 
 @media (prefers-color-scheme: dark) {

@@ -100,7 +100,7 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
               // 如果是文本节点转换为其他类型，移除背景色相关属性
               ...(node.type === 'text' && newType !== 'text' && { backgroundColor: undefined, onBackgroundColorChange: undefined }),
               // 如果是其他类型转换为文本节点，添加背景色相关属性
-              ...(node.type !== 'text' && newType === 'text' && { backgroundColor: 'transparent', onBackgroundColorChange: handleBackgroundColorChange }),
+              ...(node.type !== 'text' && newType === 'text' && { backgroundColor: '#ffffff', onBackgroundColorChange: handleBackgroundColorChange }),
             };
 
             // 为图片、视频和音频节点添加onReplace回调

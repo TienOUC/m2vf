@@ -62,14 +62,14 @@ const NodeToolbar = ({
   };
 
   const colorOptions = [
-    { value: 'transparent', label: '无背景色', cssVar: 'var(--node-bg-transparent)' },
-    { value: 'rgb(150, 66, 67)', label: '暗红色', cssVar: 'var(--node-bg-color1)' },
-    { value: 'rgb(131, 73, 21)', label: '咖啡色', cssVar: 'var(--node-bg-color2)' },
-    { value: 'rgb(143, 128, 48)', label: '橄榄色', cssVar: 'var(--node-bg-color3)' },
-    { value: 'rgb(61, 115, 68)', label: '深绿色', cssVar: 'var(--node-bg-color4)' },
-    { value: 'rgb(51, 114, 130)', label: '青蓝色', cssVar: 'var(--node-bg-color5)' },
-    { value: 'rgb(43, 82, 132)', label: '深蓝色', cssVar: 'var(--node-bg-color6)' },
-    { value: 'rgb(118, 56, 134)', label: '深紫色', cssVar: 'var(--node-bg-color7)' },
+    { value: '#ffffff', label: '白色背景', cssVar: 'var(--node-bg-white)' },
+    { value: '#964243', label: '暗红色', cssVar: 'var(--node-bg-color1)' },
+    { value: '#834815', label: '咖啡色', cssVar: 'var(--node-bg-color2)' },
+    { value: '#8f8030', label: '橄榄色', cssVar: 'var(--node-bg-color3)' },
+    { value: '#3d7344', label: '深绿色', cssVar: 'var(--node-bg-color4)' },
+    { value: '#337282', label: '青蓝色', cssVar: 'var(--node-bg-color5)' },
+    { value: '#2b5284', label: '深蓝色', cssVar: 'var(--node-bg-color6)' },
+    { value: '#763886', label: '深紫色', cssVar: 'var(--node-bg-color7)' },
   ];
 
   // 根据当前节点类型确定可切换的类型
