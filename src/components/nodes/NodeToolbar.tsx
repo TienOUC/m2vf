@@ -1,10 +1,9 @@
 import { NodeToolbar as ReactFlowNodeToolbar, Position } from '@xyflow/react';
-import { SwapHoriz, Close, TextFields, Image as ImageIcon, VideoFile, Audiotrack, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, Title, HorizontalRule } from '@mui/icons-material';
+import { SwapHoriz, Close, TextFields, Image as ImageIcon, VideoFile, Audiotrack, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, HorizontalRule } from '@mui/icons-material';
 import { Tooltip, Popover } from '@mui/material';
 import { memo, useState, useRef, useEffect } from 'react';
 import { useClickOutside } from '@/hooks';
 import { copyToClipboard } from '@/lib/utils';
-import FontStyleSelector from './FontStyleSelector';
 
 export interface NodeToolbarProps {
   nodeId: string;
@@ -241,6 +240,51 @@ const NodeToolbar = ({
         </div>
       )}
       
+      {/* 字体样式选择按钮 - 仅对文本节点显示 */}
+      {type === 'text' && (
+        <div className="flex gap-1">
+          <Tooltip title="H1标题" placement="top">
+            <button
+              onClick={() => handleFontTypeChange('h1')}
+              className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h1' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
+              aria-label="H1标题"
+            >
+              H1
+            </button>
+          </Tooltip>
+          
+          <Tooltip title="H2标题" placement="top">
+            <button
+              onClick={() => handleFontTypeChange('h2')}
+              className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h2' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
+              aria-label="H2标题"
+            >
+              H2
+            </button>
+          </Tooltip>
+          
+          <Tooltip title="H3标题" placement="top">
+            <button
+              onClick={() => handleFontTypeChange('h3')}
+              className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h3' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
+              aria-label="H3标题"
+            >
+              H3
+            </button>
+          </Tooltip>
+          
+          <Tooltip title="正文" placement="top">
+            <button
+              onClick={() => handleFontTypeChange('p')}
+              className={`w-8 h-8 p-1 text-sm rounded-md transition-colors ${fontType === 'p' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
+              aria-label="正文"
+            >
+              P
+            </button>
+          </Tooltip>
+        </div>
+      )}
+      
       {/* 文本格式化按钮 - 仅对文本节点显示 */}
       {type === 'text' && (
         <>
@@ -299,14 +343,6 @@ const NodeToolbar = ({
             </button>
           </Tooltip>
         </>
-      )}
-      
-      {/* 字体样式选择按钮 - 仅对文本节点显示 */}
-      {type === 'text' && (
-        <FontStyleSelector 
-          onFontTypeChange={handleFontTypeChange}
-          currentFontType={fontType}
-        />
       )}
       
       {/* 复制文本内容按钮 - 仅对文本节点显示 */}
