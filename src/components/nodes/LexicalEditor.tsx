@@ -20,12 +20,35 @@ import {
 } from 'lexical';
 import { $createHeadingNode, HeadingNode } from '@lexical/rich-text';
 import { $setBlocksType } from '@lexical/selection';
-import { FORMAT_TEXT_COMMAND } from 'lexical';
-import { INSERT_HORIZONTAL_RULE_COMMAND } from '@lexical/react/LexicalHorizontalRuleNode';
-import {
-  INSERT_ORDERED_LIST_COMMAND,
-  INSERT_UNORDERED_LIST_COMMAND
-} from '@lexical/list';
+import { useLexicalFormatting } from '@/hooks/useLexicalFormatting';
+
+// 文本格式化插件
+function LexicalFormattingPlugin({
+  onBoldToggle,
+  onItalicToggle,
+  onBulletListToggle,
+  onNumberedListToggle,
+  onHorizontalRuleInsert,
+  onFontTypeChange
+}: {
+  onBoldToggle?: () => void;
+  onItalicToggle?: () => void;
+  onBulletListToggle?: () => void;
+  onNumberedListToggle?: () => void;
+  onHorizontalRuleInsert?: () => void;
+  onFontTypeChange?: (fontType: 'h1' | 'h2' | 'h3' | 'p') => void;
+}) {
+  useLexicalFormatting({
+    onBoldToggle,
+    onItalicToggle,
+    onBulletListToggle,
+    onNumberedListToggle,
+    onHorizontalRuleInsert,
+    onFontTypeChange
+  });
+
+  return null;
+}
 
 // 用于动态设置编辑器内容的插件
 function InitialContentPlugin({ initialContent }: { initialContent: string }) {
@@ -89,133 +112,7 @@ function MoveCursorToEndPlugin({ initialContent }: { initialContent: string }) {
   return null;
 }
 
-// 文本格式化插件
-function TextFormatPlugin({
-  onBoldToggle,
-  onItalicToggle,
-  onBulletListToggle,
-  onNumberedListToggle,
-  onHorizontalRuleInsert,
-  onFontTypeChange
-}: {
-  onBoldToggle?: () => void;
-  onItalicToggle?: () => void;
-  onBulletListToggle?: () => void;
-  onNumberedListToggle?: () => void;
-  onHorizontalRuleInsert?: () => void;
-  onFontTypeChange?: (fontType: 'h1' | 'h2' | 'h3' | 'p') => void;
-}) {
-  const [editor] = useLexicalComposerContext();
 
-  useEffect(() => {
-    if (onFontTypeChange) {
-      // 注册命令来处理字体类型切换
-      const handleFontTypeChange = (fontType: 'h1' | 'h2' | 'h3' | 'p') => {
-        editor.update(() => {
-          const selection = $getSelection();
-
-          if ($isRangeSelection(selection)) {
-            // 如果有选中文本，只对选中的块应用字体类型
-            $setBlocksType(selection, () => {
-              switch (fontType) {
-                case 'h1':
-                  return $createHeadingNode('h1');
-                case 'h2':
-                  return $createHeadingNode('h2');
-                case 'h3':
-                  return $createHeadingNode('h3');
-                case 'p':
-                default:
-                  return $createParagraphNode();
-              }
-            });
-          } else {
-            // 如果没有选中文本，改变整个段落的类型
-            const root = $getRoot();
-            const firstChild = root.getFirstChild();
-            if (firstChild) {
-              if (fontType === 'p') {
-                const newPara = $createParagraphNode();
-                firstChild.replace(newPara);
-              } else {
-                const newHeading = $createHeadingNode(fontType);
-                firstChild.replace(newHeading);
-              }
-            } else {
-              // 如果没有内容，创建一个相应类型的节点
-              let node;
-              if (fontType === 'p') {
-                node = $createParagraphNode();
-              } else {
-                node = $createHeadingNode(fontType);
-              }
-              root.append(node);
-            }
-          }
-        });
-      };
-
-      // 将函数暴露给父组件
-      (editor as any)._fontTypeChangeHandler = handleFontTypeChange;
-    }
-
-    // 处理加粗功能
-    if (onBoldToggle) {
-      const handleBoldToggle = () => {
-        editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold');
-      };
-
-      // 将函数暴露给父组件
-      (editor as any)._boldToggleHandler = handleBoldToggle;
-    }
-
-    // 处理斜体功能
-    if (onItalicToggle) {
-      const handleItalicToggle = () => {
-        editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic');
-      };
-
-      (editor as any)._italicToggleHandler = handleItalicToggle;
-    }
-
-    // 处理无序列表功能
-    if (onBulletListToggle) {
-      const handleBulletListToggle = () => {
-        editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
-      };
-
-      (editor as any)._bulletListToggleHandler = handleBulletListToggle;
-    }
-
-    // 处理有序列表功能
-    if (onNumberedListToggle) {
-      const handleNumberedListToggle = () => {
-        editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
-      };
-
-      (editor as any)._numberedListToggleHandler = handleNumberedListToggle;
-    }
-
-    // 处理分割线功能
-    if (onHorizontalRuleInsert) {
-      const handleHorizontalRuleInsert = () => {
-        editor.dispatchCommand(INSERT_HORIZONTAL_RULE_COMMAND, undefined);
-      };
-
-      (editor as any)._horizontalRuleInsertHandler = handleHorizontalRuleInsert;
-    }
-  }, [
-    editor,
-    onFontTypeChange,
-    onBoldToggle,
-    onItalicToggle,
-    onBulletListToggle,
-    onNumberedListToggle,
-    onHorizontalRuleInsert
-  ]);
-
-  return null;
-}
 
 // 编辑器内容显示插件
 export function Placeholder() {
@@ -274,7 +171,7 @@ export function M2VFlowLexicalEditor({
         <ClearEditorPlugin />
         <InitialContentPlugin initialContent={initialContent} />
         <MoveCursorToEndPlugin initialContent={initialContent} />
-        <TextFormatPlugin
+        <LexicalFormattingPlugin
           onBoldToggle={onBoldToggle}
           onItalicToggle={onItalicToggle}
           onBulletListToggle={onBulletListToggle}

@@ -65,3 +65,20 @@ export const getFontClass = (fontType?: 'h1' | 'h2' | 'h3' | 'p'): string => {
       return 'text-sm text-node-content';
   }
 };
+
+/**
+ * 判断颜色是否为非白色系
+ * @param color 颜色值
+ * @returns 如果颜色不是白色系则返回true，否则返回false
+ */
+export const isNotWhiteColor = (color: string): boolean => {
+  const whiteColors = [
+    'white',
+    'transparent',
+    '#ffffff',
+    '#fff',
+    '#FFFFFF',
+    '#FFF'
+  ];
+  return !whiteColors.includes(color);
+};
