@@ -13,6 +13,7 @@ import {
   $getRoot,
   FORMAT_TEXT_COMMAND
 } from 'lexical';
+import { INSERT_HORIZONTAL_RULE_COMMAND } from '@lexical/react/LexicalHorizontalRuleNode';
 import {
   INSERT_ORDERED_LIST_COMMAND,
   INSERT_UNORDERED_LIST_COMMAND
@@ -77,10 +78,6 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
     [nodeData?.onContentChange]
   );
 
-  // 确保编辑器的初始内容正确设置
-  // 删除未使用的变量
-  // const editorInitialContent = content;
-
   // 暴露获取内容的函数到父组件
   useEffect(() => {
     if (nodeData?.getContent) {
@@ -110,7 +107,6 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
 
   useClickOutside([nodeRef], () => {
     isEditing && setIsEditing(false);
-    // 删除空行
   });
 
   // 字体类型切换处理函数

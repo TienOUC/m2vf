@@ -16,6 +16,5 @@ export type {
 export type {
   EditorTheme,
   EditorConfig,
-  M2VFlowLexicalEditorProps,
-  LexicalEditorContent
+  M2VFlowLexicalEditorProps
 } from './editor';

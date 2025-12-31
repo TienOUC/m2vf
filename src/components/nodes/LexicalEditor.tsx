@@ -20,7 +20,8 @@ import {
 } from 'lexical';
 import { $createHeadingNode, HeadingNode } from '@lexical/rich-text';
 import { $setBlocksType } from '@lexical/selection';
-import { FORMAT_TEXT_COMMAND, INSERT_HORIZONTAL_RULE_COMMAND } from 'lexical';
+import { FORMAT_TEXT_COMMAND } from 'lexical';
+import { INSERT_HORIZONTAL_RULE_COMMAND } from '@lexical/react/LexicalHorizontalRuleNode';
 import {
   INSERT_ORDERED_LIST_COMMAND,
   INSERT_UNORDERED_LIST_COMMAND

@@ -1,7 +1,6 @@
 // 编辑器相关类型定义
+import { EditorState, LexicalEditor } from 'lexical';
 
-// 删除未使用的导入
-// import { EditorState, LexicalEditor } from 'lexical';
 
 // 编辑器主题类型定义
 export interface EditorTheme {
@@ -60,8 +59,4 @@ export interface M2VFlowLexicalEditorProps {
   onFontTypeChange?: (fontType: 'h1' | 'h2' | 'h3' | 'p') => void;
 }
 
-// 删除未使用的接口定义
-// useLexicalEditorContent Hook 返回类型
-// export interface LexicalEditorContent {
-//   getContent: () => string;
-// }
+
