@@ -1,7 +1,6 @@
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
-// import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { ClearEditorPlugin } from '@lexical/react/LexicalClearEditorPlugin';
@@ -10,10 +9,9 @@ import { M2VFlowLexicalEditorProps as M2VFlowLexicalEditorPropsType } from '@/li
 import { defaultEditorConfig } from '@/lib/utils/editor';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useEffect, useRef } from 'react';
-import { $getRoot, $createParagraphNode, $createTextNode, $getSelection, $setSelection, $createRangeSelection, $createHeadingNode, $isTextNode, $isRangeSelection, $isParagraphNode } from 'lexical';
+import { $getRoot, $createParagraphNode, $createTextNode, $getSelection, $setSelection, $createRangeSelection, $isRangeSelection } from 'lexical';
+import { $createHeadingNode, HeadingNode } from '@lexical/rich-text';
 import { $setBlocksType } from '@lexical/selection';
-import { HeadingNode, QuoteNode } from '@lexical/rich-text';
-import { TextNode } from 'lexical';
 
 // 用于动态设置编辑器内容的插件
 function InitialContentPlugin({ initialContent }: { initialContent: string }) {
@@ -173,6 +171,7 @@ export function M2VFlowLexicalEditor({
 }) {
   const initialConfig = {
     ...defaultEditorConfig,
+    nodes: [HeadingNode],
   };
 
   return (
@@ -191,7 +190,6 @@ export function M2VFlowLexicalEditor({
             ErrorBoundary={LexicalErrorBoundary}
           />
         </div>
-        {/* <HistoryPlugin /> */}
         <AutoFocusPlugin />
         {onChange && <OnChangePlugin onChange={onChange} />}
         <ClearEditorPlugin />

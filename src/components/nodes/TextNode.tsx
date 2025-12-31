@@ -12,8 +12,8 @@ import { useClickOutside } from '@/hooks';
 
 // 简化的颜色判断函数
 function isNotWhiteColor(color: string): boolean {
-  // 如果是白色、透明或浅色，则返回 false，否则返回 true
-  return !(color === 'white' || color === 'transparent' || color === '#ffffff' || color === '#fff' || color === '#FFFFFF' || color === '#FFF');
+  const whiteColors = ['white', 'transparent', '#ffffff', '#fff', '#FFFFFF', '#FFF'];
+  return !whiteColors.includes(color);
 }
 
 export interface TextNodeData {
@@ -86,9 +86,8 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
   const nodeRef = useRef<HTMLDivElement>(null);
   
   useClickOutside([nodeRef], () => {
-    if (isEditing) {
-      setIsEditing(false);
-    }
+    isEditing && setIsEditing(false);
+    
   });
 
   // 字体类型切换处理函数
