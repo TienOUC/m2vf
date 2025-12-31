@@ -7,13 +7,28 @@ import { NodeBase } from './NodeBase';
 import ResizeIcon from './ResizeIcon';
 import { getFontClass } from '@/lib/utils';
 import { M2VFlowLexicalEditor } from './LexicalEditor';
-import { EditorState, LexicalEditor, $getRoot, FORMAT_TEXT_COMMAND, INSERT_HORIZONTAL_RULE_COMMAND } from 'lexical';
-import { INSERT_ORDERED_LIST_COMMAND, INSERT_UNORDERED_LIST_COMMAND } from '@lexical/list';
+import {
+  EditorState,
+  LexicalEditor,
+  $getRoot,
+  FORMAT_TEXT_COMMAND
+} from 'lexical';
+import {
+  INSERT_ORDERED_LIST_COMMAND,
+  INSERT_UNORDERED_LIST_COMMAND
+} from '@lexical/list';
 import { useClickOutside } from '@/hooks';
 
 // 简化的颜色判断函数
 function isNotWhiteColor(color: string): boolean {
-  const whiteColors = ['white', 'transparent', '#ffffff', '#fff', '#FFFFFF', '#FFF'];
+  const whiteColors = [
+    'white',
+    'transparent',
+    '#ffffff',
+    '#fff',
+    '#FFFFFF',
+    '#FFF'
+  ];
   return !whiteColors.includes(color);
 }
 
@@ -22,12 +37,18 @@ export interface TextNodeData {
   content?: string;
   backgroundColor?: string;
   fontType?: 'h1' | 'h2' | 'h3' | 'p';
-  onTypeChange?: (nodeId: string, newType: 'text' | 'image' | 'video' | 'audio') => void;
+  onTypeChange?: (
+    nodeId: string,
+    newType: 'text' | 'image' | 'video' | 'audio'
+  ) => void;
   onDelete?: (nodeId: string) => void;
   onBackgroundColorChange?: (nodeId: string, color: string) => void;
   getContent?: (nodeId: string) => string;
   onContentChange?: (content: string) => void;
-  onFontTypeChange?: (nodeId: string, fontType: 'h1' | 'h2' | 'h3' | 'p') => void;
+  onFontTypeChange?: (
+    nodeId: string,
+    fontType: 'h1' | 'h2' | 'h3' | 'p'
+  ) => void;
   isEditing?: boolean;
 }
 
@@ -42,7 +63,7 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
     (editorState: EditorState, editor: LexicalEditor) => {
       // 保存编辑器引用
       lexicalEditorRef.current = editor;
-      
+
       // 获取编辑器内容并更新状态
       editorState.read(() => {
         const root = $getRoot();
@@ -57,7 +78,8 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
   );
 
   // 确保编辑器的初始内容正确设置
-  const editorInitialContent = content;
+  // 删除未使用的变量
+  // const editorInitialContent = content;
 
   // 暴露获取内容的函数到父组件
   useEffect(() => {
@@ -74,7 +96,7 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
 
   // 判断背景色是否非白色，决定文字颜色
   const isDarkBg = isNotWhiteColor(nodeData?.backgroundColor || 'white');
-  
+
   // 获取字体类名
   const fontClass = getFontClass(nodeData?.fontType);
 
@@ -85,18 +107,21 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
 
   // 点击外部区域失焦处理函数
   const nodeRef = useRef<HTMLDivElement>(null);
-  
+
   useClickOutside([nodeRef], () => {
     isEditing && setIsEditing(false);
-    
+    // 删除空行
   });
 
   // 字体类型切换处理函数
-  const handleFontTypeChange = useCallback((fontType: 'h1' | 'h2' | 'h3' | 'p') => {
-    if (nodeData?.onFontTypeChange) {
-      nodeData.onFontTypeChange(id, fontType);
-    }
-  }, [id, nodeData?.onFontTypeChange]);
+  const handleFontTypeChange = useCallback(
+    (fontType: 'h1' | 'h2' | 'h3' | 'p') => {
+      if (nodeData?.onFontTypeChange) {
+        nodeData.onFontTypeChange(id, fontType);
+      }
+    },
+    [id, nodeData?.onFontTypeChange]
+  );
 
   // 文本格式化处理函数
   const handleBoldToggle = useCallback(() => {
@@ -110,7 +135,10 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
   const handleItalicToggle = useCallback(() => {
     if (lexicalEditorRef.current) {
       lexicalEditorRef.current.focus(() => {
-        lexicalEditorRef.current?.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic');
+        lexicalEditorRef.current?.dispatchCommand(
+          FORMAT_TEXT_COMMAND,
+          'italic'
+        );
       });
     }
   }, []);
@@ -118,7 +146,10 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
   const handleBulletListToggle = useCallback(() => {
     if (lexicalEditorRef.current) {
       lexicalEditorRef.current.focus(() => {
-        lexicalEditorRef.current?.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
+        lexicalEditorRef.current?.dispatchCommand(
+          INSERT_UNORDERED_LIST_COMMAND,
+          undefined
+        );
       });
     }
   }, []);
@@ -126,7 +157,10 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
   const handleNumberedListToggle = useCallback(() => {
     if (lexicalEditorRef.current) {
       lexicalEditorRef.current.focus(() => {
-        lexicalEditorRef.current?.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
+        lexicalEditorRef.current?.dispatchCommand(
+          INSERT_ORDERED_LIST_COMMAND,
+          undefined
+        );
       });
     }
   }, []);
@@ -134,17 +168,20 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
   const handleHorizontalRuleInsert = useCallback(() => {
     if (lexicalEditorRef.current) {
       lexicalEditorRef.current.focus(() => {
-        lexicalEditorRef.current?.dispatchCommand(INSERT_HORIZONTAL_RULE_COMMAND, undefined);
+        lexicalEditorRef.current?.dispatchCommand(
+          INSERT_HORIZONTAL_RULE_COMMAND,
+          undefined
+        );
       });
     }
   }, []);
 
   return (
-    <NodeBase 
+    <NodeBase
       ref={nodeRef}
-      data={{...data, isEditing}} 
-      id={id} 
-      selected={selected} 
+      data={{ ...data, isEditing }}
+      id={id}
+      selected={selected}
       nodeType="text"
       onBackgroundColorChange={nodeData?.onBackgroundColorChange}
       onFontTypeChange={nodeData?.onFontTypeChange}
@@ -161,8 +198,8 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
       <NodeResizeControl style={controlStyle} minWidth={100} minHeight={50}>
         <ResizeIcon className="absolute right-1 bottom-1" />
       </NodeResizeControl>
-      <div 
-        className={`absolute inset-0 p-2 ${isEditing ? 'nodrag' : ''}`} 
+      <div
+        className={`absolute inset-0 p-2 ${isEditing ? 'nodrag' : ''}`}
         onDoubleClick={handleDoubleClick}
         style={{ cursor: isEditing ? 'default' : 'grab' }}
       >
@@ -182,7 +219,11 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
             onHorizontalRuleInsert={handleHorizontalRuleInsert}
           />
         ) : (
-          <div className={`w-full h-full ${fontClass} p-2 text-${isDarkBg ? 'white' : 'gray-700'} overflow-hidden`}>
+          <div
+            className={`w-full h-full ${fontClass} p-2 text-${
+              isDarkBg ? 'white' : 'gray-700'
+            } overflow-hidden`}
+          >
             {content || '双击输入文本'}
           </div>
         )}

@@ -9,11 +9,22 @@ import { M2VFlowLexicalEditorProps as M2VFlowLexicalEditorPropsType } from '@/li
 import { defaultEditorConfig } from '@/lib/utils/editor';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useEffect, useRef } from 'react';
-import { $getRoot, $createParagraphNode, $createTextNode, $getSelection, $setSelection, $createRangeSelection, $isRangeSelection, $isTextNode, $isParagraphNode } from 'lexical';
+import {
+  $getRoot,
+  $createParagraphNode,
+  $createTextNode,
+  $getSelection,
+  $setSelection,
+  $createRangeSelection,
+  $isRangeSelection
+} from 'lexical';
 import { $createHeadingNode, HeadingNode } from '@lexical/rich-text';
 import { $setBlocksType } from '@lexical/selection';
 import { FORMAT_TEXT_COMMAND, INSERT_HORIZONTAL_RULE_COMMAND } from 'lexical';
-import { INSERT_ORDERED_LIST_COMMAND, INSERT_UNORDERED_LIST_COMMAND } from '@lexical/list';
+import {
+  INSERT_ORDERED_LIST_COMMAND,
+  INSERT_UNORDERED_LIST_COMMAND
+} from '@lexical/list';
 
 // 用于动态设置编辑器内容的插件
 function InitialContentPlugin({ initialContent }: { initialContent: string }) {
@@ -25,10 +36,12 @@ function InitialContentPlugin({ initialContent }: { initialContent: string }) {
     editor.update(() => {
       const root = $getRoot();
       const rootChildren = root.getChildren();
-      
+
       // 如果编辑器内容为空或只包含一个空段落，则设置初始内容
-      if (rootChildren.length === 0 || 
-          (rootChildren.length === 1 && rootChildren[0].getTextContent() === '')) {
+      if (
+        rootChildren.length === 0 ||
+        (rootChildren.length === 1 && rootChildren[0].getTextContent() === '')
+      ) {
         if (initialContent) {
           root.clear();
           const paragraph = $createParagraphNode();
@@ -56,8 +69,16 @@ function MoveCursorToEndPlugin({ initialContent }: { initialContent: string }) {
         const lastNode = root.getLastDescendant();
         if (lastNode) {
           const rangeSelection = $createRangeSelection();
-          rangeSelection.anchor.set(lastNode.getKey(), lastNode.getTextContentSize(), 'text');
-          rangeSelection.focus.set(lastNode.getKey(), lastNode.getTextContentSize(), 'text');
+          rangeSelection.anchor.set(
+            lastNode.getKey(),
+            lastNode.getTextContentSize(),
+            'text'
+          );
+          rangeSelection.focus.set(
+            lastNode.getKey(),
+            lastNode.getTextContentSize(),
+            'text'
+          );
           $setSelection(rangeSelection);
         }
       });
@@ -68,11 +89,11 @@ function MoveCursorToEndPlugin({ initialContent }: { initialContent: string }) {
 }
 
 // 文本格式化插件
-function TextFormatPlugin({ 
-  onBoldToggle, 
-  onItalicToggle, 
-  onBulletListToggle, 
-  onNumberedListToggle, 
+function TextFormatPlugin({
+  onBoldToggle,
+  onItalicToggle,
+  onBulletListToggle,
+  onNumberedListToggle,
   onHorizontalRuleInsert,
   onFontTypeChange
 }: {
@@ -91,7 +112,7 @@ function TextFormatPlugin({
       const handleFontTypeChange = (fontType: 'h1' | 'h2' | 'h3' | 'p') => {
         editor.update(() => {
           const selection = $getSelection();
-          
+
           if ($isRangeSelection(selection)) {
             // 如果有选中文本，只对选中的块应用字体类型
             $setBlocksType(selection, () => {
@@ -136,53 +157,61 @@ function TextFormatPlugin({
       // 将函数暴露给父组件
       (editor as any)._fontTypeChangeHandler = handleFontTypeChange;
     }
-    
+
     // 处理加粗功能
     if (onBoldToggle) {
       const handleBoldToggle = () => {
         editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold');
       };
-      
+
       // 将函数暴露给父组件
       (editor as any)._boldToggleHandler = handleBoldToggle;
     }
-    
+
     // 处理斜体功能
     if (onItalicToggle) {
       const handleItalicToggle = () => {
         editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic');
       };
-      
+
       (editor as any)._italicToggleHandler = handleItalicToggle;
     }
-    
+
     // 处理无序列表功能
     if (onBulletListToggle) {
       const handleBulletListToggle = () => {
         editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
       };
-      
+
       (editor as any)._bulletListToggleHandler = handleBulletListToggle;
     }
-    
+
     // 处理有序列表功能
     if (onNumberedListToggle) {
       const handleNumberedListToggle = () => {
         editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
       };
-      
+
       (editor as any)._numberedListToggleHandler = handleNumberedListToggle;
     }
-    
+
     // 处理分割线功能
     if (onHorizontalRuleInsert) {
       const handleHorizontalRuleInsert = () => {
         editor.dispatchCommand(INSERT_HORIZONTAL_RULE_COMMAND, undefined);
       };
-      
+
       (editor as any)._horizontalRuleInsertHandler = handleHorizontalRuleInsert;
     }
-  }, [editor, onFontTypeChange, onBoldToggle, onItalicToggle, onBulletListToggle, onNumberedListToggle, onHorizontalRuleInsert]);
+  }, [
+    editor,
+    onFontTypeChange,
+    onBoldToggle,
+    onItalicToggle,
+    onBulletListToggle,
+    onNumberedListToggle,
+    onHorizontalRuleInsert
+  ]);
 
   return null;
 }
@@ -219,18 +248,19 @@ export function M2VFlowLexicalEditor({
 }) {
   const initialConfig = {
     ...defaultEditorConfig,
-    nodes: [HeadingNode],
+    nodes: [HeadingNode]
   };
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
-      <div className={`editor-container bg-${backgroundColor} rounded-lg overflow-hidden ${className}`}>
-        
+      <div
+        className={`editor-container bg-${backgroundColor} rounded-lg overflow-hidden ${className}`}
+      >
         <div className="relative">
           <RichTextPlugin
             contentEditable={
-              <ContentEditable 
-                className={`editor-input w-full h-full p-2 min-h-[100px] focus:outline-none bg-${backgroundColor} text-${fontColor}`} 
+              <ContentEditable
+                className={`editor-input w-full h-full p-2 min-h-[100px] focus:outline-none bg-${backgroundColor} text-${fontColor}`}
                 onMouseDown={(e) => e.stopPropagation()}
               />
             }
@@ -243,7 +273,7 @@ export function M2VFlowLexicalEditor({
         <ClearEditorPlugin />
         <InitialContentPlugin initialContent={initialContent} />
         <MoveCursorToEndPlugin initialContent={initialContent} />
-        <TextFormatPlugin 
+        <TextFormatPlugin
           onBoldToggle={onBoldToggle}
           onItalicToggle={onItalicToggle}
           onBulletListToggle={onBulletListToggle}
