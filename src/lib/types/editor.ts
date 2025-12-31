@@ -51,6 +51,12 @@ export interface M2VFlowLexicalEditorProps {
   className?: string;
   backgroundColor?: string;
   fontColor?: string;
+  onBoldToggle?: () => void;
+  onItalicToggle?: () => void;
+  onBulletListToggle?: () => void;
+  onNumberedListToggle?: () => void;
+  onHorizontalRuleInsert?: () => void;
+  onFontTypeChange?: (fontType: 'h1' | 'h2' | 'h3' | 'p') => void;
 }
 
 // useLexicalEditorContent Hook 返回类型

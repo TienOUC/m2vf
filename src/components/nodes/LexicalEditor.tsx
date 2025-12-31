@@ -9,9 +9,11 @@ import { M2VFlowLexicalEditorProps as M2VFlowLexicalEditorPropsType } from '@/li
 import { defaultEditorConfig } from '@/lib/utils/editor';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useEffect, useRef } from 'react';
-import { $getRoot, $createParagraphNode, $createTextNode, $getSelection, $setSelection, $createRangeSelection, $isRangeSelection } from 'lexical';
+import { $getRoot, $createParagraphNode, $createTextNode, $getSelection, $setSelection, $createRangeSelection, $isRangeSelection, $isTextNode, $isParagraphNode } from 'lexical';
 import { $createHeadingNode, HeadingNode } from '@lexical/rich-text';
 import { $setBlocksType } from '@lexical/selection';
+import { FORMAT_TEXT_COMMAND, INSERT_HORIZONTAL_RULE_COMMAND } from 'lexical';
+import { INSERT_ORDERED_LIST_COMMAND, INSERT_UNORDERED_LIST_COMMAND } from '@lexical/list';
 
 // 用于动态设置编辑器内容的插件
 function InitialContentPlugin({ initialContent }: { initialContent: string }) {
@@ -65,8 +67,8 @@ function MoveCursorToEndPlugin({ initialContent }: { initialContent: string }) {
   return null;
 }
 
-// 字体样式切换插件
-function FontTypePlugin({ 
+// 文本格式化插件
+function TextFormatPlugin({ 
   onBoldToggle, 
   onItalicToggle, 
   onBulletListToggle, 
@@ -134,7 +136,53 @@ function FontTypePlugin({
       // 将函数暴露给父组件
       (editor as any)._fontTypeChangeHandler = handleFontTypeChange;
     }
-  }, [editor, onFontTypeChange]);
+    
+    // 处理加粗功能
+    if (onBoldToggle) {
+      const handleBoldToggle = () => {
+        editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold');
+      };
+      
+      // 将函数暴露给父组件
+      (editor as any)._boldToggleHandler = handleBoldToggle;
+    }
+    
+    // 处理斜体功能
+    if (onItalicToggle) {
+      const handleItalicToggle = () => {
+        editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic');
+      };
+      
+      (editor as any)._italicToggleHandler = handleItalicToggle;
+    }
+    
+    // 处理无序列表功能
+    if (onBulletListToggle) {
+      const handleBulletListToggle = () => {
+        editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
+      };
+      
+      (editor as any)._bulletListToggleHandler = handleBulletListToggle;
+    }
+    
+    // 处理有序列表功能
+    if (onNumberedListToggle) {
+      const handleNumberedListToggle = () => {
+        editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
+      };
+      
+      (editor as any)._numberedListToggleHandler = handleNumberedListToggle;
+    }
+    
+    // 处理分割线功能
+    if (onHorizontalRuleInsert) {
+      const handleHorizontalRuleInsert = () => {
+        editor.dispatchCommand(INSERT_HORIZONTAL_RULE_COMMAND, undefined);
+      };
+      
+      (editor as any)._horizontalRuleInsertHandler = handleHorizontalRuleInsert;
+    }
+  }, [editor, onFontTypeChange, onBoldToggle, onItalicToggle, onBulletListToggle, onNumberedListToggle, onHorizontalRuleInsert]);
 
   return null;
 }
@@ -195,7 +243,7 @@ export function M2VFlowLexicalEditor({
         <ClearEditorPlugin />
         <InitialContentPlugin initialContent={initialContent} />
         <MoveCursorToEndPlugin initialContent={initialContent} />
-        <FontTypePlugin 
+        <TextFormatPlugin 
           onBoldToggle={onBoldToggle}
           onItalicToggle={onItalicToggle}
           onBulletListToggle={onBulletListToggle}

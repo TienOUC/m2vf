@@ -7,7 +7,8 @@ import { NodeBase } from './NodeBase';
 import ResizeIcon from './ResizeIcon';
 import { getFontClass } from '@/lib/utils';
 import { M2VFlowLexicalEditor } from './LexicalEditor';
-import { EditorState, LexicalEditor, $getRoot } from 'lexical';
+import { EditorState, LexicalEditor, $getRoot, FORMAT_TEXT_COMMAND, INSERT_HORIZONTAL_RULE_COMMAND } from 'lexical';
+import { INSERT_ORDERED_LIST_COMMAND, INSERT_UNORDERED_LIST_COMMAND } from '@lexical/list';
 import { useClickOutside } from '@/hooks';
 
 // 简化的颜色判断函数
@@ -97,25 +98,45 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
     }
   }, [id, nodeData?.onFontTypeChange]);
 
-  // 文本格式化处理函数 - 这些函数现在只是占位符，实际的格式化由Lexical编辑器内部处理
+  // 文本格式化处理函数
   const handleBoldToggle = useCallback(() => {
-    // 这些功能由Lexical编辑器内部处理，通过Toolbar按钮实现
+    if (lexicalEditorRef.current) {
+      lexicalEditorRef.current.focus(() => {
+        lexicalEditorRef.current?.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold');
+      });
+    }
   }, []);
 
   const handleItalicToggle = useCallback(() => {
-    // 这些功能由Lexical编辑器内部处理，通过Toolbar按钮实现
+    if (lexicalEditorRef.current) {
+      lexicalEditorRef.current.focus(() => {
+        lexicalEditorRef.current?.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic');
+      });
+    }
   }, []);
 
   const handleBulletListToggle = useCallback(() => {
-    // 这些功能由Lexical编辑器内部处理，通过Toolbar按钮实现
+    if (lexicalEditorRef.current) {
+      lexicalEditorRef.current.focus(() => {
+        lexicalEditorRef.current?.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
+      });
+    }
   }, []);
 
   const handleNumberedListToggle = useCallback(() => {
-    // 这些功能由Lexical编辑器内部处理，通过Toolbar按钮实现
+    if (lexicalEditorRef.current) {
+      lexicalEditorRef.current.focus(() => {
+        lexicalEditorRef.current?.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
+      });
+    }
   }, []);
 
   const handleHorizontalRuleInsert = useCallback(() => {
-    // 这些功能由Lexical编辑器内部处理，通过Toolbar按钮实现
+    if (lexicalEditorRef.current) {
+      lexicalEditorRef.current.focus(() => {
+        lexicalEditorRef.current?.dispatchCommand(INSERT_HORIZONTAL_RULE_COMMAND, undefined);
+      });
+    }
   }, []);
 
   return (
