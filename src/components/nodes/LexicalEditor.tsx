@@ -16,7 +16,8 @@ import {
   $getSelection,
   $setSelection,
   $createRangeSelection,
-  $isRangeSelection
+  $isRangeSelection,
+  LexicalEditor
 } from 'lexical';
 import { $createHeadingNode, HeadingNode } from '@lexical/rich-text';
 import { $setBlocksType } from '@lexical/selection';
@@ -123,8 +124,40 @@ export function Placeholder() {
   );
 }
 
+// 编辑器初始化插件
+function EditorInitPlugin({ onInit }: { onInit?: (editor: LexicalEditor) => void }) {
+  const [editor] = useLexicalComposerContext();
+  useEffect(() => {
+    if (onInit) {
+      onInit(editor);
+    }
+  }, [editor, onInit]);
+  return null;
+}
+
+// 用于从 JSON 字符串初始化编辑器状态的插件
+function InitialEditorStatePlugin({ initialEditorState }: { initialEditorState?: string }) {
+  const [editor] = useLexicalComposerContext();
+  const hasSetInitialState = useRef(false);
+
+  useEffect(() => {
+    if (initialEditorState && !hasSetInitialState.current) {
+      try {
+        const parsedState = editor.parseEditorState(initialEditorState);
+        editor.setEditorState(parsedState);
+        hasSetInitialState.current = true;
+      } catch (e) {
+        console.error('Failed to parse editor state:', e);
+      }
+    }
+  }, [editor, initialEditorState]);
+
+  return null;
+}
+
 export function M2VFlowLexicalEditor({
   initialContent = '',
+  initialEditorState,
   onChange,
   darkMode = false,
   className = '',
@@ -135,7 +168,9 @@ export function M2VFlowLexicalEditor({
   onBulletListToggle,
   onNumberedListToggle,
   onHorizontalRuleInsert,
-  onFontTypeChange
+  onFontTypeChange,
+  onInit,
+  readOnly = false
 }: M2VFlowLexicalEditorPropsType & {
   onBoldToggle?: () => void;
   onItalicToggle?: () => void;
@@ -143,10 +178,14 @@ export function M2VFlowLexicalEditor({
   onNumberedListToggle?: () => void;
   onHorizontalRuleInsert?: () => void;
   onFontTypeChange?: (fontType: 'h1' | 'h2' | 'h3' | 'p') => void;
+  onInit?: (editor: LexicalEditor) => void;
+  readOnly?: boolean;
 }) {
   const initialConfig = {
     ...defaultEditorConfig,
-    nodes: [HeadingNode]
+    nodes: [HeadingNode],
+    editable: !readOnly,
+    editorState: initialEditorState
   };
 
   return (
@@ -158,19 +197,21 @@ export function M2VFlowLexicalEditor({
           <RichTextPlugin
             contentEditable={
               <ContentEditable
-                className={`editor-input w-full h-full p-2 min-h-[100px] focus:outline-none bg-${backgroundColor} text-${fontColor}`}
-                onMouseDown={(e) => e.stopPropagation()}
+                className={`editor-input w-full h-full p-2 min-h-[100px] focus:outline-none bg-${backgroundColor} text-${fontColor} ${readOnly ? 'cursor-default pointer-events-none' : ''}`}
+                onMouseDown={(e) => !readOnly && e.stopPropagation()}
+                readOnly={readOnly}
               />
             }
-            placeholder={<Placeholder />}
+            placeholder={!readOnly ? <Placeholder /> : null}
             ErrorBoundary={LexicalErrorBoundary}
           />
         </div>
-        <AutoFocusPlugin />
+        {!readOnly && <AutoFocusPlugin />}
         {onChange && <OnChangePlugin onChange={onChange} />}
-        <ClearEditorPlugin />
-        <InitialContentPlugin initialContent={initialContent} />
-        <MoveCursorToEndPlugin initialContent={initialContent} />
+        {!readOnly && <ClearEditorPlugin />}
+        {!initialEditorState && <InitialContentPlugin initialContent={initialContent} />}
+        {!readOnly && <MoveCursorToEndPlugin initialContent={initialContent} />}
+        <EditorInitPlugin onInit={onInit} />
         <LexicalFormattingPlugin
           onBoldToggle={onBoldToggle}
           onItalicToggle={onItalicToggle}

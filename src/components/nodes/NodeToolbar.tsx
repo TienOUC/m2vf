@@ -245,6 +245,7 @@ const NodeToolbar = ({
         <div className="flex gap-1">
           <Tooltip title="H1标题" placement="top">
             <button
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => handleFontTypeChange('h1')}
               className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h1' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
               aria-label="H1标题"
@@ -255,6 +256,7 @@ const NodeToolbar = ({
           
           <Tooltip title="H2标题" placement="top">
             <button
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => handleFontTypeChange('h2')}
               className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h2' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
               aria-label="H2标题"
@@ -265,6 +267,7 @@ const NodeToolbar = ({
           
           <Tooltip title="H3标题" placement="top">
             <button
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => handleFontTypeChange('h3')}
               className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h3' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
               aria-label="H3标题"
@@ -275,6 +278,7 @@ const NodeToolbar = ({
           
           <Tooltip title="正文" placement="top">
             <button
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => handleFontTypeChange('p')}
               className={`w-8 h-8 p-1 text-sm rounded-md transition-colors ${fontType === 'p' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
               aria-label="正文"
@@ -291,6 +295,7 @@ const NodeToolbar = ({
           {/* 加粗按钮 */}
           <Tooltip title="加粗" placement="top">
             <button
+              onMouseDown={(e) => e.preventDefault()}
               onClick={handleBoldToggle}
               className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
               aria-label="加粗"
@@ -302,6 +307,7 @@ const NodeToolbar = ({
           {/* 斜体按钮 */}
           <Tooltip title="斜体" placement="top">
             <button
+              onMouseDown={(e) => e.preventDefault()}
               onClick={handleItalicToggle}
               className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
               aria-label="斜体"
@@ -313,6 +319,7 @@ const NodeToolbar = ({
           {/* 无序列表按钮 */}
           <Tooltip title="无序列表" placement="top">
             <button
+              onMouseDown={(e) => e.preventDefault()}
               onClick={handleBulletListToggle}
               className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
               aria-label="无序列表"
@@ -324,6 +331,7 @@ const NodeToolbar = ({
           {/* 有序列表按钮 */}
           <Tooltip title="有序列表" placement="top">
             <button
+              onMouseDown={(e) => e.preventDefault()}
               onClick={handleNumberedListToggle}
               className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
               aria-label="有序列表"
@@ -335,6 +343,7 @@ const NodeToolbar = ({
           {/* 分割线按钮 */}
           <Tooltip title="分割线" placement="top">
             <button
+              onMouseDown={(e) => e.preventDefault()}
               onClick={handleHorizontalRuleInsert}
               className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
               aria-label="分割线"

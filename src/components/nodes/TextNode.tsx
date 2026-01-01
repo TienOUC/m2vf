@@ -17,6 +17,7 @@ import { useLexicalEditor } from '@/hooks/useLexicalEditor';
 export interface TextNodeData {
   label?: string;
   content?: string;
+  editorStateJson?: string; // 保存序列化后的编辑器状态
   backgroundColor?: string;
   fontType?: 'h1' | 'h2' | 'h3' | 'p';
   onTypeChange?: (
@@ -26,7 +27,7 @@ export interface TextNodeData {
   onDelete?: (nodeId: string) => void;
   onBackgroundColorChange?: (nodeId: string, color: string) => void;
   getContent?: (nodeId: string) => string;
-  onContentChange?: (content: string) => void;
+  onContentChange?: (content: string, editorStateJson?: string) => void;
   onFontTypeChange?: (
     nodeId: string,
     fontType: 'h1' | 'h2' | 'h3' | 'p'
@@ -37,14 +38,18 @@ export interface TextNodeData {
 function TextNode({ data, id, selected, ...rest }: NodeProps) {
   const nodeData = data as TextNodeData;
   const [content, setContent] = useState(nodeData?.content || '');
+  const [editorStateJson, setEditorStateJson] = useState(nodeData?.editorStateJson);
   const [isEditing, setIsEditing] = useState(nodeData?.isEditing || false);
 
   // 使用新的 useLexicalEditor hook
-  const { lexicalEditorRef, handleEditorChange } = useLexicalEditor({
-    onContentChange: (textContent) => {
+  const { lexicalEditorRef, handleEditorChange, handleEditorInit } = useLexicalEditor({
+    onContentChange: (textContent, newStateJson) => {
       setContent(textContent);
+      if (newStateJson) {
+        setEditorStateJson(newStateJson);
+      }
       if (nodeData?.onContentChange) {
-        nodeData.onContentChange(textContent);
+        nodeData.onContentChange(textContent, newStateJson);
       }
     }
   });
@@ -76,7 +81,17 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
   // 点击外部区域失焦处理函数
   const nodeRef = useRef<HTMLDivElement>(null);
 
-  useClickOutside([nodeRef], () => {
+  useClickOutside([nodeRef], (event) => {
+    // 如果点击的是工具栏或颜色选择器（它们可能渲染在 Portal 中），不退出编辑模式
+    const target = event.target as HTMLElement;
+    const isToolbarClick = target.closest('.react-flow__node-toolbar');
+    const isPopoverClick = target.closest('.MuiPopover-root');
+    const isTooltipClick = target.closest('.MuiTooltip-popper');
+
+    if (isToolbarClick || isPopoverClick || isTooltipClick) {
+      return;
+    }
+
     isEditing && setIsEditing(false);
   });
 
@@ -130,7 +145,9 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
           <M2VFlowLexicalEditor
             key={`editor-${id}`}
             initialContent={content}
+            initialEditorState={editorStateJson}
             onChange={handleEditorChange}
+            onInit={handleEditorInit}
             backgroundColor={nodeData?.backgroundColor || 'white'}
             fontColor={isDarkBg ? 'white' : 'gray-700'}
             className={`w-full h-full ${fontClass}`}
@@ -142,12 +159,27 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
             onHorizontalRuleInsert={handleHorizontalRuleInsert}
           />
         ) : (
-          <div
-            className={`w-full h-full ${fontClass} p-2 text-${
-              isDarkBg ? 'white' : 'gray-700'
-            } overflow-hidden`}
-          >
-            {content || '双击输入文本'}
+          <div className="w-full h-full relative">
+            {/* 使用只读模式的编辑器来展示内容，保留所有样式 */}
+            <M2VFlowLexicalEditor
+              key={`readonly-editor-${id}`}
+              initialContent={content}
+              initialEditorState={editorStateJson}
+              backgroundColor={nodeData?.backgroundColor || 'white'}
+              fontColor={isDarkBg ? 'white' : 'gray-700'}
+              className={`w-full h-full ${fontClass}`}
+              readOnly={true}
+            />
+            {/* 如果没有内容，显示占位符 */}
+            {!content && (
+              <div
+                className={`absolute inset-0 p-2 text-${
+                  isDarkBg ? 'white' : 'gray-700'
+                } pointer-events-none`}
+              >
+                双击输入文本
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -3,7 +3,7 @@ import { EditorState, LexicalEditor } from 'lexical';
 import { $getRoot } from 'lexical';
 
 interface UseLexicalEditorProps {
-  onContentChange?: (content: string) => void;
+  onContentChange?: (content: string, editorStateJson?: string) => void;
 }
 
 export const useLexicalEditor = ({ onContentChange }: UseLexicalEditorProps) => {
@@ -19,16 +19,26 @@ export const useLexicalEditor = ({ onContentChange }: UseLexicalEditorProps) => 
       editorState.read(() => {
         const root = $getRoot();
         const textContent = root.getTextContent();
+        
+        // 序列化编辑器状态为 JSON 字符串
+        const editorStateJson = JSON.stringify(editorState.toJSON());
+        
         if (onContentChange) {
-          onContentChange(textContent);
+          onContentChange(textContent, editorStateJson);
         }
       });
     },
     [onContentChange]
   );
 
+  // 处理编辑器初始化
+  const handleEditorInit = useCallback((editor: LexicalEditor) => {
+    lexicalEditorRef.current = editor;
+  }, []);
+
   return {
     lexicalEditorRef,
-    handleEditorChange
+    handleEditorChange,
+    handleEditorInit
   };
 };

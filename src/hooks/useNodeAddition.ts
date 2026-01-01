@@ -43,6 +43,7 @@ export const useNodeAddition = ({
           onBackgroundColorChange: handleBackgroundColorChange,
           ...(handleFontTypeChange && { onFontTypeChange: handleFontTypeChange }),
           content: '',
+          editorStateJson: undefined, // 初始化为空
         },
       };
 
