@@ -20,6 +20,7 @@ export interface BaseNodeProps extends Pick<NodeProps, 'id' | 'data' | 'selected
   onBulletListToggle?: (nodeId: string) => void;
   onNumberedListToggle?: (nodeId: string) => void;
   onHorizontalRuleInsert?: (nodeId: string) => void;
+  getRichContent?: (nodeId: string) => string;
 }
 
 export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
@@ -37,7 +38,8 @@ export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
   onNumberedListToggle,
   onHorizontalRuleInsert,
   backgroundColor,
-  fontType
+  fontType,
+  getRichContent
 }, ref) => {
   const nodeData = data as NodeData;
 
@@ -76,6 +78,7 @@ export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
         type={nodeType}
         fontType={fontType}
         getContent={nodeData?.getContent}
+        getRichContent={getRichContent}
       />
 
       {/* 节点内容 */}

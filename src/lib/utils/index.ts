@@ -49,6 +49,50 @@ export const copyToClipboard = async (text: string): Promise<boolean> => {
 };
 
 /**
+ * 复制富文本(HTML)到剪贴板
+ * @param html 要复制的HTML字符串
+ * @param plain 可选的纯文本备用内容
+ * @returns Promise<boolean> 复制是否成功
+ */
+export const copyRichTextToClipboard = async (html: string, plain?: string): Promise<boolean> => {
+  try {
+    if (navigator.clipboard && 'write' in navigator.clipboard && window.isSecureContext) {
+      const items = [
+        new ClipboardItem({
+          'text/html': new Blob([html], { type: 'text/html' }),
+          'text/plain': new Blob([plain ?? html.replace(/<[^>]*>/g, '')], { type: 'text/plain' })
+        })
+      ];
+      await (navigator.clipboard as Clipboard).write(items);
+      return true;
+    } else {
+      // 降级：创建隐藏div写入HTML，选择后执行复制
+      const container = document.createElement('div');
+      container.innerHTML = html;
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.setAttribute('contenteditable', 'true');
+      document.body.appendChild(container);
+      
+      const range = document.createRange();
+      range.selectNodeContents(container);
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+      
+      const successful = document.execCommand('copy');
+      selection?.removeAllRanges();
+      document.body.removeChild(container);
+      
+      return successful;
+    }
+  } catch (err) {
+    console.error('Failed to copy rich text: ', err);
+    return false;
+  }
+};
+
+/**
  * 根据字体类型获取对应的 CSS 类名
  * @param fontType 字体类型 ('h1' | 'h2' | 'h3' | 'p')
  * @returns 对应的 CSS 类名字符串

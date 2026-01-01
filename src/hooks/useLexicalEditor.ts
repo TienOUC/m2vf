@@ -4,9 +4,10 @@ import { $getRoot } from 'lexical';
 
 interface UseLexicalEditorProps {
   onContentChange?: (content: string, editorStateJson?: string) => void;
+  onRichContentChange?: (html: string) => void;
 }
 
-export const useLexicalEditor = ({ onContentChange }: UseLexicalEditorProps) => {
+export const useLexicalEditor = ({ onContentChange, onRichContentChange }: UseLexicalEditorProps) => {
   const lexicalEditorRef = useRef<LexicalEditor | null>(null);
 
   // 处理编辑器内容变化
@@ -26,9 +27,14 @@ export const useLexicalEditor = ({ onContentChange }: UseLexicalEditorProps) => 
         if (onContentChange) {
           onContentChange(textContent, editorStateJson);
         }
+        if (onRichContentChange) {
+          const rootEl = editor.getRootElement();
+          const html = rootEl ? rootEl.innerHTML : '';
+          onRichContentChange(html);
+        }
       });
     },
-    [onContentChange]
+    [onContentChange, onRichContentChange]
   );
 
   // 处理编辑器初始化

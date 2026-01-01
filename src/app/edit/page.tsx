@@ -156,6 +156,7 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
 
   // 节点内容管理
   const nodeContentMap = useRef<Record<string, string>>({});
+  const nodeHtmlContentMap = useRef<Record<string, string>>({});
   
   // 注册自定义节点类型
   const nodeTypes = useMemo(
@@ -168,10 +169,16 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
         const getContent = (id: string) => {
           return nodeContentMap.current[id] || '';
         };
+        const getRichContent = (id: string) => {
+          return nodeHtmlContentMap.current[id] || '';
+        };
         
         // 更新内容的函数
         const updateContent = (id: string, content: string) => {
           nodeContentMap.current[id] = content;
+        };
+        const updateHtmlContent = (id: string, html: string) => {
+          nodeHtmlContentMap.current[id] = html;
         };
         
         return (
@@ -181,7 +188,9 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
               ...nodeData,
               fontType: nodeData.fontType,
               getContent,
+              getRichContent,
               onContentChange: (content: string) => updateContent(nodeId, content),
+              onRichContentChange: (html: string) => updateHtmlContent(nodeId, html),
               onFontTypeChange: handleFontTypeChange
             }}
           />

@@ -27,6 +27,8 @@ export interface TextNodeData {
   onBackgroundColorChange?: (nodeId: string, color: string) => void;
   getContent?: (nodeId: string) => string;
   onContentChange?: (content: string, editorStateJson?: string) => void;
+  getRichContent?: (nodeId: string) => string;
+  onRichContentChange?: (html: string) => void;
   onFontTypeChange?: (
     nodeId: string,
     fontType: 'h1' | 'h2' | 'h3' | 'p'
@@ -49,6 +51,11 @@ function TextNode({ data, id, selected }: NodeProps) {
       }
       if (nodeData?.onContentChange) {
         nodeData.onContentChange(textContent, newStateJson);
+      }
+    },
+    onRichContentChange: (html) => {
+      if (nodeData?.onRichContentChange) {
+        nodeData.onRichContentChange(html);
       }
     }
   });

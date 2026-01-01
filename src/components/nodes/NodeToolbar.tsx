@@ -3,7 +3,7 @@ import { SwapHoriz, Close, TextFields, Image as ImageIcon, VideoFile, Audiotrack
 import { Tooltip, Popover } from '@mui/material';
 import { memo, useState, useRef, useEffect } from 'react';
 import { useClickOutside } from '@/hooks';
-import { copyToClipboard } from '@/lib/utils';
+import { copyToClipboard, copyRichTextToClipboard } from '@/lib/utils';
 
 export interface NodeToolbarProps {
   nodeId: string;
@@ -17,6 +17,7 @@ export interface NodeToolbarProps {
   type?: 'text' | 'image' | 'video' | 'audio';
   fontType?: 'h1' | 'h2' | 'h3' | 'p';
   getContent?: (nodeId: string) => string;
+  getRichContent?: (nodeId: string) => string;
   // 新增：文本格式化功能
   onBoldToggle?: (nodeId: string) => void;
   onItalicToggle?: (nodeId: string) => void;
@@ -41,7 +42,8 @@ const NodeToolbar = ({
   selected = false, 
   type = 'text',
   fontType,
-  getContent
+  getContent,
+  getRichContent
 }: NodeToolbarProps) => {
   const colorPickerRef = useRef<HTMLButtonElement>(null);
   const colorPickerPopoverRef = useRef<HTMLDivElement>(null);
@@ -100,8 +102,11 @@ const NodeToolbar = ({
   
   const handleCopyText = async () => {
     if (type === 'text' && getContent) {
-      const content = getContent(nodeId);
-      const success = await copyToClipboard(content);
+      const plain = getContent(nodeId);
+      const html = getRichContent ? getRichContent(nodeId) : undefined;
+      const success = html 
+        ? await copyRichTextToClipboard(html, plain) 
+        : await copyToClipboard(plain);
       if (success) {
         setCopySuccess(true);
         setTimeout(() => setCopySuccess(false), 2000); // 2秒后重置状态
