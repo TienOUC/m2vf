@@ -157,6 +157,8 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
   // 节点内容管理
   const nodeContentMap = useRef<Record<string, string>>({});
   const nodeHtmlContentMap = useRef<Record<string, string>>({});
+  const editingNodeIds = useRef<Set<string>>(new Set());
+  const [isAnyEditing, setIsAnyEditing] = useState(false);
   
   // 注册自定义节点类型
   const nodeTypes = useMemo(
@@ -180,6 +182,14 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
         const updateHtmlContent = (id: string, html: string) => {
           nodeHtmlContentMap.current[id] = html;
         };
+        const onEditingChange = (id: string, editing: boolean) => {
+          if (editing) {
+            editingNodeIds.current.add(id);
+          } else {
+            editingNodeIds.current.delete(id);
+          }
+          setIsAnyEditing(editingNodeIds.current.size > 0);
+        };
         
         return (
           <TextNode
@@ -191,6 +201,7 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
               getRichContent,
               onContentChange: (content: string) => updateContent(nodeId, content),
               onRichContentChange: (html: string) => updateHtmlContent(nodeId, html),
+              onEditingChange,
               onFontTypeChange: handleFontTypeChange
             }}
           />
@@ -287,6 +298,8 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
       onPaneClick={handlePaneClick}
       nodeTypes={nodeTypes}
       fitView
+      zoomOnScroll={!isAnyEditing}
+      zoomOnPinch={!isAnyEditing}
       proOptions={{ hideAttribution: true }}
     >
       {/* 点状背景 */}

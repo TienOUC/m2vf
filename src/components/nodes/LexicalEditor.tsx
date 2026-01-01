@@ -140,11 +140,11 @@ export function M2VFlowLexicalEditor({
       <div
         className={`editor-container bg-${backgroundColor} rounded-lg overflow-hidden ${className}`}
       >
-        <div className="relative">
+        <div className="relative h-full">
           <RichTextPlugin
             contentEditable={
               <ContentEditable
-                className={`editor-input w-full h-full p-2 min-h-[100px] focus:outline-none bg-${backgroundColor} text-${fontColor} ${readOnly ? 'cursor-default pointer-events-none' : ''}`}
+                className={`editor-input w-full h-full p-2 min-h-[100px] focus:outline-none bg-${backgroundColor} text-${fontColor} ${readOnly ? 'cursor-default pointer-events-none' : ''} overflow-y-auto max-h-full`}
                 onMouseDown={(e) => !readOnly && e.stopPropagation()}
                 readOnly={readOnly}
               />

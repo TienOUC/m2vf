@@ -29,6 +29,7 @@ export interface TextNodeData {
   onContentChange?: (content: string, editorStateJson?: string) => void;
   getRichContent?: (nodeId: string) => string;
   onRichContentChange?: (html: string) => void;
+  onEditingChange?: (nodeId: string, isEditing: boolean) => void;
   onFontTypeChange?: (
     nodeId: string,
     fontType: 'h1' | 'h2' | 'h3' | 'p'
@@ -107,6 +108,13 @@ function TextNode({ data, id, selected }: NodeProps) {
     isEditing && setIsEditing(false);
   });
 
+  // 同步编辑状态到父组件，驱动全局缩放策略
+  useEffect(() => {
+    if (nodeData?.onEditingChange) {
+      nodeData.onEditingChange(id, isEditing);
+    }
+  }, [isEditing, nodeData, id]);
+
   // 使用新的 useTextFormatting hook
   const {
     handleBoldToggle,
@@ -160,6 +168,18 @@ function TextNode({ data, id, selected }: NodeProps) {
       <div
         className={`absolute inset-0 p-2 ${isEditing ? 'nodrag' : ''}`}
         onDoubleClick={handleDoubleClick}
+        onWheel={(e) => {
+          if (isEditing) {
+            e.stopPropagation();
+            e.preventDefault();
+          }
+        }}
+        onWheelCapture={(e) => {
+          if (isEditing) {
+            e.stopPropagation();
+            e.preventDefault();
+          }
+        }}
         style={{ cursor: isEditing ? 'default' : 'grab' }}
       >
         {isEditing ? (
