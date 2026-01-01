@@ -279,21 +279,19 @@ body {
 /* iOS风格滚动条（WebKit/Chromium） */
 .editor-input {
   overscroll-behavior-y: contain;
-  scrollbar-width: 2px; /* Firefox */
+  scrollbar-width: 1px; /* Firefox */
   scrollbar-color: rgba(0,0,0,0.3) transparent; /* Firefox */
 }
 .editor-input::-webkit-scrollbar {
-  width: 2px;
+  width: 1px;
 }
 .editor-input::-webkit-scrollbar-track {
   background: transparent;
 }
 .editor-input::-webkit-scrollbar-thumb {
-  background-color: rgba(0,0,0,0.25);
+  background-color: rgba(0,0,0,0.05);
   border-radius: 9999px;
-  border: 2px solid transparent;
-  background-clip: content-box;
 }
 .editor-input:hover::-webkit-scrollbar-thumb {
-  background-color: rgba(0,0,0,0.35);
+  background-color: rgba(0,0,0,0.05);
 }

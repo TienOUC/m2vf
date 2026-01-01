@@ -49,8 +49,8 @@ export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
       className="rounded-lg w-full h-full relative transition-colors duration-150 shadow-sm hover:shadow-md"
       style={{ 
         backgroundColor: backgroundColor || 'white',
-        minWidth: '240px', 
-        minHeight: '160px' 
+        minWidth: '180px', 
+        minHeight: '120px' 
       }}
     >
       {/* 输入连接点 */}

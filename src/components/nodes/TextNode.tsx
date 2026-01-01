@@ -166,7 +166,7 @@ function TextNode({ data, id, selected }: NodeProps) {
         <ResizeIcon className="absolute right-1 bottom-1" />
       </NodeResizeControl>
       <div
-        className={`absolute inset-0 p-2 ${isEditing ? 'nodrag' : ''}`}
+        className={`absolute inset-0 ${isEditing ? 'nodrag' : ''}`}
         onDoubleClick={handleDoubleClick}
         onWheel={(e) => {
           if (isEditing) {
