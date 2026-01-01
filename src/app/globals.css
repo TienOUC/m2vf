@@ -269,3 +269,9 @@ body {
   font-family: Menlo, Consolas, Monaco, monospace;
   font-size: 94%;
 }
+
+.editor-input hr {
+  border: 0;
+  border-top: 2px solid #e5e7eb;
+  margin: 1.5rem 0;
+}
