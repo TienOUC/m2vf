@@ -162,7 +162,7 @@ function TextNode({ data, id, selected }: NodeProps) {
         onNumberedListToggle={handleNumberedListToggle}
       onHorizontalRuleInsert={handleHorizontalRuleInsert}
     >
-      <NodeResizeControl style={controlStyle} minWidth={100} minHeight={50}>
+      <NodeResizeControl className="group" style={controlStyle} minWidth={100} minHeight={50}>
         <ResizeIcon className="absolute right-1 bottom-1" />
       </NodeResizeControl>
       <div
@@ -208,9 +208,8 @@ function TextNode({ data, id, selected }: NodeProps) {
             {/* 如果没有内容，显示占位符 */}
             {!content && (
               <div
-                className={`absolute inset-0 p-2 text-${
-                  isDarkBg ? 'white' : 'gray-700'
-                } pointer-events-none`}
+                className={`absolute inset-0 p-2 text-${isDarkBg ? 'white' : 'gray-500'} pointer-events-none`}
+                style={{ fontSize: 'var(--font-size-xs)' }}
               >
                 双击输入文本
               </div>

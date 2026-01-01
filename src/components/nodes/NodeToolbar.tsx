@@ -188,6 +188,16 @@ const NodeToolbar = ({
       isVisible={selected}
       className="bg-white shadow-md rounded-md border border-gray-200 p-1 flex items-center gap-1"
     >
+      <Tooltip title="删除节点" placement="top">
+        <button
+          onClick={handleDelete}
+          className="w-8 h-8 p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
+          aria-label="删除节点"
+        >
+          <Close fontSize="small" />
+        </button>
+      </Tooltip>
+      
       {/* 类型切换按钮 */}
       <div className="relative group">
         <Tooltip title="切换节点类型" placement="top">
@@ -244,6 +254,7 @@ const NodeToolbar = ({
           <ColorPickerPopover />
         </div>
       )}
+      {type === 'text' && <div className="w-px h-6 bg-gray-200 mx-1" />}
       
       {/* 字体样式选择按钮 - 仅对文本节点显示 */}
       {type === 'text' && (
@@ -293,6 +304,7 @@ const NodeToolbar = ({
           </Tooltip>
         </div>
       )}
+      {type === 'text' && <div className="w-px h-6 bg-gray-200 mx-1" />}
       
       {/* 文本格式化按钮 - 仅对文本节点显示 */}
       {type === 'text' && (
@@ -356,6 +368,7 @@ const NodeToolbar = ({
               <HorizontalRule fontSize="small" />
             </button>
           </Tooltip>
+          <div className="w-px h-6 bg-gray-200 mx-1" />
         </>
       )}
       
@@ -371,17 +384,6 @@ const NodeToolbar = ({
           </button>
         </Tooltip>
       )}
-      
-      {/* 删除按钮 */}
-      <Tooltip title="删除节点" placement="top">
-        <button
-          onClick={handleDelete}
-          className="w-8 h-8 p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
-          aria-label="删除节点"
-        >
-          <Close fontSize="small" />
-        </button>
-      </Tooltip>
     </ReactFlowNodeToolbar>
   );
 };
