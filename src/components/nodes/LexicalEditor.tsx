@@ -13,49 +13,17 @@ import {
   $getRoot,
   $createParagraphNode,
   $createTextNode,
-  $getSelection,
   $setSelection,
   $createRangeSelection,
-  $isRangeSelection,
   $isTextNode,
   $isElementNode,
   LexicalEditor
 } from 'lexical';
-import { $createHeadingNode, HeadingNode } from '@lexical/rich-text';
+import { HeadingNode } from '@lexical/rich-text';
 import { ListNode, ListItemNode } from '@lexical/list';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { HorizontalRuleNode } from '@lexical/react/LexicalHorizontalRuleNode';
 import { HorizontalRulePlugin } from '@lexical/react/LexicalHorizontalRulePlugin';
-import { $setBlocksType } from '@lexical/selection';
-import { useLexicalFormatting } from '@/hooks/useLexicalFormatting';
-
-// 文本格式化插件
-function LexicalFormattingPlugin({
-  onBoldToggle,
-  onItalicToggle,
-  onBulletListToggle,
-  onNumberedListToggle,
-  onHorizontalRuleInsert,
-  onFontTypeChange
-}: {
-  onBoldToggle?: () => void;
-  onItalicToggle?: () => void;
-  onBulletListToggle?: () => void;
-  onNumberedListToggle?: () => void;
-  onHorizontalRuleInsert?: () => void;
-  onFontTypeChange?: (fontType: 'h1' | 'h2' | 'h3' | 'p') => void;
-}) {
-  useLexicalFormatting({
-    onBoldToggle,
-    onItalicToggle,
-    onBulletListToggle,
-    onNumberedListToggle,
-    onHorizontalRuleInsert,
-    onFontTypeChange
-  });
-
-  return null;
-}
 
 // 用于动态设置编辑器内容的插件
 function InitialContentPlugin({ initialContent }: { initialContent: string }) {
@@ -147,49 +115,16 @@ function EditorInitPlugin({ onInit }: { onInit?: (editor: LexicalEditor) => void
   return null;
 }
 
-// 用于从 JSON 字符串初始化编辑器状态的插件
-function InitialEditorStatePlugin({ initialEditorState }: { initialEditorState?: string }) {
-  const [editor] = useLexicalComposerContext();
-  const hasSetInitialState = useRef(false);
-
-  useEffect(() => {
-    if (initialEditorState && !hasSetInitialState.current) {
-      try {
-        const parsedState = editor.parseEditorState(initialEditorState);
-        editor.setEditorState(parsedState);
-        hasSetInitialState.current = true;
-      } catch (e) {
-        console.error('Failed to parse editor state:', e);
-      }
-    }
-  }, [editor, initialEditorState]);
-
-  return null;
-}
-
 export function M2VFlowLexicalEditor({
   initialContent = '',
   initialEditorState,
   onChange,
-  darkMode = false,
   className = '',
   backgroundColor = 'white',
   fontColor = 'gray-700',
-  onBoldToggle,
-  onItalicToggle,
-  onBulletListToggle,
-  onNumberedListToggle,
-  onHorizontalRuleInsert,
-  onFontTypeChange,
   onInit,
   readOnly = false
 }: M2VFlowLexicalEditorPropsType & {
-  onBoldToggle?: () => void;
-  onItalicToggle?: () => void;
-  onBulletListToggle?: () => void;
-  onNumberedListToggle?: () => void;
-  onHorizontalRuleInsert?: () => void;
-  onFontTypeChange?: (fontType: 'h1' | 'h2' | 'h3' | 'p') => void;
   onInit?: (editor: LexicalEditor) => void;
   readOnly?: boolean;
 }) {
@@ -226,14 +161,6 @@ export function M2VFlowLexicalEditor({
         <EditorInitPlugin onInit={onInit} />
         <ListPlugin />
         <HorizontalRulePlugin />
-        <LexicalFormattingPlugin
-          onBoldToggle={onBoldToggle}
-          onItalicToggle={onItalicToggle}
-          onBulletListToggle={onBulletListToggle}
-          onNumberedListToggle={onNumberedListToggle}
-          onHorizontalRuleInsert={onHorizontalRuleInsert}
-          onFontTypeChange={onFontTypeChange}
-        />
       </div>
     </LexicalComposer>
   );

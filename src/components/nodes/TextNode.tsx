@@ -7,7 +7,6 @@ import { NodeBase } from './NodeBase';
 import ResizeIcon from './ResizeIcon';
 import { getFontClass, isNotWhiteColor } from '@/lib/utils';
 import { M2VFlowLexicalEditor } from './LexicalEditor';
-import { EditorState } from 'lexical';
 import { useClickOutside } from '@/hooks';
 import { useTextFormatting } from '@/hooks/useTextFormatting';
 import { useLexicalEditor } from '@/hooks/useLexicalEditor';
@@ -161,12 +160,6 @@ function TextNode({ data, id, selected }: NodeProps) {
             backgroundColor={nodeData?.backgroundColor || 'white'}
             fontColor={isDarkBg ? 'white' : 'gray-700'}
             className={`w-full h-full ${fontClass}`}
-            onFontTypeChange={handleFontTypeChange}
-            onBoldToggle={handleBoldToggle}
-            onItalicToggle={handleItalicToggle}
-            onBulletListToggle={handleBulletListToggle}
-            onNumberedListToggle={handleNumberedListToggle}
-            onHorizontalRuleInsert={handleHorizontalRuleInsert}
           />
         ) : (
           <div className="w-full h-full relative">
