@@ -4,7 +4,7 @@ import { forwardRef } from 'react';
 import NodeToolbar from './NodeToolbar';
 import { NodeData } from '../../hooks/useNodeBase';
 
-export interface BaseNodeProps extends NodeProps {
+export interface BaseNodeProps extends Pick<NodeProps, 'id' | 'data' | 'selected'> {
   children: React.ReactNode;
   nodeType: 'text' | 'image' | 'video' | 'audio';
   icon?: React.ReactNode;
@@ -37,8 +37,7 @@ export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
   onNumberedListToggle,
   onHorizontalRuleInsert,
   backgroundColor,
-  fontType,
-  ...rest
+  fontType
 }, ref) => {
   const nodeData = data as NodeData;
 
@@ -51,14 +50,12 @@ export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
         minWidth: '240px', 
         minHeight: '160px' 
       }}
-      {...rest}
     >
       {/* 输入连接点 */}
       <Handle
         type="target"
         position={Position.Left}
         className="w-3 h-3 bg-gray-800"
-        isConnectable={true}
       />
 
       {/* 节点工具栏 */}
@@ -91,7 +88,6 @@ export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
         type="source"
         position={Position.Right}
         className="w-3 h-3 bg-gray-800"
-        isConnectable={true}
       />
     </div>
   );

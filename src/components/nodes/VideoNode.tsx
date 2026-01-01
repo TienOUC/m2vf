@@ -56,7 +56,6 @@ function VideoNode({ data, id, selected, ...rest }: NodeProps) {
       title="视频"
       nodeType="video"
       onReplace={handleButtonClick}
-      {...rest}
     >
       <NodeResizeControl style={controlStyle} minWidth={100} minHeight={50}>
         <ResizeIcon className="absolute right-1 bottom-1" />

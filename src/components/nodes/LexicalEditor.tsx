@@ -17,6 +17,8 @@ import {
   $setSelection,
   $createRangeSelection,
   $isRangeSelection,
+  $isTextNode,
+  $isElementNode,
   LexicalEditor
 } from 'lexical';
 import { $createHeadingNode, HeadingNode } from '@lexical/rich-text';
@@ -89,28 +91,34 @@ function InitialContentPlugin({ initialContent }: { initialContent: string }) {
 // 光标定位到文本末尾的插件
 function MoveCursorToEndPlugin({ initialContent }: { initialContent: string }) {
   const [editor] = useLexicalComposerContext();
+  const hasMovedCursor = useRef(false);
 
   useEffect(() => {
-    // 只有在有初始内容时才将光标移动到末尾
-    if (initialContent) {
+    // 只有在有初始内容且尚未移动过光标时才将光标移动到末尾
+    if (initialContent && !hasMovedCursor.current) {
       editor.update(() => {
         const root = $getRoot();
         const lastNode = root.getLastDescendant();
         if (lastNode) {
-          const rangeSelection = $createRangeSelection();
-          rangeSelection.anchor.set(
-            lastNode.getKey(),
-            lastNode.getTextContentSize(),
-            'text'
-          );
-          rangeSelection.focus.set(
-            lastNode.getKey(),
-            lastNode.getTextContentSize(),
-            'text'
-          );
-          $setSelection(rangeSelection);
+          if ($isTextNode(lastNode)) {
+            const rangeSelection = $createRangeSelection();
+            rangeSelection.anchor.set(
+              lastNode.getKey(),
+              lastNode.getTextContentSize(),
+              'text'
+            );
+            rangeSelection.focus.set(
+              lastNode.getKey(),
+              lastNode.getTextContentSize(),
+              'text'
+            );
+            $setSelection(rangeSelection);
+          } else if ($isElementNode(lastNode)) {
+            lastNode.selectEnd();
+          }
         }
       });
+      hasMovedCursor.current = true;
     }
   }, [editor, initialContent]);
 

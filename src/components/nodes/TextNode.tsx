@@ -35,7 +35,7 @@ export interface TextNodeData {
   isEditing?: boolean;
 }
 
-function TextNode({ data, id, selected, ...rest }: NodeProps) {
+function TextNode({ data, id, selected }: NodeProps) {
   const nodeData = data as TextNodeData;
   const [content, setContent] = useState(nodeData?.content || '');
   const [editorStateJson, setEditorStateJson] = useState(nodeData?.editorStateJson);
@@ -71,7 +71,9 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
   const isDarkBg = isNotWhiteColor(nodeData?.backgroundColor || 'white');
 
   // 获取字体类名
-  const fontClass = getFontClass(nodeData?.fontType);
+  // 始终使用基础样式作为容器样式，具体的标题样式由 Lexical 内部节点决定
+  // 这样可以避免容器的样式（如 text-2xl）强制覆盖内部的所有文本节点
+  const fontClass = getFontClass('p');
 
   // 双击处理函数，进入编辑模式
   const handleDoubleClick = () => {
@@ -95,24 +97,33 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
     isEditing && setIsEditing(false);
   });
 
-  // 字体类型切换处理函数
-  const handleFontTypeChange = useCallback(
-    (fontType: 'h1' | 'h2' | 'h3' | 'p') => {
-      if (nodeData?.onFontTypeChange) {
-        nodeData.onFontTypeChange(id, fontType);
-      }
-    },
-    [id, nodeData?.onFontTypeChange]
-  );
-
   // 使用新的 useTextFormatting hook
   const {
     handleBoldToggle,
     handleItalicToggle,
     handleBulletListToggle,
     handleNumberedListToggle,
-    handleHorizontalRuleInsert
+    handleHorizontalRuleInsert,
+    handleFontTypeChange: handleEditorFontTypeChange
   } = useTextFormatting({ lexicalEditorRef });
+
+  // 字体类型切换处理函数
+  const handleFontTypeChange = useCallback(
+    (fontType: 'h1' | 'h2' | 'h3' | 'p') => {
+      // 优先更新编辑器内容
+      handleEditorFontTypeChange(fontType);
+
+      // 不再更新节点数据的 fontType，避免导致整个容器样式改变
+      // 如果需要保持兼容性，可以在这里做特殊处理，但目前为了支持富文本混排，
+      // 应该由编辑器内部状态控制样式
+      /*
+      if (nodeData?.onFontTypeChange) {
+        nodeData.onFontTypeChange(id, fontType);
+      }
+      */
+    },
+    [handleEditorFontTypeChange]
+  );
 
   return (
     <NodeBase
@@ -122,7 +133,7 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
       selected={selected}
       nodeType="text"
       onBackgroundColorChange={nodeData?.onBackgroundColorChange}
-      onFontTypeChange={nodeData?.onFontTypeChange}
+      onFontTypeChange={(_, fontType) => handleFontTypeChange(fontType)}
       backgroundColor={nodeData?.backgroundColor}
       fontType={nodeData?.fontType}
       // 传递文本格式化功能
@@ -131,7 +142,6 @@ function TextNode({ data, id, selected, ...rest }: NodeProps) {
       onBulletListToggle={handleBulletListToggle}
       onNumberedListToggle={handleNumberedListToggle}
       onHorizontalRuleInsert={handleHorizontalRuleInsert}
-      {...rest}
     >
       <NodeResizeControl style={controlStyle} minWidth={100} minHeight={50}>
         <ResizeIcon className="absolute right-1 bottom-1" />

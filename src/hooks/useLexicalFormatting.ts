@@ -28,55 +28,53 @@ export const useLexicalFormatting = ({
 
   useEffect(() => {
     // 注册字体类型切换功能
-    if (onFontTypeChange) {
-      const handleFontTypeChange = (fontType: 'h1' | 'h2' | 'h3' | 'p') => {
-        editor.update(() => {
-          const selection = $getSelection();
+    const handleFontTypeChange = (fontType: 'h1' | 'h2' | 'h3' | 'p') => {
+      editor.update(() => {
+        const selection = $getSelection();
 
-          if ($isRangeSelection(selection)) {
-            // 如果有选中文本，只对选中的块应用字体类型
-            $setBlocksType(selection, () => {
-              switch (fontType) {
-                case 'h1':
-                  return $createHeadingNode('h1');
-                case 'h2':
-                  return $createHeadingNode('h2');
-                case 'h3':
-                  return $createHeadingNode('h3');
-                case 'p':
-                default:
-                  return $createParagraphNode();
-              }
-            });
-          } else {
-            // 如果没有选中文本，改变整个段落的类型
-            const root = $getRoot();
-            const firstChild = root.getFirstChild();
-            if (firstChild) {
-              if (fontType === 'p') {
-                const newPara = $createParagraphNode();
-                firstChild.replace(newPara);
-              } else {
-                const newHeading = $createHeadingNode(fontType);
-                firstChild.replace(newHeading);
-              }
-            } else {
-              // 如果没有内容，创建一个相应类型的节点
-              let node;
-              if (fontType === 'p') {
-                node = $createParagraphNode();
-              } else {
-                node = $createHeadingNode(fontType);
-              }
-              root.append(node);
+        if ($isRangeSelection(selection)) {
+          // 如果有选中文本，只对选中的块应用字体类型
+          $setBlocksType(selection, () => {
+            switch (fontType) {
+              case 'h1':
+                return $createHeadingNode('h1');
+              case 'h2':
+                return $createHeadingNode('h2');
+              case 'h3':
+                return $createHeadingNode('h3');
+              case 'p':
+              default:
+                return $createParagraphNode();
             }
+          });
+        } else {
+          // 如果没有选中文本，改变整个段落的类型
+          const root = $getRoot();
+          const firstChild = root.getFirstChild();
+          if (firstChild) {
+            if (fontType === 'p') {
+              const newPara = $createParagraphNode();
+              firstChild.replace(newPara);
+            } else {
+              const newHeading = $createHeadingNode(fontType);
+              firstChild.replace(newHeading);
+            }
+          } else {
+            // 如果没有内容，创建一个相应类型的节点
+            let node;
+            if (fontType === 'p') {
+              node = $createParagraphNode();
+            } else {
+              node = $createHeadingNode(fontType);
+            }
+            root.append(node);
           }
-        });
-      };
+        }
+      });
+    };
 
-      // 将函数暴露给父组件
-      (editor as any)._fontTypeChangeHandler = handleFontTypeChange;
-    }
+    // 将函数暴露给父组件
+    (editor as any)._fontTypeChangeHandler = handleFontTypeChange;
 
     // 处理加粗功能
     if (onBoldToggle) {
