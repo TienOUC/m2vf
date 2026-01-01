@@ -41,6 +41,7 @@ function TextNode({ data, id, selected }: NodeProps) {
   const [content, setContent] = useState(nodeData?.content || '');
   const [editorStateJson, setEditorStateJson] = useState(nodeData?.editorStateJson);
   const [isEditing, setIsEditing] = useState(nodeData?.isEditing || false);
+  const [currentFontType, setCurrentFontType] = useState<'h1' | 'h2' | 'h3' | 'p'>(nodeData?.fontType || 'p');
 
   // 使用新的 useLexicalEditor hook
   const { lexicalEditorRef, handleEditorChange, handleEditorInit } = useLexicalEditor({
@@ -57,6 +58,9 @@ function TextNode({ data, id, selected }: NodeProps) {
       if (nodeData?.onRichContentChange) {
         nodeData.onRichContentChange(html);
       }
+    },
+    onCurrentFontTypeChange: (ft) => {
+      setCurrentFontType(ft);
     }
   });
 
@@ -127,26 +131,27 @@ function TextNode({ data, id, selected }: NodeProps) {
         nodeData.onFontTypeChange(id, fontType);
       }
       */
+      setCurrentFontType(fontType);
     },
     [handleEditorFontTypeChange]
   );
 
   return (
-    <NodeBase
-      ref={nodeRef}
-      data={{ ...data, isEditing }}
-      id={id}
-      selected={selected}
-      nodeType="text"
-      onBackgroundColorChange={nodeData?.onBackgroundColorChange}
-      onFontTypeChange={(_, fontType) => handleFontTypeChange(fontType)}
-      backgroundColor={nodeData?.backgroundColor}
-      fontType={nodeData?.fontType}
-      // 传递文本格式化功能
-      onBoldToggle={handleBoldToggle}
-      onItalicToggle={handleItalicToggle}
-      onBulletListToggle={handleBulletListToggle}
-      onNumberedListToggle={handleNumberedListToggle}
+      <NodeBase
+        ref={nodeRef}
+        data={{ ...data, isEditing }}
+        id={id}
+        selected={selected}
+        nodeType="text"
+        onBackgroundColorChange={nodeData?.onBackgroundColorChange}
+        onFontTypeChange={(_, fontType) => handleFontTypeChange(fontType)}
+        backgroundColor={nodeData?.backgroundColor}
+        fontType={currentFontType}
+        // 传递文本格式化功能
+        onBoldToggle={handleBoldToggle}
+        onItalicToggle={handleItalicToggle}
+        onBulletListToggle={handleBulletListToggle}
+        onNumberedListToggle={handleNumberedListToggle}
       onHorizontalRuleInsert={handleHorizontalRuleInsert}
     >
       <NodeResizeControl style={controlStyle} minWidth={100} minHeight={50}>
