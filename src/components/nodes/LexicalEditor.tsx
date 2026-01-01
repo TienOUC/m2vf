@@ -20,6 +20,8 @@ import {
   LexicalEditor
 } from 'lexical';
 import { $createHeadingNode, HeadingNode } from '@lexical/rich-text';
+import { ListNode, ListItemNode } from '@lexical/list';
+import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { $setBlocksType } from '@lexical/selection';
 import { useLexicalFormatting } from '@/hooks/useLexicalFormatting';
 
@@ -183,7 +185,7 @@ export function M2VFlowLexicalEditor({
 }) {
   const initialConfig = {
     ...defaultEditorConfig,
-    nodes: [HeadingNode],
+    nodes: [HeadingNode, ListNode, ListItemNode],
     editable: !readOnly,
     editorState: initialEditorState
   };
@@ -212,6 +214,7 @@ export function M2VFlowLexicalEditor({
         {!initialEditorState && <InitialContentPlugin initialContent={initialContent} />}
         {!readOnly && <MoveCursorToEndPlugin initialContent={initialContent} />}
         <EditorInitPlugin onInit={onInit} />
+        <ListPlugin />
         <LexicalFormattingPlugin
           onBoldToggle={onBoldToggle}
           onItalicToggle={onItalicToggle}

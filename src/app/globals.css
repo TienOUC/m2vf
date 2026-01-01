@@ -234,3 +234,38 @@ body {
     text-wrap: balance;
   }
 }
+
+/* Lexical Editor Styles */
+.editor-heading-h1 { font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem; line-height: 1.2; }
+.editor-heading-h2 { font-size: 1.25rem; font-weight: bold; margin-bottom: 0.5rem; line-height: 1.25; }
+.editor-heading-h3 { font-size: 1.125rem; font-weight: bold; margin-bottom: 0.5rem; line-height: 1.3; }
+
+.editor-paragraph { margin-bottom: 0.5rem; }
+
+.editor-list-ol-1 { list-style-type: decimal; }
+.editor-list-ol-2 { list-style-type: lower-alpha; }
+.editor-list-ol-3 { list-style-type: lower-roman; }
+.editor-list-ol-4 { list-style-type: upper-alpha; }
+.editor-list-ol-5 { list-style-type: upper-roman; }
+
+.editor-list-ul-1 { list-style-type: disc; }
+.editor-list-ul-2 { list-style-type: circle; }
+.editor-list-ul-3 { list-style-type: square; }
+.editor-list-ul-4 { list-style-type: disc; }
+.editor-list-ul-5 { list-style-type: circle; }
+
+.editor-listitem {
+  margin-left: 1.5rem;
+}
+
+.editor-text-bold { font-weight: bold; }
+.editor-text-italic { font-style: italic; }
+.editor-text-underline { text-decoration: underline; }
+.editor-text-strikethrough { text-decoration: line-through; }
+.editor-text-underlineStrikethrough { text-decoration: underline line-through; }
+.editor-text-code {
+  background-color: rgb(240, 242, 245);
+  padding: 1px 0.25rem;
+  font-family: Menlo, Consolas, Monaco, monospace;
+  font-size: 94%;
+}
