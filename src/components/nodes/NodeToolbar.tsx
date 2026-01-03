@@ -1,5 +1,5 @@
 import { NodeToolbar as ReactFlowNodeToolbar, Position } from '@xyflow/react';
-import { SwapHoriz, Close, TextFields, Image as ImageIcon, VideoFile, Audiotrack, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, HorizontalRule } from '@mui/icons-material';
+import { SwapHoriz, Close, TextFields, Image as ImageIcon, VideoFile, Audiotrack, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, HorizontalRule, Fullscreen } from '@mui/icons-material';
 import { Tooltip, Popover } from '@mui/material';
 import { memo, useState, useRef, useEffect } from 'react';
 import { useClickOutside } from '@/hooks';
@@ -24,6 +24,7 @@ export interface NodeToolbarProps {
   onBulletListToggle?: (nodeId: string) => void;
   onNumberedListToggle?: (nodeId: string) => void;
   onHorizontalRuleInsert?: (nodeId: string) => void;
+  onToggleFullscreen?: (nodeId: string) => void;
 }
 
 const NodeToolbar = ({ 
@@ -38,6 +39,7 @@ const NodeToolbar = ({
   onBulletListToggle,
   onNumberedListToggle,
   onHorizontalRuleInsert,
+  onToggleFullscreen,
   backgroundColor,
   selected = false, 
   type = 'text',
@@ -96,6 +98,10 @@ const NodeToolbar = ({
 
   const handleHorizontalRuleInsert = () => {
     onHorizontalRuleInsert && onHorizontalRuleInsert(nodeId);
+  };
+  
+  const handleToggleFullscreen = () => {
+    onToggleFullscreen && onToggleFullscreen(nodeId);
   };
 
   const [copySuccess, setCopySuccess] = useState(false);
@@ -370,6 +376,19 @@ const NodeToolbar = ({
           </Tooltip>
           <div className="w-px h-6 bg-gray-200 mx-1" />
         </>
+      )}
+      
+      {/* 全屏按钮 - 仅对文本节点显示 */}
+      {type === 'text' && (
+        <Tooltip title="全屏" placement="top">
+          <button
+            onClick={handleToggleFullscreen}
+            className="w-8 h-8 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+            aria-label="全屏"
+          >
+            <Fullscreen fontSize="small" />
+          </button>
+        </Tooltip>
       )}
       
       {/* 复制文本内容按钮 - 仅对文本节点显示 */}

@@ -10,6 +10,7 @@ import { M2VFlowLexicalEditor } from './LexicalEditor';
 import { useClickOutside } from '@/hooks';
 import { useTextFormatting } from '@/hooks/useTextFormatting';
 import { useLexicalEditor } from '@/hooks/useLexicalEditor';
+import FullscreenDialog from './FullscreenDialog';
 
 
 
@@ -93,6 +94,19 @@ function TextNode({ data, id, selected }: NodeProps) {
 
   // 点击外部区域失焦处理函数
   const nodeRef = useRef<HTMLDivElement>(null);
+  const editorContainerRef = useRef<HTMLDivElement>(null);
+  // 使用Dialog形式的全屏，不再使用浏览器级别的全屏API
+  const [isFullscreenDialogOpen, setIsFullscreenDialogOpen] = useState(false);
+  
+  // 切换全屏Dialog显示状态
+  const toggleFullscreenDialog = useCallback(() => {
+    setIsFullscreenDialogOpen(prev => !prev);
+  }, []);
+  
+  // 关闭全屏Dialog
+  const closeFullscreenDialog = useCallback(() => {
+    setIsFullscreenDialogOpen(false);
+  }, []);
 
   useClickOutside([nodeRef], (event) => {
     // 如果点击的是工具栏或颜色选择器（它们可能渲染在 Portal 中），不退出编辑模式
@@ -145,79 +159,114 @@ function TextNode({ data, id, selected }: NodeProps) {
   );
 
   return (
+      <>
       <NodeBase
         ref={nodeRef}
         data={{ ...data, isEditing }}
         id={id}
-        selected={selected}
+        // 当全屏Dialog打开时，不显示原始节点的工具栏
+        selected={selected && !isFullscreenDialogOpen}
         nodeType="text"
         onBackgroundColorChange={nodeData?.onBackgroundColorChange}
         onFontTypeChange={(_, fontType) => handleFontTypeChange(fontType)}
         backgroundColor={nodeData?.backgroundColor}
         fontType={currentFontType}
+        onToggleFullscreen={toggleFullscreenDialog}
         // 传递文本格式化功能
         onBoldToggle={handleBoldToggle}
         onItalicToggle={handleItalicToggle}
         onBulletListToggle={handleBulletListToggle}
         onNumberedListToggle={handleNumberedListToggle}
-      onHorizontalRuleInsert={handleHorizontalRuleInsert}
-    >
-      <NodeResizeControl className="group" style={controlStyle} minWidth={100} minHeight={50}>
-        <ResizeIcon className="absolute right-1 bottom-1" />
-      </NodeResizeControl>
-      <div
-        className={`absolute inset-0 ${isEditing ? 'nodrag' : ''}`}
-        onDoubleClick={handleDoubleClick}
-        onWheel={(e) => {
-          if (isEditing) {
-            e.stopPropagation();
-            e.preventDefault();
-          }
-        }}
-        onWheelCapture={(e) => {
-          if (isEditing) {
-            e.stopPropagation();
-            e.preventDefault();
-          }
-        }}
-        style={{ cursor: isEditing ? 'default' : 'grab' }}
+        onHorizontalRuleInsert={handleHorizontalRuleInsert}
       >
-        {isEditing ? (
+        <NodeResizeControl className="group" style={controlStyle} minWidth={100} minHeight={50}>
+          <ResizeIcon className="absolute right-1 bottom-1" />
+        </NodeResizeControl>
+        <div
+          ref={editorContainerRef}
+          className={`absolute inset-0 ${isEditing ? 'nodrag' : ''}`}
+          onDoubleClick={handleDoubleClick}
+          onWheel={(e) => {
+            if (isEditing) {
+              e.stopPropagation();
+              e.preventDefault();
+            }
+          }}
+          onWheelCapture={(e) => {
+            if (isEditing) {
+              e.stopPropagation();
+              e.preventDefault();
+            }
+          }}
+          style={{ cursor: isEditing ? 'default' : 'grab' }}
+        >
+          {isEditing ? (
+            <M2VFlowLexicalEditor
+              key={`editor-${id}`}
+              initialContent={content}
+              initialEditorState={editorStateJson}
+              onChange={handleEditorChange}
+              onInit={handleEditorInit}
+              backgroundColor={nodeData?.backgroundColor || 'white'}
+              fontColor={isDarkBg ? 'white' : 'gray-700'}
+              className={`w-full h-full ${fontClass}`}
+            />
+          ) : (
+            <div className="w-full h-full relative">
+              {/* 使用只读模式的编辑器来展示内容，保留所有样式 */}
+              <M2VFlowLexicalEditor
+                key={`readonly-editor-${id}`}
+                initialContent={content}
+                initialEditorState={editorStateJson}
+                backgroundColor={nodeData?.backgroundColor || 'white'}
+                fontColor={isDarkBg ? 'white' : 'gray-700'}
+                className={`w-full h-full ${fontClass}`}
+                readOnly={true}
+              />
+              {/* 如果没有内容，显示占位符 */}
+              {!content && (
+                <div
+                  className={`absolute inset-0 p-2 text-${isDarkBg ? 'white' : 'gray-500'} pointer-events-none`}
+                  style={{ fontSize: 'var(--font-size-xs)' }}
+                >
+                  双击输入文本
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </NodeBase>
+      
+      {/* 全屏Dialog组件 */}
+      <FullscreenDialog
+        isOpen={isFullscreenDialogOpen}
+        onClose={closeFullscreenDialog}
+        backgroundColor={nodeData?.backgroundColor || 'white'}
+        fontType={currentFontType}
+        onFontTypeChange={handleFontTypeChange}
+        onBoldToggle={handleBoldToggle}
+        onItalicToggle={handleItalicToggle}
+        onBulletListToggle={handleBulletListToggle}
+        onNumberedListToggle={handleNumberedListToggle}
+        onHorizontalRuleInsert={handleHorizontalRuleInsert}
+        getContent={() => getContent?.(id) || content}
+        getRichContent={() => nodeData?.getRichContent?.(id)}
+      >
+        {/* 在全屏Dialog中渲染编辑器，强制进入编辑模式 */}
+        <div className="p-6 min-h-[400px]">
           <M2VFlowLexicalEditor
-            key={`editor-${id}`}
+            key={`fullscreen-editor-${id}`}
             initialContent={content}
             initialEditorState={editorStateJson}
             onChange={handleEditorChange}
             onInit={handleEditorInit}
             backgroundColor={nodeData?.backgroundColor || 'white'}
             fontColor={isDarkBg ? 'white' : 'gray-700'}
-            className={`w-full h-full ${fontClass}`}
+            className={`w-full min-h-[400px] ${fontClass}`}
           />
-        ) : (
-          <div className="w-full h-full relative">
-            {/* 使用只读模式的编辑器来展示内容，保留所有样式 */}
-            <M2VFlowLexicalEditor
-              key={`readonly-editor-${id}`}
-              initialContent={content}
-              initialEditorState={editorStateJson}
-              backgroundColor={nodeData?.backgroundColor || 'white'}
-              fontColor={isDarkBg ? 'white' : 'gray-700'}
-              className={`w-full h-full ${fontClass}`}
-              readOnly={true}
-            />
-            {/* 如果没有内容，显示占位符 */}
-            {!content && (
-              <div
-                className={`absolute inset-0 p-2 text-${isDarkBg ? 'white' : 'gray-500'} pointer-events-none`}
-                style={{ fontSize: 'var(--font-size-xs)' }}
-              >
-                双击输入文本
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </NodeBase>
+        </div>
+      </FullscreenDialog>
+    </>
   );
 }
 

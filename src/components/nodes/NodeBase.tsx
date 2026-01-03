@@ -21,6 +21,7 @@ export interface BaseNodeProps extends Pick<NodeProps, 'id' | 'data' | 'selected
   onNumberedListToggle?: (nodeId: string) => void;
   onHorizontalRuleInsert?: (nodeId: string) => void;
   getRichContent?: (nodeId: string) => string;
+  onToggleFullscreen?: (nodeId: string) => void;
 }
 
 export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
@@ -39,7 +40,8 @@ export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
   onHorizontalRuleInsert,
   backgroundColor,
   fontType,
-  getRichContent
+  getRichContent,
+  onToggleFullscreen
 }, ref) => {
   const nodeData = data as NodeData;
 
@@ -79,6 +81,7 @@ export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
         fontType={fontType}
         getContent={nodeData?.getContent}
         getRichContent={getRichContent}
+        onToggleFullscreen={onToggleFullscreen}
       />
 
       {/* 节点内容 */}

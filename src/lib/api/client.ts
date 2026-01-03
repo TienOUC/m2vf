@@ -14,7 +14,7 @@ export const apiRequest = async (
   options: ApiRequestOptions = {}
 ): Promise<Response> => {
   // 获取存储的 access_token
-  let accessToken = getAccessToken();
+  const accessToken = getAccessToken();
 
   // 设置默认请求头
   const headers: Record<string, string> = {
