@@ -262,7 +262,7 @@ function TextNode({ data, id, selected }: NodeProps) {
         onNumberedListToggle={handleNumberedListToggle}
         onHorizontalRuleInsert={handleHorizontalRuleInsert}
         getContent={() => nodeData?.getContent?.(id) || content}
-        getRichContent={() => nodeData?.getRichContent?.(id)}
+        getRichContent={() => nodeData?.getRichContent?.(id) ?? ''}
       >
         {/* 在全屏Dialog中渲染编辑器，强制进入编辑模式 */}
         <div className="p-6 min-h-[400px]">

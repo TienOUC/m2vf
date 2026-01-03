@@ -1,5 +1,5 @@
 import { NodeToolbar as ReactFlowNodeToolbar, Position } from '@xyflow/react';
-import { SwapHoriz, Close, TextFields, Image as ImageIcon, VideoFile, Audiotrack, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, HorizontalRule, Fullscreen } from '@mui/icons-material';
+import { SwapHoriz, TextFields, Image as ImageIcon, VideoFile, Audiotrack, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, HorizontalRule, Fullscreen, DeleteOutline } from '@mui/icons-material';
 import { Tooltip, Popover } from '@mui/material';
 import { memo, useState, useRef, useEffect } from 'react';
 import { useClickOutside } from '@/hooks';
@@ -200,7 +200,7 @@ const NodeToolbar = ({
           className="w-8 h-8 p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
           aria-label="删除节点"
         >
-          <Close fontSize="small" />
+          <DeleteOutline fontSize="small" />
         </button>
       </Tooltip>
       
