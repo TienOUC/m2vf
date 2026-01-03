@@ -46,6 +46,8 @@ const FullscreenDialog = ({
     if (typeof document === 'undefined') return null;
     return document.querySelector('main') as HTMLElement | null;
   }, []);
+  
+  const tooltipPopperProps = { slotProps: { popper: { sx: { zIndex: 10001 } } } };
 
   const computeSize = () => {
     const vw = window.innerWidth;
@@ -92,13 +94,15 @@ const FullscreenDialog = ({
           height: `${size.height}px`,
           maxWidth: '100vw',
           maxHeight: '100vh',
-          transition: 'width 200ms ease, height 200ms ease'
+          transition: 'width 200ms ease, height 200ms ease',
+          ['--text-node-font-size' as any]: 'var(--font-size-sm)',
+          ['--text-node-placeholder-size' as any]: 'var(--font-size-sm)'
         }}
       >
         {/* 工具栏区域 */}
         <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200 p-2 flex items-center gap-1">
           {/* 标题设置 */}
-          <Tooltip title="H1标题" placement="top">
+          <Tooltip {...tooltipPopperProps} title="H1标题" placement="top">
             <button
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => onFontTypeChange?.('h1')}
@@ -109,7 +113,7 @@ const FullscreenDialog = ({
             </button>
           </Tooltip>
           
-          <Tooltip title="H2标题" placement="top">
+          <Tooltip {...tooltipPopperProps} title="H2标题" placement="top">
             <button
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => onFontTypeChange?.('h2')}
@@ -120,7 +124,7 @@ const FullscreenDialog = ({
             </button>
           </Tooltip>
           
-          <Tooltip title="H3标题" placement="top">
+          <Tooltip {...tooltipPopperProps} title="H3标题" placement="top">
             <button
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => onFontTypeChange?.('h3')}
@@ -131,7 +135,7 @@ const FullscreenDialog = ({
             </button>
           </Tooltip>
           
-          <Tooltip title="正文" placement="top">
+          <Tooltip {...tooltipPopperProps} title="正文" placement="top">
             <button
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => onFontTypeChange?.('p')}
@@ -145,7 +149,7 @@ const FullscreenDialog = ({
           <div className="w-px h-6 bg-gray-200 mx-1" />
           
           {/* 文本格式化按钮 */}
-          <Tooltip title="加粗" placement="top">
+          <Tooltip {...tooltipPopperProps} title="加粗" placement="top">
             <button
               onMouseDown={(e) => e.preventDefault()}
               onClick={onBoldToggle}
@@ -156,7 +160,7 @@ const FullscreenDialog = ({
             </button>
           </Tooltip>
           
-          <Tooltip title="斜体" placement="top">
+          <Tooltip {...tooltipPopperProps} title="斜体" placement="top">
             <button
               onMouseDown={(e) => e.preventDefault()}
               onClick={onItalicToggle}
@@ -167,7 +171,7 @@ const FullscreenDialog = ({
             </button>
           </Tooltip>
           
-          <Tooltip title="无序列表" placement="top">
+          <Tooltip {...tooltipPopperProps} title="无序列表" placement="top">
             <button
               onMouseDown={(e) => e.preventDefault()}
               onClick={onBulletListToggle}
@@ -178,7 +182,7 @@ const FullscreenDialog = ({
             </button>
           </Tooltip>
           
-          <Tooltip title="有序列表" placement="top">
+          <Tooltip {...tooltipPopperProps} title="有序列表" placement="top">
             <button
               onMouseDown={(e) => e.preventDefault()}
               onClick={onNumberedListToggle}
@@ -189,7 +193,7 @@ const FullscreenDialog = ({
             </button>
           </Tooltip>
           
-          <Tooltip title="分割线" placement="top">
+          <Tooltip {...tooltipPopperProps} title="分割线" placement="top">
             <button
               onMouseDown={(e) => e.preventDefault()}
               onClick={onHorizontalRuleInsert}
@@ -203,7 +207,7 @@ const FullscreenDialog = ({
           <div className="w-px h-6 bg-gray-200 mx-1" />
           
           {/* 复制文本内容按钮 */}
-          <Tooltip title="复制全文" placement="top">
+          <Tooltip {...tooltipPopperProps} title="复制全文" placement="top">
             <button
               onClick={async () => {
                 if (getContent) {
@@ -226,7 +230,7 @@ const FullscreenDialog = ({
           
           {/* 退出全屏按钮 */}
           <div className="ml-auto" />
-          <Tooltip title="退出全屏" placement="top">
+          <Tooltip {...tooltipPopperProps} title="退出全屏" placement="top">
             <button
               onClick={onClose}
               className="w-8 h-8 p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"

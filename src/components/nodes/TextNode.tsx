@@ -261,7 +261,7 @@ function TextNode({ data, id, selected }: NodeProps) {
         onBulletListToggle={handleBulletListToggle}
         onNumberedListToggle={handleNumberedListToggle}
         onHorizontalRuleInsert={handleHorizontalRuleInsert}
-        getContent={() => getContent?.(id) || content}
+        getContent={() => nodeData?.getContent?.(id) || content}
         getRichContent={() => nodeData?.getRichContent?.(id)}
       >
         {/* 在全屏Dialog中渲染编辑器，强制进入编辑模式 */}
