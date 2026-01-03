@@ -57,7 +57,7 @@ function ImageNode({ data, id, selected, ...rest }: NodeProps) {
       onReplace={handleButtonClick}
     >
       <NodeResizeControl className="group" style={controlStyle} minWidth={100} minHeight={50}>
-        <ResizeIcon className="absolute right-1 bottom-1" />
+        <ResizeIcon className="absolute right-0 bottom-0" />
       </NodeResizeControl>
       <div className="absolute inset-0 p-2">
         {imageUrl ? (
