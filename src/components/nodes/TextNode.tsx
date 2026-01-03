@@ -107,6 +107,16 @@ function TextNode({ data, id, selected }: NodeProps) {
   const closeFullscreenDialog = useCallback(() => {
     setIsFullscreenDialogOpen(false);
   }, []);
+  
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreenDialogOpen) {
+        closeFullscreenDialog();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isFullscreenDialogOpen, closeFullscreenDialog]);
 
   useClickOutside([nodeRef], (event) => {
     // 如果点击的是工具栏或颜色选择器（它们可能渲染在 Portal 中），不退出编辑模式
@@ -179,9 +189,11 @@ function TextNode({ data, id, selected }: NodeProps) {
         onNumberedListToggle={handleNumberedListToggle}
         onHorizontalRuleInsert={handleHorizontalRuleInsert}
       >
-        <NodeResizeControl className="group" style={controlStyle} minWidth={100} minHeight={50}>
-          <ResizeIcon className="absolute right-1 bottom-1" />
-        </NodeResizeControl>
+        {!isFullscreenDialogOpen && (
+          <NodeResizeControl className="group" style={controlStyle} minWidth={100} minHeight={50}>
+            <ResizeIcon className="absolute right-1 bottom-1" />
+          </NodeResizeControl>
+        )}
         <div
           ref={editorContainerRef}
           className={`absolute inset-0 ${isEditing ? 'nodrag' : ''}`}

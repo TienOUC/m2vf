@@ -1,6 +1,7 @@
 'use client';
 
-import { memo, ReactNode } from 'react';
+import { memo, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Close, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, HorizontalRule, ContentCopy } from '@mui/icons-material';
 import { Tooltip } from '@mui/material';
 import { copyToClipboard, copyRichTextToClipboard } from '@/lib/utils';
@@ -36,13 +37,63 @@ const FullscreenDialog = ({
   getContent,
   getRichContent
 }: FullscreenDialogProps) => {
+  const [size, setSize] = useState<{ width: number; height: number }>({
+    width: 800,
+    height: 600
+  });
+  const roRef = useRef<ResizeObserver | null>(null);
+  const mainEl = useMemo(() => {
+    if (typeof document === 'undefined') return null;
+    return document.querySelector('main') as HTMLElement | null;
+  }, []);
+
+  const computeSize = () => {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const rect = mainEl?.getBoundingClientRect();
+    const baseW = rect?.width ?? vw;
+    const baseH = rect?.height ?? vh;
+    let targetW = Math.floor(baseW * 0.8);
+    let targetH = Math.floor(baseH * 0.8);
+    targetW = Math.max(300, Math.min(targetW, vw));
+    targetH = Math.max(300, Math.min(targetH, vh));
+    setSize({ width: targetW, height: targetH });
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    computeSize();
+
+    const onResize = () => computeSize();
+    window.addEventListener('resize', onResize);
+
+    if (mainEl) {
+      const ro = new ResizeObserver(() => computeSize());
+      ro.observe(mainEl);
+      roRef.current = ro;
+    }
+
+    return () => {
+      window.removeEventListener('resize', onResize);
+      roRef.current?.disconnect();
+      roRef.current = null;
+    };
+  }, [isOpen, mainEl]);
+
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black/50 z-60 flex items-center justify-center p-0 animate-fade-in">
+  return createPortal(
+    <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-0">
       <div 
-        className="w-[80vw] h-[80vh] max-w-[80vw] max-h-[80vh] bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col animate-scale-in z-10"
-        style={{ backgroundColor }}
+        className="bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col animate-scale-in z-10 transition-all"
+        style={{ 
+          backgroundColor,
+          width: `${size.width}px`,
+          height: `${size.height}px`,
+          maxWidth: '100vw',
+          maxHeight: '100vh',
+          transition: 'width 200ms ease, height 200ms ease'
+        }}
       >
         {/* 工具栏区域 */}
         <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200 p-2 flex items-center gap-1">
@@ -191,7 +242,8 @@ const FullscreenDialog = ({
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
