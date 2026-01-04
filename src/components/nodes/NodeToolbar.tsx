@@ -1,5 +1,5 @@
 import { NodeToolbar as ReactFlowNodeToolbar, Position } from '@xyflow/react';
-import { SwapHoriz, TextFields, Image as ImageIcon, VideoFile, Audiotrack, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, HorizontalRule, Fullscreen, DeleteOutline } from '@mui/icons-material';
+import { SwapHoriz, TextFields, Image as ImageIcon, VideoFile, Audiotrack, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, HorizontalRule, Fullscreen, DeleteOutline, Crop, Brush, GradientOutlined, PhotoSizeSelectLarge, Download } from '@mui/icons-material';
 import { Tooltip, Popover } from '@mui/material';
 import { memo, useState, useRef, useEffect } from 'react';
 import { useClickOutside } from '@/hooks';
@@ -242,6 +242,67 @@ const NodeToolbar = ({
             {type === 'image' ? <ImageIcon fontSize="small" /> : type === 'video' ? <VideoFile fontSize="small" /> : <Audiotrack fontSize="small" />}
           </button>
         </Tooltip>
+      )}
+      
+      {/* 图片编辑器工具按钮：剪裁、擦除、抠图、扩图、下载、全屏查看 */}
+      {type === 'image' && (
+        <>
+          <div className="w-px h-6 bg-gray-200 mx-1" />
+          
+          <Tooltip title="剪裁" placement="top">
+            <button
+              className="w-8 h-8 p-1 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors"
+              aria-label="剪裁"
+            >
+              <Crop fontSize="small" />
+            </button>
+          </Tooltip>
+          
+          <Tooltip title="擦除" placement="top">
+            <button
+              className="w-8 h-8 p-1 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded-md transition-colors"
+              aria-label="擦除"
+            >
+              <Brush fontSize="small" />
+            </button>
+          </Tooltip>
+          
+          <Tooltip title="抠图" placement="top">
+            <button
+              className="w-8 h-8 p-1 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-colors"
+              aria-label="抠图"
+            >
+              <GradientOutlined fontSize="small" />
+            </button>
+          </Tooltip>
+          
+          <Tooltip title="扩图" placement="top">
+            <button
+              className="w-8 h-8 p-1 text-gray-500 hover:text-cyan-600 hover:bg-cyan-50 rounded-md transition-colors"
+              aria-label="扩图"
+            >
+              <PhotoSizeSelectLarge fontSize="small" />
+            </button>
+          </Tooltip>
+          
+          <Tooltip title="下载" placement="top">
+            <button
+              className="w-8 h-8 p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+              aria-label="下载"
+            >
+              <Download fontSize="small" />
+            </button>
+          </Tooltip>
+          
+          <Tooltip title="全屏查看" placement="top">
+            <button
+              className="w-8 h-8 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+              aria-label="全屏查看"
+            >
+              <Fullscreen fontSize="small" />
+            </button>
+          </Tooltip>
+        </>
       )}
       
       {/* 背景色选择按钮 - 仅对文本节点显示 */}
