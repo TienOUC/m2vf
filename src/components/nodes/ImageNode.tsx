@@ -18,7 +18,7 @@ export interface ImageNodeData {
   onReplace?: (nodeId: string) => void;
 }
 
-function ImageNode({ data, id, selected, ...rest }: NodeProps) {
+function ImageNode({ data, id, selected }: NodeProps) {
   const nodeData = data as ImageNodeData;
 
   // 使用公共 hook 处理文件上传
@@ -218,7 +218,7 @@ function ImageNode({ data, id, selected, ...rest }: NodeProps) {
     setRatioMenuOpen(false);
     
     if (ratio && cropData.imageWidth > 0 && cropData.imageHeight > 0) {
-      const { imageWidth, imageHeight, cropWidth, cropX, cropY } = cropData;
+      const { imageHeight, cropWidth, cropX, cropY } = cropData;
       const [width, height] = ratio.split(':').map(Number);
       const aspectRatio = width / height;
       
@@ -336,169 +336,172 @@ function ImageNode({ data, id, selected, ...rest }: NodeProps) {
   };
 
   return (
-    <NodeBase
-      data={data}
-      id={id}
-      selected={selected}
-      nodeType="image"
-      onReplace={handleButtonClick}
-      onEditStart={handleEditStart}
-      onCropStart={handleCropStart}
-    >
-      <NodeResizeControl className="group" style={controlStyle} minWidth={100} minHeight={50}>
-        <ResizeIcon className="absolute right-0 bottom-0" />
-      </NodeResizeControl>
-      <div className="absolute inset-0 p-2">
-        {imageUrl ? (
-          <div className="h-full w-full relative">
-            {' '}
-            {/* 添加 relative */}
-            <Image
-              src={imageUrl}
-              alt="上传的图片"
-              fill
-              className="object-contain rounded-md"
-            />
-            
-            {/* 图片编辑器 */}
-            {isEditing && (
-              <div className="absolute inset-0 z-30">
-                <CustomImageEditor
-                  imageUrl={imageUrl}
-                  onSave={handleEditSave}
-                  onCancel={handleEditCancel}
-                />
-              </div>
-            )}
-            
-            {/* 裁剪模式 */}
-            {isCropping && (
-              <>
-                {/* 遮罩层 - 覆盖整个屏幕，层级低于图片但高于其他内容 */}
-                <div className="fixed inset-0 bg-black/80 z-50"></div>
-                
-                {/* 裁剪容器 - 居中显示，层级高于遮罩层 */}
-                <div className="fixed inset-0 z-60 flex items-center justify-center">
-                  {/* 放大显示的图片容器 */}
-                  <div 
-                    className="relative"
-                  >
-                    <div
-                      className="relative w-full h-full"
-                      style={{
-                        width: cropData.imageWidth,
-                        height: cropData.imageHeight
-                      }}
-                    >
-                      {/* 图片 */}
-                      <Image
-                        src={imageUrl}
-                        alt="裁剪图片"
-                        width={cropData.imageWidth}
-                        height={cropData.imageHeight}
-                        className="object-contain"
-                      />
-                      
-                      {/* 裁剪框 */}
-                      <div
-                        className="absolute border-2 border-green-400 bg-transparent cursor-move"
-                        style={{
-                          left: cropData.cropX - cropData.imageX,
-                          top: cropData.cropY - cropData.imageY,
-                          width: cropData.cropWidth,
-                          height: cropData.cropHeight
-                        }}
-                        onMouseDown={(e) => {
-                          e.stopPropagation();
-                          handleCropMouseDown(e, 'move');
-                        }}
-                      >
-                        {/* 裁剪框调整手柄 */}
-                        {['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'].map((handle) => (
-                          <div
-                            key={handle}
-                            className="absolute w-4 h-4 bg-white border-2 border-green-400 rounded-full z-10"
-                            style={{
-                              left: handle.includes('w') ? -4 : handle.includes('e') ? `calc(100% - 4px)` : `calc(50% - 4px)`,
-                              top: handle.includes('n') ? -4 : handle.includes('s') ? `calc(100% - 4px)` : `calc(50% - 4px)`,
-                              cursor: `${handle.includes('n') || handle.includes('s') ? 'ns' : ''}${handle.includes('w') || handle.includes('e') ? 'ew' : ''}-resize`
-                            }}
-                            onMouseDown={(e) => {
-                              e.stopPropagation();
-                              handleCropMouseDown(e, handle);
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    
-                    {/* 底部功能按钮 - 图片区域内的底部 */}
-                    <div className="mt-4 flex justify-center gap-4">
-                      <button
-                        onClick={handleCropCancel}
-                        className="px-6 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
-                      >
-                        取消
-                      </button>
-                      
-                      {/* 宽高比选择按钮 */}
-                      <div className="relative">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setRatioMenuOpen(!ratioMenuOpen);
-                          }}
-                          className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-                        >
-                          {selectedRatio || '自由'} 宽高比
-                        </button>
-                        
-                        {/* 宽高比下拉菜单 */}
-                        {ratioMenuOpen && (
-                          <div className="absolute bottom-full left-0 mb-2 bg-white rounded-md shadow-lg z-70 min-w-[120px]">
-                            {ratios.map((ratio) => (
-                              <button
-                                key={ratio.value || 'free'}
-                                onClick={() => handleRatioSelect(ratio.value)}
-                                className={`w-full text-left px-4 py-2 hover:bg-gray-100 ${selectedRatio === ratio.value ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
-                              >
-                                {ratio.label}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      
-                      <button
-                        onClick={handleCropConfirm}
-                        className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
-                      >
-                        确认裁剪
-                      </button>
-                    </div>
-                  </div>
+    <>
+      <NodeBase
+        data={data}
+        id={id}
+        selected={selected && !isCropping}
+        nodeType="image"
+        onReplace={handleButtonClick}
+        onEditStart={handleEditStart}
+        onCropStart={handleCropStart}
+      >
+        <NodeResizeControl className="group" style={controlStyle} minWidth={100} minHeight={50}>
+          <ResizeIcon className="absolute right-0 bottom-0" />
+        </NodeResizeControl>
+        <div className="absolute inset-0 p-2">
+          {imageUrl ? (
+            <div className="h-full w-full relative">
+              {' '}
+              {/* 添加 relative */}
+              <Image
+                src={imageUrl}
+                alt="上传的图片"
+                fill
+                className="object-contain rounded-md"
+              />
+              
+              {/* 图片编辑器 */}
+              {isEditing && (
+                <div className="absolute inset-0 z-30">
+                  <CustomImageEditor
+                    imageUrl={imageUrl}
+                    onSave={handleEditSave}
+                    onCancel={handleEditCancel}
+                  />
                 </div>
-              </>
-            )}
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={handleButtonClick}
+              className="w-full h-full border border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center hover:border-gray-500 hover:bg-gray-50 transition-colors text-gray-500"
+            >
+              <ImageIcon className="text-3xl mb-2" />
+              <span className="text-xs">点击上传图片</span>
+            </button>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageSelect}
+            className="hidden"
+          />
+        </div>
+      </NodeBase>
+      
+      {/* 裁剪模式 - 移到NodeBase外部，确保在最顶层 */}
+      {isCropping && (
+        <>
+          {/* 遮罩层 - 覆盖整个屏幕，层级高于所有内容 */}
+          <div className="fixed inset-0 bg-black/80 z-[1000]"></div>
+          
+          {/* 裁剪容器 - 居中显示，层级高于遮罩层 */}
+          <div className="fixed inset-0 z-[1001] flex items-center justify-center">
+            {/* 放大显示的图片容器 */}
+            <div 
+              className="relative"
+            >
+              <div
+                className="relative w-full h-full"
+                style={{
+                  width: cropData.imageWidth,
+                  height: cropData.imageHeight
+                }}
+              >
+                {/* 图片 */}
+                <Image
+                  src={imageUrl}
+                  alt="裁剪图片"
+                  width={cropData.imageWidth}
+                  height={cropData.imageHeight}
+                  className="object-contain"
+                />
+                
+                {/* 裁剪框 */}
+                <div
+                  className="absolute border-2 border-green-400 bg-transparent cursor-move"
+                  style={{
+                    left: cropData.cropX - cropData.imageX,
+                    top: cropData.cropY - cropData.imageY,
+                    width: cropData.cropWidth,
+                    height: cropData.cropHeight
+                  }}
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                    handleCropMouseDown(e, 'move');
+                  }}
+                >
+                  {/* 裁剪框调整手柄 */}
+                  {['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'].map((handle) => (
+                    <div
+                      key={handle}
+                      className="absolute w-4 h-4 bg-white border-2 border-green-400 rounded-full z-10"
+                      style={{
+                        left: handle.includes('w') ? -4 : handle.includes('e') ? `calc(100% - 4px)` : `calc(50% - 4px)`,
+                        top: handle.includes('n') ? -4 : handle.includes('s') ? `calc(100% - 4px)` : `calc(50% - 4px)`,
+                        cursor: `${handle.includes('n') || handle.includes('s') ? 'ns' : ''}${handle.includes('w') || handle.includes('e') ? 'ew' : ''}-resize`
+                      }}
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        handleCropMouseDown(e, handle);
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+              
+              {/* 底部功能按钮 - 图片区域内的底部 */}
+              <div className="mt-4 flex justify-center gap-4">
+                <button
+                  onClick={handleCropCancel}
+                  className="px-6 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+                >
+                  取消
+                </button>
+                
+                {/* 宽高比选择按钮 */}
+                <div className="relative">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setRatioMenuOpen(!ratioMenuOpen);
+                    }}
+                    className="px-6 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+                  >
+                    {/* {selectedRatio || '自由'} 宽高比 */}
+                    宽高比
+                  </button>
+                  
+                  {/* 宽高比下拉菜单 */}
+                  {ratioMenuOpen && (
+                    <div className="absolute bottom-full left-0 mb-2 bg-white rounded-md shadow-lg z-[1002] min-w-[120px]">
+                      {ratios.map((ratio) => (
+                        <button
+                          key={ratio.value || 'free'}
+                          onClick={() => handleRatioSelect(ratio.value)}
+                          className={`w-full text-left px-4 py-2 hover:bg-gray-100 ${selectedRatio === ratio.value ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
+                        >
+                          {ratio.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
+                <button
+                  onClick={handleCropConfirm}
+                  className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                >
+                  确认裁剪
+                </button>
+              </div>
+            </div>
           </div>
-        ) : (
-          <button
-            onClick={handleButtonClick}
-            className="w-full h-full border border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center hover:border-gray-500 hover:bg-gray-50 transition-colors text-gray-500"
-          >
-            <ImageIcon className="text-3xl mb-2" />
-            <span className="text-xs">点击上传图片</span>
-          </button>
-        )}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleImageSelect}
-          className="hidden"
-        />
-      </div>
-    </NodeBase>
+        </>
+      )}
+    </>
   );
 }
 
