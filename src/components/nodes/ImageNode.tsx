@@ -51,7 +51,7 @@ function ImageNode({ data, id, selected }: NodeProps) {
   const [ratioMenuOpen, setRatioMenuOpen] = useState(false);
   
   const ratios = [
-    { label: '自由', value: null },
+    { label: '原图比例', value: null },
     { label: '1:1', value: '1:1' },
     { label: '4:3', value: '4:3' },
     { label: '3:4', value: '3:4' },
