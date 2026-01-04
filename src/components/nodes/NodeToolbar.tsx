@@ -1,7 +1,7 @@
 import { NodeToolbar as ReactFlowNodeToolbar, Position } from '@xyflow/react';
 import { SwapHoriz, TextFields, Image as ImageIcon, VideoFile, Audiotrack, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, HorizontalRule, Fullscreen, DeleteOutline, Crop, Brush, GradientOutlined, PhotoSizeSelectLarge, Download } from '@mui/icons-material';
-import { Tooltip, Popover } from '@mui/material';
-import { memo, useState, useRef, useEffect } from 'react';
+import { Tooltip } from '@mui/material';
+import { memo, useState, useRef } from 'react';
 import { useClickOutside } from '@/hooks';
 import { copyToClipboard, copyRichTextToClipboard } from '@/lib/utils';
 
@@ -26,7 +26,6 @@ export interface NodeToolbarProps {
   onHorizontalRuleInsert?: (nodeId: string) => void;
   onToggleFullscreen?: (nodeId: string) => void;
   onEditStart?: (nodeId: string) => void;
-  onCropStart?: (nodeId: string) => void;
 }
 
 const NodeToolbar = ({ 
@@ -43,8 +42,6 @@ const NodeToolbar = ({
   onHorizontalRuleInsert,
   onToggleFullscreen,
   onEditStart,
-  onCropStart,
-  backgroundColor,
   selected = false, 
   type = 'text',
   fontType,
@@ -248,16 +245,16 @@ const NodeToolbar = ({
         </Tooltip>
       )}
       
-      {/* 图片编辑器工具按钮：剪裁、擦除、抠图、扩图、下载、全屏查看 */}
+      {/* 图片编辑器工具按钮：裁剪、擦除、抠图、扩图、下载、全屏查看 */}
       {type === 'image' && (
         <>
           <div className="w-px h-6 bg-gray-200 mx-1" />
           
-          <Tooltip title="剪裁" placement="top">
+          <Tooltip title="裁剪" placement="top">
             <button
-              onClick={() => onCropStart && onCropStart(nodeId)}
+              onClick={() => {}}
               className="w-8 h-8 p-1 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors"
-              aria-label="剪裁"
+              aria-label="裁剪"
             >
               <Crop fontSize="small" />
             </button>

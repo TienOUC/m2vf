@@ -23,7 +23,6 @@ export interface BaseNodeProps extends Pick<NodeProps, 'id' | 'data' | 'selected
   getRichContent?: (nodeId: string) => string;
   onToggleFullscreen?: (nodeId: string) => void;
   onEditStart?: (nodeId: string) => void;
-  onCropStart?: (nodeId: string) => void;
 }
 
 export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
@@ -44,8 +43,7 @@ export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
   fontType,
   getRichContent,
   onToggleFullscreen,
-  onEditStart,
-  onCropStart
+  onEditStart
 }, ref) => {
   const nodeData = data as NodeData;
 
@@ -87,7 +85,6 @@ export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
         getRichContent={getRichContent}
         onToggleFullscreen={onToggleFullscreen}
         onEditStart={onEditStart}
-        onCropStart={onCropStart}
       />
 
       {/* 节点内容 */}
