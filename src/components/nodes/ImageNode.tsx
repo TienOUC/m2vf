@@ -336,7 +336,7 @@ function ImageNode({ data, id, selected }: NodeProps) {
   };
 
   return (
-    <>
+    <div>
       <NodeBase
         data={data}
         id={id}
@@ -352,8 +352,6 @@ function ImageNode({ data, id, selected }: NodeProps) {
         <div className="absolute inset-0 p-2">
           {imageUrl ? (
             <div className="h-full w-full relative">
-              {' '}
-              {/* 添加 relative */}
               <Image
                 src={imageUrl}
                 alt="上传的图片"
@@ -393,16 +391,14 @@ function ImageNode({ data, id, selected }: NodeProps) {
       
       {/* 裁剪模式 - 移到NodeBase外部，确保在最顶层 */}
       {isCropping && (
-        <>
-          {/* 遮罩层 - 覆盖整个屏幕，层级高于所有内容 */}
-          <div className="fixed inset-0 bg-black/80 z-[1000]"></div>
+        <div>
+          {/* 全屏遮罩层 - 覆盖整个屏幕，防止用户与页面其他元素交互 */}
+          <div className="fixed inset-0 bg-black/60 z-[1000]"></div>
           
           {/* 裁剪容器 - 居中显示，层级高于遮罩层 */}
           <div className="fixed inset-0 z-[1001] flex items-center justify-center">
             {/* 放大显示的图片容器 */}
-            <div 
-              className="relative"
-            >
+            <div className="relative">
               <div
                 className="relative w-full h-full"
                 style={{
@@ -418,6 +414,40 @@ function ImageNode({ data, id, selected }: NodeProps) {
                   height={cropData.imageHeight}
                   className="object-contain"
                 />
+                
+                {/* 裁剪区域遮罩 - 使用CSS clip-path实现只有裁剪区域可见 */}
+                <div 
+                  className="absolute inset-0 bg-black/50 pointer-events-none"
+                  style={{
+                    clipPath: `polygon(
+                      ${cropData.cropX - cropData.imageX}px ${cropData.cropY - cropData.imageY}px,
+                      ${(cropData.cropX - cropData.imageX) + cropData.cropWidth}px ${cropData.cropY - cropData.imageY}px,
+                      ${(cropData.cropX - cropData.imageX) + cropData.cropWidth}px ${(cropData.cropY - cropData.imageY) + cropData.cropHeight}px,
+                      ${cropData.cropX - cropData.imageX}px ${(cropData.cropY - cropData.imageY) + cropData.cropHeight}px,
+                      ${cropData.cropX - cropData.imageX}px ${cropData.cropY - cropData.imageY}px
+                    )`
+                  }}
+                >
+                  {/* 反转遮罩 - 使用box-shadow创建外部遮罩效果 */}
+                  <div 
+                    className="absolute inset-0"
+                    style={{
+                      boxShadow: `0 0 0 10000px rgba(0, 0, 0, 0.5)`,
+                      clipPath: `polygon(
+                        0 0,
+                        100% 0,
+                        100% 100%,
+                        0 100%,
+                        0 0,
+                        ${cropData.cropX - cropData.imageX}px ${cropData.cropY - cropData.imageY}px,
+                        ${(cropData.cropX - cropData.imageX) + cropData.cropWidth}px ${cropData.cropY - cropData.imageY}px,
+                        ${(cropData.cropX - cropData.imageX) + cropData.cropWidth}px ${(cropData.cropY - cropData.imageY) + cropData.cropHeight}px,
+                        ${cropData.cropX - cropData.imageX}px ${(cropData.cropY - cropData.imageY) + cropData.cropHeight}px,
+                        ${cropData.cropX - cropData.imageX}px ${cropData.cropY - cropData.imageY}px
+                      )`
+                    }}
+                  ></div>
+                </div>
                 
                 {/* 裁剪框 */}
                 <div
@@ -470,7 +500,6 @@ function ImageNode({ data, id, selected }: NodeProps) {
                     }}
                     className="px-6 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
                   >
-                    {/* {selectedRatio || '自由'} 宽高比 */}
                     宽高比
                   </button>
                   
@@ -499,9 +528,9 @@ function ImageNode({ data, id, selected }: NodeProps) {
               </div>
             </div>
           </div>
-        </>
+        </div>
       )}
-    </>
+    </div>
   );
 }
 
