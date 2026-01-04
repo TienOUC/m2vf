@@ -25,6 +25,8 @@ export interface NodeToolbarProps {
   onNumberedListToggle?: (nodeId: string) => void;
   onHorizontalRuleInsert?: (nodeId: string) => void;
   onToggleFullscreen?: (nodeId: string) => void;
+  onEditStart?: (nodeId: string) => void;
+  onCropStart?: (nodeId: string) => void;
 }
 
 const NodeToolbar = ({ 
@@ -40,6 +42,8 @@ const NodeToolbar = ({
   onNumberedListToggle,
   onHorizontalRuleInsert,
   onToggleFullscreen,
+  onEditStart,
+  onCropStart,
   backgroundColor,
   selected = false, 
   type = 'text',
@@ -251,6 +255,7 @@ const NodeToolbar = ({
           
           <Tooltip title="剪裁" placement="top">
             <button
+              onClick={() => onCropStart && onCropStart(nodeId)}
               className="w-8 h-8 p-1 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors"
               aria-label="剪裁"
             >
@@ -260,6 +265,7 @@ const NodeToolbar = ({
           
           <Tooltip title="擦除" placement="top">
             <button
+              onClick={() => onEditStart && onEditStart(nodeId)}
               className="w-8 h-8 p-1 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded-md transition-colors"
               aria-label="擦除"
             >
@@ -269,6 +275,7 @@ const NodeToolbar = ({
           
           <Tooltip title="抠图" placement="top">
             <button
+              onClick={() => onEditStart && onEditStart(nodeId)}
               className="w-8 h-8 p-1 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-colors"
               aria-label="抠图"
             >
@@ -278,6 +285,7 @@ const NodeToolbar = ({
           
           <Tooltip title="扩图" placement="top">
             <button
+              onClick={() => onEditStart && onEditStart(nodeId)}
               className="w-8 h-8 p-1 text-gray-500 hover:text-cyan-600 hover:bg-cyan-50 rounded-md transition-colors"
               aria-label="扩图"
             >
@@ -287,6 +295,7 @@ const NodeToolbar = ({
           
           <Tooltip title="下载" placement="top">
             <button
+              onClick={() => onEditStart && onEditStart(nodeId)}
               className="w-8 h-8 p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
               aria-label="下载"
             >
@@ -296,6 +305,7 @@ const NodeToolbar = ({
           
           <Tooltip title="全屏查看" placement="top">
             <button
+              onClick={() => onEditStart && onEditStart(nodeId)}
               className="w-8 h-8 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
               aria-label="全屏查看"
             >
