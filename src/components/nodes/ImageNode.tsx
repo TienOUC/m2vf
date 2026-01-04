@@ -93,29 +93,56 @@ function ImageNode({ data, id, selected, ...rest }: NodeProps) {
   const handleCropStart = () => {
     if (!imageUrl) return;
     
-    // 获取页面可视区域大小
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    
-    // 计算放大后图片的尺寸（占可视区域的80%）
-    const imageWidth = viewportWidth * 0.8;
-    const imageHeight = viewportHeight * 0.8;
-    
-    // 计算图片位置（居中显示）
-    const imageX = (viewportWidth - imageWidth) / 2;
-    const imageY = (viewportHeight - imageHeight) / 2;
-    
-    // 计算裁剪框初始大小（占放大后图片的80%）
-    const cropWidth = imageWidth * 0.8;
-    const cropHeight = imageHeight * 0.8;
-    
-    // 计算裁剪框初始位置（居中显示）
-    const cropX = imageX + (imageWidth - cropWidth) / 2;
-    const cropY = imageY + (imageHeight - cropHeight) / 2;
-    
     // 获取图片原始尺寸
     const img = new window.Image();
     img.onload = () => {
+      const naturalWidth = img.naturalWidth;
+      const naturalHeight = img.naturalHeight;
+      
+      // 参考文本节点全屏dialog的尺寸计算逻辑
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const mainEl = document.querySelector('main') as HTMLElement | null;
+      const rect = mainEl?.getBoundingClientRect();
+      const baseW = rect?.width ?? vw;
+      const baseH = rect?.height ?? vh;
+      
+      // 计算目标尺寸为基础尺寸的80%
+      let targetW = Math.floor(baseW * 0.8);
+      let targetH = Math.floor(baseH * 0.8);
+      targetW = Math.max(300, Math.min(targetW, vw));
+      targetH = Math.max(300, Math.min(targetH, vh));
+      
+      // 保持图片原始比例，计算放大后图片的尺寸
+      const aspectRatio = naturalWidth / naturalHeight;
+      let imageWidth, imageHeight;
+      
+      if (aspectRatio > targetW / targetH) {
+        // 图片较宽，以宽度为基准
+        imageWidth = targetW;
+        imageHeight = imageWidth / aspectRatio;
+      } else {
+        // 图片较高，以高度为基准
+        imageHeight = targetH;
+        imageWidth = imageHeight * aspectRatio;
+      }
+      
+      // 确保图片尺寸在合理范围内
+      imageWidth = Math.max(300, Math.min(imageWidth, vw));
+      imageHeight = Math.max(300, Math.min(imageHeight, vh));
+      
+      // 计算图片位置（居中显示）
+      const imageX = (vw - imageWidth) / 2;
+      const imageY = (vh - imageHeight) / 2;
+      
+      // 计算裁剪框初始大小（占放大后图片的80%）
+      const cropWidth = imageWidth * 0.8;
+      const cropHeight = imageHeight * 0.8;
+      
+      // 计算裁剪框初始位置（居中显示）
+      const cropX = imageX + (imageWidth - cropWidth) / 2;
+      const cropY = imageY + (imageHeight - cropHeight) / 2;
+      
       setCropData({
         imageWidth,
         imageHeight,
@@ -125,8 +152,8 @@ function ImageNode({ data, id, selected, ...rest }: NodeProps) {
         cropY,
         cropWidth,
         cropHeight,
-        naturalWidth: img.naturalWidth,
-        naturalHeight: img.naturalHeight
+        naturalWidth,
+        naturalHeight
       });
       setIsCropping(true);
     };
@@ -346,95 +373,112 @@ function ImageNode({ data, id, selected, ...rest }: NodeProps) {
             
             {/* 裁剪模式 */}
             {isCropping && (
-              <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
-                {/* 放大显示的图片 */}
-                <div 
-                  className="relative" 
-                  style={{
-                    position: 'absolute',
-                    left: cropData.imageX,
-                    top: cropData.imageY,
-                    width: cropData.imageWidth,
-                    height: cropData.imageHeight
-                  }}
-                >
-                  <Image
-                    src={imageUrl}
-                    alt="裁剪图片"
-                    width={cropData.imageWidth}
-                    height={cropData.imageHeight}
-                    className="object-contain"
-                  />
-                  
-                  {/* 裁剪框 */}
-                  <div
-                    className="absolute border-2 border-green-400 bg-transparent cursor-move"
-                    style={{
-                      left: cropData.cropX - cropData.imageX,
-                      top: cropData.cropY - cropData.imageY,
-                      width: cropData.cropWidth,
-                      height: cropData.cropHeight
-                    }}
-                    onMouseDown={(e) => handleCropMouseDown(e, 'move')}
-                  >
-                    {/* 裁剪框调整手柄 */}
-                    {['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'].map((handle) => (
-                      <div
-                        key={handle}
-                        className="absolute w-3 h-3 bg-white border-2 border-green-400"
-                        style={{
-                          left: handle.includes('w') ? -6 : handle.includes('e') ? 'calc(100% - 6px)' : 'calc(50% - 6px)',
-                          top: handle.includes('n') ? -6 : handle.includes('s') ? 'calc(100% - 6px)' : 'calc(50% - 6px)',
-                          cursor: `${handle.includes('n') || handle.includes('s') ? 'ns' : ''}${handle.includes('w') || handle.includes('e') ? 'ew' : ''}-resize`
-                        }}
-                        onMouseDown={(e) => handleCropMouseDown(e, handle)}
-                      />
-                    ))}
-                  </div>
-                </div>
+              <>
+                {/* 遮罩层 - 覆盖整个屏幕，层级低于图片但高于其他内容 */}
+                <div className="fixed inset-0 bg-black/80 z-50"></div>
                 
-                {/* 底部功能按钮 */}
-                <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-4 z-60">
-                  <button
-                    onClick={handleCropCancel}
-                    className="px-6 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+                {/* 裁剪容器 - 居中显示，层级高于遮罩层 */}
+                <div className="fixed inset-0 z-60 flex items-center justify-center">
+                  {/* 放大显示的图片容器 */}
+                  <div 
+                    className="relative"
                   >
-                    取消
-                  </button>
-                  
-                  {/* 宽高比选择按钮 */}
-                  <div className="relative">
-                    <button
-                      onClick={() => setRatioMenuOpen(!ratioMenuOpen)}
-                      className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                    <div
+                      className="relative w-full h-full"
+                      style={{
+                        width: cropData.imageWidth,
+                        height: cropData.imageHeight
+                      }}
                     >
-                      {selectedRatio || '自由'} 宽高比
-                    </button>
-                    
-                    {/* 宽高比下拉菜单 */}
-                    {ratioMenuOpen && (
-                      <div className="absolute bottom-full left-0 mb-2 bg-white rounded-md shadow-lg z-70 min-w-[120px]">
-                        {ratios.map((ratio) => (
-                          <button
-                            key={ratio.value || 'free'}
-                            onClick={() => handleRatioSelect(ratio.value)}
-                            className={`w-full text-left px-4 py-2 hover:bg-gray-100 ${selectedRatio === ratio.value ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
-                          >
-                            {ratio.label}
-                          </button>
+                      {/* 图片 */}
+                      <Image
+                        src={imageUrl}
+                        alt="裁剪图片"
+                        width={cropData.imageWidth}
+                        height={cropData.imageHeight}
+                        className="object-contain"
+                      />
+                      
+                      {/* 裁剪框 */}
+                      <div
+                        className="absolute border-2 border-green-400 bg-transparent cursor-move"
+                        style={{
+                          left: cropData.cropX - cropData.imageX,
+                          top: cropData.cropY - cropData.imageY,
+                          width: cropData.cropWidth,
+                          height: cropData.cropHeight
+                        }}
+                        onMouseDown={(e) => {
+                          e.stopPropagation();
+                          handleCropMouseDown(e, 'move');
+                        }}
+                      >
+                        {/* 裁剪框调整手柄 */}
+                        {['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'].map((handle) => (
+                          <div
+                            key={handle}
+                            className="absolute w-4 h-4 bg-white border-2 border-green-400 rounded-full z-10"
+                            style={{
+                              left: handle.includes('w') ? -4 : handle.includes('e') ? `calc(100% - 4px)` : `calc(50% - 4px)`,
+                              top: handle.includes('n') ? -4 : handle.includes('s') ? `calc(100% - 4px)` : `calc(50% - 4px)`,
+                              cursor: `${handle.includes('n') || handle.includes('s') ? 'ns' : ''}${handle.includes('w') || handle.includes('e') ? 'ew' : ''}-resize`
+                            }}
+                            onMouseDown={(e) => {
+                              e.stopPropagation();
+                              handleCropMouseDown(e, handle);
+                            }}
+                          />
                         ))}
                       </div>
-                    )}
+                    </div>
+                    
+                    {/* 底部功能按钮 - 图片区域内的底部 */}
+                    <div className="mt-4 flex justify-center gap-4">
+                      <button
+                        onClick={handleCropCancel}
+                        className="px-6 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+                      >
+                        取消
+                      </button>
+                      
+                      {/* 宽高比选择按钮 */}
+                      <div className="relative">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setRatioMenuOpen(!ratioMenuOpen);
+                          }}
+                          className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                        >
+                          {selectedRatio || '自由'} 宽高比
+                        </button>
+                        
+                        {/* 宽高比下拉菜单 */}
+                        {ratioMenuOpen && (
+                          <div className="absolute bottom-full left-0 mb-2 bg-white rounded-md shadow-lg z-70 min-w-[120px]">
+                            {ratios.map((ratio) => (
+                              <button
+                                key={ratio.value || 'free'}
+                                onClick={() => handleRatioSelect(ratio.value)}
+                                className={`w-full text-left px-4 py-2 hover:bg-gray-100 ${selectedRatio === ratio.value ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
+                              >
+                                {ratio.label}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      
+                      <button
+                        onClick={handleCropConfirm}
+                        className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                      >
+                        确认裁剪
+                      </button>
+                    </div>
                   </div>
-                  
-                  <button
-                    onClick={handleCropConfirm}
-                    className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
-                  >
-                    确认裁剪
-                  </button>
                 </div>
-              </div>
+              </>
             )}
           </div>
         ) : (
