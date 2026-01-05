@@ -251,14 +251,19 @@ const NodeToolbar = ({
           <div className="w-px h-6 bg-gray-200 mx-1" />
           
           <Tooltip title="裁剪" placement="top">
-            <button
-              onClick={() => {}}
-              className="w-8 h-8 p-1 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors"
-              aria-label="裁剪"
-            >
-              <Crop fontSize="small" />
-            </button>
-          </Tooltip>
+              <button
+                onClick={() => {
+                  console.log('NodeToolbar: Crop button clicked');
+                  console.log('NodeToolbar: onEditStart function exists:', !!onEditStart);
+                  console.log('NodeToolbar: nodeId:', nodeId);
+                  onEditStart && onEditStart(nodeId);
+                }}
+                className="w-8 h-8 p-1 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors"
+                aria-label="裁剪"
+              >
+                <Crop fontSize="small" />
+              </button>
+            </Tooltip>
           
           <Tooltip title="擦除" placement="top">
             <button

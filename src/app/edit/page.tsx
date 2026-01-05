@@ -31,6 +31,7 @@ import {
   ReactFlowProvider
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import 'tui-image-editor/dist/tui-image-editor.css';
 import {
   Add,
   SwapHoriz
@@ -207,7 +208,26 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
           />
         );
       },
-      image: ImageNode,
+      image: (props: any) => {
+        const nodeId = props.id;
+        const nodeData = props.data;
+        
+        // 图片节点的编辑处理函数
+        const onEditStart = (id: string) => {
+          // 这个函数会被ImageNode内部的handleEditStart调用
+          console.log(`开始编辑图片节点 ${id}`);
+        };
+        
+        return (
+          <ImageNode
+            {...props}
+            data={{
+              ...nodeData,
+              onEditStart: onEditStart
+            }}
+          />
+        );
+      },
       video: VideoNode,
       audio: AudioNode
     }),
