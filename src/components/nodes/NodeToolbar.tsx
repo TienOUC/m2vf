@@ -1,5 +1,5 @@
 import { NodeToolbar as ReactFlowNodeToolbar, Position } from '@xyflow/react';
-import { SwapHoriz, TextFields, Image as ImageIcon, VideoFile, Audiotrack, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, HorizontalRule, Fullscreen, DeleteOutline, Crop, Brush, GradientOutlined, PhotoSizeSelectLarge, Download } from '@mui/icons-material';
+import { SwapHoriz, TextFields, Image as ImageIcon, VideoFile, Audiotrack, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, HorizontalRule, Fullscreen, DeleteOutline } from '@mui/icons-material';
 import { Tooltip } from '@mui/material';
 import { memo, useState, useRef } from 'react';
 import { useClickOutside } from '@/hooks';
@@ -25,7 +25,6 @@ export interface NodeToolbarProps {
   onNumberedListToggle?: (nodeId: string) => void;
   onHorizontalRuleInsert?: (nodeId: string) => void;
   onToggleFullscreen?: (nodeId: string) => void;
-  onEditStart?: (nodeId: string) => void;
 }
 
 const NodeToolbar = ({ 
@@ -41,7 +40,6 @@ const NodeToolbar = ({
   onNumberedListToggle,
   onHorizontalRuleInsert,
   onToggleFullscreen,
-  onEditStart,
   selected = false, 
   type = 'text',
   fontType,
@@ -245,77 +243,7 @@ const NodeToolbar = ({
         </Tooltip>
       )}
       
-      {/* 图片编辑器工具按钮：裁剪、擦除、抠图、扩图、下载、全屏查看 */}
-      {type === 'image' && (
-        <>
-          <div className="w-px h-6 bg-gray-200 mx-1" />
-          
-          <Tooltip title="裁剪" placement="top">
-              <button
-                onClick={() => {
-                  console.log('NodeToolbar: Crop button clicked');
-                  console.log('NodeToolbar: onEditStart function exists:', !!onEditStart);
-                  console.log('NodeToolbar: nodeId:', nodeId);
-                  onEditStart && onEditStart(nodeId);
-                }}
-                className="w-8 h-8 p-1 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors"
-                aria-label="裁剪"
-              >
-                <Crop fontSize="small" />
-              </button>
-            </Tooltip>
-          
-          <Tooltip title="擦除" placement="top">
-            <button
-              onClick={() => onEditStart && onEditStart(nodeId)}
-              className="w-8 h-8 p-1 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded-md transition-colors"
-              aria-label="擦除"
-            >
-              <Brush fontSize="small" />
-            </button>
-          </Tooltip>
-          
-          <Tooltip title="抠图" placement="top">
-            <button
-              onClick={() => onEditStart && onEditStart(nodeId)}
-              className="w-8 h-8 p-1 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-colors"
-              aria-label="抠图"
-            >
-              <GradientOutlined fontSize="small" />
-            </button>
-          </Tooltip>
-          
-          <Tooltip title="扩图" placement="top">
-            <button
-              onClick={() => onEditStart && onEditStart(nodeId)}
-              className="w-8 h-8 p-1 text-gray-500 hover:text-cyan-600 hover:bg-cyan-50 rounded-md transition-colors"
-              aria-label="扩图"
-            >
-              <PhotoSizeSelectLarge fontSize="small" />
-            </button>
-          </Tooltip>
-          
-          <Tooltip title="下载" placement="top">
-            <button
-              onClick={() => onEditStart && onEditStart(nodeId)}
-              className="w-8 h-8 p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-              aria-label="下载"
-            >
-              <Download fontSize="small" />
-            </button>
-          </Tooltip>
-          
-          <Tooltip title="全屏查看" placement="top">
-            <button
-              onClick={() => onEditStart && onEditStart(nodeId)}
-              className="w-8 h-8 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
-              aria-label="全屏查看"
-            >
-              <Fullscreen fontSize="small" />
-            </button>
-          </Tooltip>
-        </>
-      )}
+
       
       {/* 背景色选择按钮 - 仅对文本节点显示 */}
       {type === 'text' && (

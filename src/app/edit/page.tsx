@@ -31,7 +31,6 @@ import {
   ReactFlowProvider
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import 'tui-image-editor/dist/tui-image-editor.css';
 import {
   Add,
   SwapHoriz

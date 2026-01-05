@@ -1,5 +1,5 @@
-// Toast UI Image Editor 实例类型定义
-export interface ToastUIEditorInstance {
+// 图片编辑器实例类型定义
+export interface ImageEditorInstance {
   toDataURL: () => string;
   applyCrop: () => void;
   destroy: () => void;

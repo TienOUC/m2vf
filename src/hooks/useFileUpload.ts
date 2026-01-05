@@ -1,8 +1,8 @@
 import { useState, useCallback, useRef } from 'react';
 
-export function useFileUpload(acceptType: string) {
+export function useFileUpload(acceptType: string, initialUrl?: string) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [fileUrl, setFileUrl] = useState<string>('');
+  const [fileUrl, setFileUrl] = useState<string>(initialUrl || '');
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>, onFileSelected?: (url: string) => void) => {
     const file = e.target.files?.[0];
@@ -11,7 +11,7 @@ export function useFileUpload(acceptType: string) {
       reader.onload = (event) => {
         const result = event.target?.result as string;
         setFileUrl(result);
-        onFileSelected && onFileSelected(result);
+        if (onFileSelected) onFileSelected(result);
       };
       reader.readAsDataURL(file);
     }
