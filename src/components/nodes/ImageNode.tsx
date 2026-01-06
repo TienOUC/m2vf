@@ -116,14 +116,16 @@ function ImageNode({ data, id, selected }: NodeProps) {
         />
       </div>
       
-      {/* 裁剪编辑器 */}
+      {/* 裁剪编辑器 - 全屏显示，悬浮在画布上 */}
       {isCropping && (
-        <div className="absolute inset-0 z-50">
-          <FabricImageEditor
-            imageUrl={localImageUrl || fileUrl}
-            onCropComplete={handleCropComplete}
-            onCancel={handleCropCancel}
-          />
+        <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="w-full h-full flex flex-col items-center justify-center p-4">
+            <FabricImageEditor
+              imageUrl={localImageUrl || fileUrl}
+              onCropComplete={handleCropComplete}
+              onCancel={handleCropCancel}
+            />
+          </div>
         </div>
       )}
       
