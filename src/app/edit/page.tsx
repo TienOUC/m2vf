@@ -9,6 +9,7 @@ import { ROUTES } from '@/lib/config/api.config';
 import Navbar from '@/components/layout/Navbar';
 import LeftSidebar from '@/components/layout/LeftSidebar';
 import { TextNode, ImageNode, VideoNode, AudioNode } from '@/components/nodes';
+import FabricImageEditor from '@/components/FabricImageEditor';
 import { useNodeAddition } from '@/hooks/useNodeAddition';
 import { 
   useProjectEditingStore,
@@ -50,6 +51,54 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
   const [nodeId, setNodeId] = useState(1); // 用于生成唯一节点ID（从1开始）
   const reactFlowInstance = useReactFlow();
   const { screenToFlowPosition } = reactFlowInstance;
+
+  // 裁剪编辑器状态管理
+  const [croppingNode, setCroppingNode] = useState<{id: string, imageUrl: string} | null>(null);
+
+  // 节点文件替换回调
+  const handleReplace = useCallback(
+    (nodeId: string) => {
+      // 触发文件选择，实际的文件替换逻辑在节点组件中处理
+      // 这里只是标记节点需要更新
+      setNodes((nds) =>
+        nds.map((node) => {
+          if (node.id === nodeId) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                // 标记节点需要重新上传文件
+                needsUpdate: true
+              }
+            };
+          }
+          return node;
+        })
+      );
+    },
+    [setNodes]
+  );
+
+  // 图片更新回调 - 保存图片URL到节点数据中
+  const handleImageUpdate = useCallback(
+    (nodeId: string, imageUrl: string) => {
+      setNodes((nds) =>
+        nds.map((node) => {
+          if (node.id === nodeId) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                imageUrl: imageUrl
+              }
+            };
+          }
+          return node;
+        })
+      );
+    },
+    [setNodes]
+  );
 
   // 节点删除回调
   const handleDelete = useCallback(
@@ -133,10 +182,7 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
                 type: newType,
                 data: {
                   ...baseData,
-                  onReplace: (id: string) => {
-                    // 这里可以添加具体的替换逻辑
-                    console.log(`替换节点 ${id} 的文件`);
-                  }
+                  onReplace: handleReplace
                 }
               };
             }
@@ -279,7 +325,11 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
             {...props}
             data={{
               ...nodeData,
-              onEditStart: onEditStart
+              onEditStart: onEditStart,
+              onCropStart: (nodeId: string, imageUrl: string) => {
+                setCroppingNode({ id: nodeId, imageUrl });
+              },
+              onImageUpdate: handleImageUpdate
             }}
           />
         );
@@ -364,50 +414,86 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
     onNodesChange(filteredChanges);
   }, [onNodesChange, nodes]);
 
+  // 裁剪完成回调函数
+  const handleCropComplete = useCallback((nodeId: string, croppedImageUrl: string) => {
+    // 更新对应节点的图片URL
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === nodeId) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              imageUrl: croppedImageUrl,
+            },
+          };
+        }
+        return node;
+      })
+    );
+    // 关闭裁剪编辑器
+    setCroppingNode(null);
+  }, [setNodes]);
+
   return (
-    <ReactFlow
-      nodes={nodes}
-      edges={edges}
-      onNodesChange={onNodesChangeWithDragControl}
-      onEdgesChange={onEdgesChange}
-      onConnect={onConnect}
-      onPaneClick={handlePaneClick}
-      nodeTypes={nodeTypes}
-      fitView
-      zoomOnScroll={!isAnyEditing}
-      zoomOnPinch={!isAnyEditing}
-      proOptions={{ hideAttribution: true }}
-    >
-      {/* 点状背景 */}
-      <Background
-        variant={BackgroundVariant.Dots}
-        gap={12}
-        size={1}
-        color="var(--color-neutral-400)"
-      />
-      {/* 控制面板 */}
-      <Controls />
-      {/* 缩略图 */}
-      <MiniMap />
+    <>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChangeWithDragControl}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        onPaneClick={handlePaneClick}
+        nodeTypes={nodeTypes}
+        fitView
+        zoomOnScroll={!isAnyEditing}
+        zoomOnPinch={!isAnyEditing}
+        proOptions={{ hideAttribution: true }}
+      >
+        {/* 点状背景 */}
+        <Background
+          variant={BackgroundVariant.Dots}
+          gap={12}
+          size={1}
+          color="var(--color-neutral-400)"
+        />
+        {/* 控制面板 */}
+        <Controls />
+        {/* 缩略图 */}
+        <MiniMap />
 
-      {/* 操作提示 */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-background/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-md border border-neutral-200 z-10 flex items-center gap-2">
-        <Add fontSize="small" />
-        <span className="text-sm text-neutral-600">双击画布添加文本节点，点击节点工具栏 <SwapHoriz fontSize="small" /> 按钮切换节点类型</span>
-      </div>
+        {/* 操作提示 */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-background/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-md border border-neutral-200 z-10 flex items-center gap-2">
+          <Add fontSize="small" />
+          <span className="text-sm text-neutral-600">双击画布添加文本节点，点击节点工具栏 <SwapHoriz fontSize="small" /> 按钮切换节点类型</span>
+        </div>
 
-      {/* 左侧悬浮工具栏 */}
-      <LeftSidebar
-        onAddTextNode={addTextNode}
-        onAddImageNode={addImageNode}
-        onAddVideoNode={addVideoNode}
-        onAddAudioNode={addAudioNode}
-        onUploadImage={handleUploadImage}
-        onUploadVideo={handleUploadVideo}
-        onUploadAudio={handleUploadAudio}
-        projectId={projectId ? parseInt(projectId) : undefined}
-      />
-    </ReactFlow>
+        {/* 左侧悬浮工具栏 */}
+        <LeftSidebar
+          onAddTextNode={addTextNode}
+          onAddImageNode={addImageNode}
+          onAddVideoNode={addVideoNode}
+          onAddAudioNode={addAudioNode}
+          onUploadImage={handleUploadImage}
+          onUploadVideo={handleUploadVideo}
+          onUploadAudio={handleUploadAudio}
+          projectId={projectId ? parseInt(projectId) : undefined}
+        />
+      </ReactFlow>
+
+      {/* 裁剪编辑器 Overlay - 在 ReactFlow 外部渲染，确保全屏显示 */}
+      {croppingNode && (
+        <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="w-full h-full flex flex-col items-center justify-center p-4">
+            <FabricImageEditor
+              imageUrl={croppingNode.imageUrl}
+              onCropComplete={(croppedImageUrl) => handleCropComplete(croppingNode.id, croppedImageUrl)}
+              onCancel={() => setCroppingNode(null)}
+            />
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

@@ -15,7 +15,7 @@ export function useFileUpload(acceptType: string, initialUrl?: string) {
       };
       reader.readAsDataURL(file);
     }
-  }, [acceptType]);
+  }, [acceptType]); // 注意：这里不包含 onFileSelected，因为它是每次调用时传入的参数
 
   const handleButtonClick = useCallback(() => {
     fileInputRef.current?.click();

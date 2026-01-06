@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState } from 'react';
+import { memo } from 'react';
 import { NodeResizeControl } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { Image as ImageIcon } from '@mui/icons-material';
@@ -8,7 +8,6 @@ import { useFileUpload } from '../../hooks/useFileUpload';
 import { NodeBase } from './NodeBase';
 import ResizeIcon from './ResizeIcon';
 import Image from 'next/image';
-import FabricImageEditor from '../FabricImageEditor';
 
 export interface ImageNodeData {
   label?: string;
@@ -17,32 +16,35 @@ export interface ImageNodeData {
   onDelete?: (nodeId: string) => void;
   onReplace?: (nodeId: string) => void;
   onEditStart?: (nodeId: string) => void;
+  onCropStart?: (nodeId: string, imageUrl: string) => void;
+  onImageUpdate?: (nodeId: string, imageUrl: string) => void;
 }
 
 function ImageNode({ data, id, selected }: NodeProps) {
   const nodeData = data as ImageNodeData;
-  const [localImageUrl, setLocalImageUrl] = useState<string>(nodeData?.imageUrl || '');
-  const [isCropping, setIsCropping] = useState<boolean>(false);
   
   // 使用公共 hook 处理文件上传
   const {
     fileInputRef,
-    fileUrl,
     handleFileSelect,
     handleButtonClick
-  } = useFileUpload('image/');
+  } = useFileUpload('image/', nodeData?.imageUrl);
 
   // 图片选择回调，更新 imageUrl
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleFileSelect(e, (url) => {
-      setLocalImageUrl(url);
+      // 更新节点数据中的imageUrl，确保图片URL被保存
+      if (nodeData?.onImageUpdate) {
+        nodeData.onImageUpdate(id, url);
+      }
     });
   };
 
-  // 打开裁剪编辑器 - 先居中画布，再打开裁剪编辑器
+  // 打开裁剪编辑器 - 先居中画布，再通知父组件打开裁剪编辑器
   const handleEditStart = (nodeId: string) => {
     // 1. 检测图片节点是否已包含有效图片资源
-    const hasImage = !!(localImageUrl || fileUrl);
+    const imageUrl = nodeData?.imageUrl;
+    const hasImage = !!imageUrl;
     
     if (hasImage) {
       // 2. 响应裁剪按钮的点击事件 - 先调用画布居中逻辑
@@ -51,28 +53,25 @@ function ImageNode({ data, id, selected }: NodeProps) {
         // 它会计算偏移量、平滑移动画布，确保节点精确居中
         nodeData.onEditStart(nodeId);
         
-        // 7. 画布居中完成后，打开裁剪编辑器
-        // 使用 setTimeout 确保画布移动动画开始后再打开编辑器
+        // 7. 画布居中完成后，通知父组件打开裁剪编辑器
+        // 使用 setTimeout 确保画布移动动画开始后再通知
         setTimeout(() => {
-          setIsCropping(true);
+          // 通过回调通知父组件打开裁剪编辑器
+          if (nodeData?.onCropStart && imageUrl) {
+            nodeData.onCropStart(nodeId, imageUrl);
+          }
         }, 100); // 延迟100ms，让画布移动动画开始
       } else {
-        // 如果没有 onEditStart 回调，直接打开裁剪编辑器
-        setIsCropping(true);
+        // 如果没有 onEditStart 回调，直接通知父组件打开裁剪编辑器
+        if (nodeData?.onCropStart && imageUrl) {
+          nodeData.onCropStart(nodeId, imageUrl);
+        }
       }
     }
   };
 
-  // 裁剪完成回调
-  const handleCropComplete = (croppedImageUrl: string) => {
-    setLocalImageUrl(croppedImageUrl);
-    setIsCropping(false);
-  };
-
-  // 取消裁剪
-  const handleCropCancel = () => {
-    setIsCropping(false);
-  };
+  // 裁剪完成回调 - 现在由父组件处理
+  // handleCropComplete 函数已移除，由父组件直接更新节点数据
 
   const controlStyle = {
     background: 'transparent',
@@ -89,10 +88,10 @@ function ImageNode({ data, id, selected }: NodeProps) {
       onEditStart={handleEditStart}
     >
       <div className="absolute inset-0 p-2">
-        {localImageUrl || fileUrl ? (
+        {nodeData?.imageUrl ? (
           <div className="h-full w-full relative">
             <Image
-              src={localImageUrl || fileUrl}
+              src={nodeData.imageUrl}
               alt="上传的图片"
               fill
               className="object-contain rounded-md"
@@ -116,21 +115,10 @@ function ImageNode({ data, id, selected }: NodeProps) {
         />
       </div>
       
-      {/* 裁剪编辑器 - 全屏显示，悬浮在画布上 */}
-      {isCropping && (
-        <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center">
-          <div className="w-full h-full flex flex-col items-center justify-center p-4">
-            <FabricImageEditor
-              imageUrl={localImageUrl || fileUrl}
-              onCropComplete={handleCropComplete}
-              onCancel={handleCropCancel}
-            />
-          </div>
-        </div>
-      )}
+      {/* 裁剪编辑器现在在 page.tsx 中作为 Overlay 渲染 */}
       
       {/* 将 NodeResizeControl 放在最后，确保它在最上层 */}
-      <NodeResizeControl className="group" style={controlStyle} minWidth={100} minHeight={50}>
+      <NodeResizeControl className="group" style={{ background: 'transparent', border: 'none' }} minWidth={100} minHeight={50}>
         <ResizeIcon className="absolute right-0 bottom-0" />
       </NodeResizeControl>
     </NodeBase>

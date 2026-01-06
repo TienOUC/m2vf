@@ -30,9 +30,9 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
   // 默认配置 - 全屏显示，图片放大展示
   const defaultOptions: ImageCropEditorOptions = {
     imageUrl,
-    // 使用全屏尺寸，图片放大预览
-    canvasWidth: typeof window !== 'undefined' ? window.innerWidth : 1920,
-    canvasHeight: typeof window !== 'undefined' ? window.innerHeight : 1080,
+    // 使用适当的尺寸，不超过可视区域的90%
+    canvasWidth: typeof window !== 'undefined' ? Math.min(window.innerWidth * 0.9, 1200) : 800,
+    canvasHeight: typeof window !== 'undefined' ? Math.min(window.innerHeight * 0.9, 800) : 600,
     minCropSize: { width: 100, height: 100 },
     cropBoxStyle: {
       borderWidth: 2,
@@ -74,13 +74,13 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
 
     const fabric = fabricRef.current;
 
-    // 创建fabric画布 - 使用全屏尺寸，透明背景
+    // 创建fabric画布 - 使用适当尺寸，白色背景
     const canvas = new fabric.Canvas(canvasRef.current, {
       width: defaultOptions.canvasWidth,
       height: defaultOptions.canvasHeight,
       preserveObjectStacking: true,
       selection: false,
-      backgroundColor: 'transparent' // 透明背景，让遮罩效果更明显
+      backgroundColor: '#ffffff' // 白色背景，确保图片可见
     });
 
     fabricCanvasRef.current = canvas;
@@ -95,8 +95,19 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     
     const fabric = fabricRef.current;
 
-    // 修复：使用正确的fromURL方法签名，回调函数作为第三个参数
-    fabric.Image.fromURL(url, {}, (img: any) => {
+    // 检查 URL 是否有效
+    if (!url || typeof url !== 'string' || url.length === 0) {
+      setLoadingError('Invalid image URL provided.');
+      return;
+    }
+
+    // 使用标准的 fabric.Image.fromURL 方法
+    fabric.Image.fromURL(url, (img: any) => {
+      if (!img) {
+        setLoadingError('Failed to load image.');
+        return;
+      }
+
       const canvas = fabricCanvasRef.current;
       if (!canvas) return;
 
@@ -107,6 +118,12 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       const canvasHeight = canvas.height || defaultOptions.canvasHeight;
       const imgWidth = img.width || 0;
       const imgHeight = img.height || 0;
+
+      // 如果图片尺寸为0，说明加载失败
+      if (imgWidth === 0 || imgHeight === 0) {
+        setLoadingError('Failed to load image - invalid dimensions.');
+        return;
+      }
 
       // 计算缩放比例 - 图片放大预览，占满可视区域的80-90%
       // 优先使用较大的缩放比例，让图片更清晰可见
@@ -155,6 +172,8 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       
       // 渲染画布
       canvas.renderAll();
+    }, {
+      crossOrigin: 'anonymous'
     });
   };
 
@@ -626,22 +645,23 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
 
   return (
     <div className="w-full h-full flex flex-col bg-transparent">
-      {/* 画布容器 - 全屏居中显示，图片放大预览 */}
-      <div className="flex-1 flex items-center justify-center overflow-hidden">
+      {/* 画布容器 - 居中显示，限制最大尺寸 */}
+      <div className="flex-1 flex items-center justify-center overflow-auto p-4">
         <canvas
           ref={canvasRef}
-          className="shadow-2xl"
+          className="shadow-2xl border border-gray-300 rounded-lg"
           style={{
             maxWidth: '100%',
             maxHeight: '100%',
             cursor: 'default',
-            display: 'block'
+            display: 'block',
+            backgroundColor: '#f5f5f5'
           }}
         />
       </div>
 
       {/* 工具栏 - 固定在底部 */}
-      {/* <div className="flex justify-center items-center p-4 text-white gap-4 bg-black/50 backdrop-blur-sm">
+      <div className="flex justify-center items-center p-4 text-white gap-4 bg-black/50 backdrop-blur-sm">
         <button
           onClick={resetCropBox}
           className="text-xs flex items-center justify-center px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
@@ -674,7 +694,7 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
         >
           确认裁剪
         </button>
-      </div> */}
+      </div>
     </div>
   );
 };
