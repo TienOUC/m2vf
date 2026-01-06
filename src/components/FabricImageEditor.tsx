@@ -492,9 +492,7 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
   }, []);
 
   return (
-    <div className="w-full h-full flex flex-col bg-gray-900">
-
-
+    <div className="w-full h-full flex flex-col">
       {/* 画布容器 */}
       <div className="flex-1 flex items-center justify-center p-4">
         <canvas
@@ -507,37 +505,36 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
         />
       </div>
 
-      {/* 底部工具栏：所有按钮水平居中显示 */}
       <div className="flex justify-center items-center p-4 text-white gap-4">
         <button
           onClick={resetCropBox}
-          className="flex items-center justify-center px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
+          className="text-xs flex items-center justify-center px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
         >
           重置
         </button>
         <button
           onClick={undo}
-          className="flex items-center justify-center px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
+          className="text-xs flex items-center justify-center px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
           disabled={!canUndo}
         >
           撤销
         </button>
         <button
           onClick={redo}
-          className="flex items-center justify-center px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
+          className="text-xs flex items-center justify-center px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
           disabled={!canRedo}
         >
           重做
         </button>
         <button
           onClick={onCancel}
-          className="flex items-center justify-center px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
+          className="text-xs flex items-center justify-center px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
         >
           取消
         </button>
         <button
           onClick={handleCrop}
-          className="flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-md transition-colors font-medium"
+          className="text-xs flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-md transition-colors font-medium"
         >
           确认裁剪
         </button>
