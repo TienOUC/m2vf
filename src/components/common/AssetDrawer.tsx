@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Folder as FolderIcon, Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
 import { getProjectImageTree, createFolder, getFolderImages, getFolderVideos } from '@/lib/api/images';
-import CreateFolderDialog from './CreateFolderDialog';
+import CreateFolderDialog from '@/components/common/CreateFolderDialog';
 
 interface AssetDrawerProps {
   isOpen: boolean;

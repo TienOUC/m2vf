@@ -1,12 +1,12 @@
 // API 请求客户端 - 核心请求函数
 
-import type { ApiRequestOptions } from '../types/auth';
+import type { ApiRequestOptions } from '@/lib/types/auth';
 import {
   getAccessToken,
   refreshAccessToken,
   clearTokens
-} from '../utils/token';
-import { DEFAULT_CONFIG, ROUTES } from '../config/api.config';
+} from '@/lib/utils/token';
+import { DEFAULT_CONFIG, ROUTES } from '@/lib/config/api.config';
 
 // API 工具函数，用于处理需要认证的请求
 export const apiRequest = async (

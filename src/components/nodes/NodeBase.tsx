@@ -2,7 +2,7 @@ import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { forwardRef } from 'react';
 import NodeToolbar from './NodeToolbar';
-import { NodeData } from '../../hooks/useNodeBase';
+import { NodeData } from '@/hooks/useNodeBase';
 
 export interface BaseNodeProps extends Pick<NodeProps, 'id' | 'data' | 'selected'> {
   children: React.ReactNode;

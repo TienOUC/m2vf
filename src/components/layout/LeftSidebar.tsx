@@ -11,7 +11,7 @@ import {
   UploadFile,
   Collections
 } from '@mui/icons-material';
-import { FloatingMenu, MenuButton, SidebarButton, AssetDrawer } from '../common';
+import { FloatingMenu, MenuButton, SidebarButton, AssetDrawer } from '@/components/common';
 
 interface LeftSidebarProps {
   onAddClick?: () => void;

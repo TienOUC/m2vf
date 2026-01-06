@@ -4,7 +4,7 @@ import { memo, useEffect } from 'react';
 import { NodeResizeControl } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { VideoFile } from '@mui/icons-material';
-import { useFileUpload } from '../../hooks/useFileUpload';
+import { useFileUpload } from '@/hooks/useFileUpload';
 import { NodeBase } from './NodeBase';
 import ResizeIcon from './ResizeIcon';
 

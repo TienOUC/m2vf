@@ -13,4 +13,4 @@ export type {
   AuthState, 
   UIState, 
   RootState 
-} from '../types/store';
+} from '@/lib/types/store';

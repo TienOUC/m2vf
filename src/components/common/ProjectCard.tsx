@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import ProjectEditModal from './ProjectEditModal';
+import ProjectEditModal from '@/components/common/ProjectEditModal';
 import { Tooltip } from '@mui/material';
 import { AutoAwesome } from '@mui/icons-material';
 import { useProjectEditingStore } from '@/lib/stores';

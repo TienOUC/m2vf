@@ -9,8 +9,9 @@ import { ROUTES } from '@/lib/config/api.config';
 import Navbar from '@/components/layout/Navbar';
 import LeftSidebar from '@/components/layout/LeftSidebar';
 import { TextNode, ImageNode, VideoNode, AudioNode } from '@/components/nodes';
-import FabricImageEditor from '@/components/FabricImageEditor';
+import FabricImageEditor from '@/components/nodes/FabricImageEditor';
 import { useNodeAddition } from '@/hooks/useNodeAddition';
+import { useNodeCentering } from '@/hooks/useNodeCentering';
 import { 
   useProjectEditingStore,
   useProjectManagementStore 
@@ -51,6 +52,9 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
   const [nodeId, setNodeId] = useState(1); // 用于生成唯一节点ID（从1开始）
   const reactFlowInstance = useReactFlow();
   const { screenToFlowPosition } = reactFlowInstance;
+
+  // 使用自定义 hook 处理节点居中
+  const centerNode = useNodeCentering(reactFlowInstance);
 
   // 裁剪编辑器状态管理
   const [croppingNode, setCroppingNode] = useState<{id: string, imageUrl: string} | null>(null);
@@ -255,77 +259,14 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
         );
       },
       image: (props: any) => {
-        const nodeId = props.id;
         const nodeData = props.data;
-        
-        // 图片节点的编辑处理函数 - 实现画布居中功能
-        const onEditStart = (id: string) => {
-          // 注意：图片存在性检查已在 ImageNode 的 handleEditStart 中完成
-          // 这里直接执行画布居中逻辑
-          
-          // 1. 获取节点信息（使用 getNode 方法获取完整的节点信息）
-          const reactFlowNode = reactFlowInstance.getNode(id);
-          if (!reactFlowNode) return;
-          
-          // 2. 获取节点的实际尺寸
-          // 尝试从节点属性获取尺寸，如果没有则使用默认值
-          const nodeWidth = reactFlowNode.width || reactFlowNode.measured?.width || 200;
-          const nodeHeight = reactFlowNode.height || reactFlowNode.measured?.height || 150;
-          
-          // 3. 计算图片节点的几何中心位置（在流程图坐标系中）
-          const nodeCenterX = reactFlowNode.position.x + nodeWidth / 2;
-          const nodeCenterY = reactFlowNode.position.y + nodeHeight / 2;
-          
-          // 4. 获取当前视口信息
-          const viewport = reactFlowInstance.getViewport();
-          const { flowToScreenPosition } = reactFlowInstance;
-          
-          // 5. 获取可视区域中心位置（屏幕坐标）
-          const viewportCenterScreenX = window.innerWidth / 2;
-          const viewportCenterScreenY = window.innerHeight / 2;
-          
-          // 6. 将节点中心转换为屏幕坐标
-          const nodeCenterScreen = flowToScreenPosition({
-            x: nodeCenterX,
-            y: nodeCenterY
-          });
-          
-          // 7. 计算需要移动的偏移量（屏幕坐标）
-          const offsetScreenX = viewportCenterScreenX - nodeCenterScreen.x;
-          const offsetScreenY = viewportCenterScreenY - nodeCenterScreen.y;
-          
-          // 8. 将屏幕偏移量转换为流程图坐标偏移量
-          const offsetFlowX = offsetScreenX / viewport.zoom;
-          const offsetFlowY = offsetScreenY / viewport.zoom;
-          
-          // 9. 平滑移动画布，使图片节点的几何中心与页面可视区域的中心完全重合
-          // 使用 setCenter 方法（如果存在）或通过 setViewport 实现
-          // 注意：setViewport 会保持其他节点的相对位置关系不变，只移动视口
-          if (typeof reactFlowInstance.setCenter === 'function') {
-            // 使用 setCenter 方法，它会自动处理居中
-            reactFlowInstance.setCenter(nodeCenterX, nodeCenterY, {
-              duration: 500,
-              zoom: viewport.zoom
-            });
-          } else {
-            // 使用 setViewport 方法平滑移动画布
-            // 通过调整视口位置，使节点中心与可视区域中心对齐
-            reactFlowInstance.setViewport({
-              x: viewport.x + offsetFlowX,
-              y: viewport.y + offsetFlowY,
-              zoom: viewport.zoom
-            }, {
-              duration: 500, // 动画持续时间500ms
-            });
-          }
-        };
         
         return (
           <ImageNode
             {...props}
             data={{
               ...nodeData,
-              onEditStart: onEditStart,
+              onEditStart: centerNode,
               onCropStart: (nodeId: string, imageUrl: string) => {
                 setCroppingNode({ id: nodeId, imageUrl });
               },
@@ -337,7 +278,7 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
       video: VideoNode,
       audio: AudioNode
     }),
-    [handleFontTypeChange, reactFlowInstance, handleImageUpdate]
+    [handleFontTypeChange, handleImageUpdate, centerNode]
   );
 
   // 连接节点回调

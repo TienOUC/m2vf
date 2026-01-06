@@ -1,9 +1,9 @@
 // 用户认证相关 API
 
-import type { TokenResponse, LoginCredentials } from '../types/auth';
-import { saveTokens, clearTokens } from '../utils/token';
+import type { TokenResponse, LoginCredentials } from '@/lib/types/auth';
+import { saveTokens, clearTokens } from '@/lib/utils/token';
 import { apiRequest } from './client';
-import { buildApiUrl, API_ENDPOINTS, ROUTES } from '../config/api.config';
+import { buildApiUrl, API_ENDPOINTS, ROUTES } from '@/lib/config/api.config';
 
 // 专门用于登录的 API 请求（不需要 token）
 export const loginUser = async (

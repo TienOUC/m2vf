@@ -78,18 +78,18 @@ export {
   clearTokens,
   refreshAccessToken,
   isUserLoggedIn
-} from '../utils/token';
+} from '@/lib/utils/token';
 
 // 类型定义
 export type {
   TokenResponse,
   LoginCredentials,
   ApiRequestOptions
-} from '../types/auth';
+} from '@/lib/types/auth';
 
 export type {
   AIModel,
   AIModelListResponse,
   ParameterSchema,
   AIModelParamsResponse
-} from '../types/ai';
+} from '@/lib/types/ai';

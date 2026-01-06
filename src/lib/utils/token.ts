@@ -1,7 +1,7 @@
 // Token 管理工具函数
 
-import type { TokenResponse } from '../types/auth';
-import { buildApiUrl, API_ENDPOINTS, DEFAULT_CONFIG } from '../config/api.config';
+import type { TokenResponse } from '@/lib/types/auth';
+import { buildApiUrl, API_ENDPOINTS, DEFAULT_CONFIG } from '@/lib/config/api.config';
 
 const { STORAGE_KEYS } = DEFAULT_CONFIG;
 

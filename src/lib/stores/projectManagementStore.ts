@@ -1,12 +1,12 @@
 import { create } from 'zustand';
-import { Project, ProjectManagementState } from '../types/store';
+import { ProjectManagementState } from '@/lib/types/store';
 import { 
   getProjects as getProjectsAPI, 
   createProject as createProjectAPI, 
   deleteProject as deleteProjectAPI,
   getProjectDetail as getProjectDetailAPI,
   updateProject as updateProjectAPI
-} from '../api/projects';
+} from '@/lib/api/projects';
 
 // 项目管理store
 export const useProjectManagementStore = create<ProjectManagementState>((set, get) => ({
@@ -45,15 +45,15 @@ export const useProjectManagementStore = create<ProjectManagementState>((set, ge
           return data;
         } else {
           // 如果返回的是简单数组格式
-          set({
+          set(state => ({
             projects: Array.isArray(data) ? data : [],
-            pagination: prev => ({
-              ...prev,
+            pagination: {
+              ...state.pagination,
               total: Array.isArray(data) ? data.length : 0,
               totalPages: 1,
-            }),
+            },
             isLoading: false
-          });
+          }));
           return data;
         }
       } else {

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import { AuthState } from '../types/store';
-import { loginUser, registerUser, getUserProfile, logoutUser } from '../api/auth';
-import { saveTokens, clearTokens, getAccessToken, getRefreshToken } from '../utils/token';
+import { AuthState } from '@/lib/types/store';
+import { loginUser, registerUser, getUserProfile, logoutUser } from '@/lib/api/auth';
+import { saveTokens, clearTokens, getAccessToken, getRefreshToken } from '@/lib/utils/token';
 
 // 用户认证store
 export const useAuthStore = create<AuthState>((set, get) => ({

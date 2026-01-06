@@ -1,10 +1,9 @@
 'use client';
 
-import { memo } from 'react';
 import { NodeResizeControl } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { Image as ImageIcon } from '@mui/icons-material';
-import { useFileUpload } from '../../hooks/useFileUpload';
+import { useFileUpload } from '@/hooks/useFileUpload';
 import { NodeBase } from './NodeBase';
 import ResizeIcon from './ResizeIcon';
 import Image from 'next/image';
@@ -70,14 +69,6 @@ function ImageNode({ data, id, selected }: NodeProps) {
     }
   };
 
-  // 裁剪完成回调 - 现在由父组件处理
-  // handleCropComplete 函数已移除，由父组件直接更新节点数据
-
-  const controlStyle = {
-    background: 'transparent',
-    border: 'none'
-  };
-
   return (
     <NodeBase
       data={data}
@@ -115,9 +106,6 @@ function ImageNode({ data, id, selected }: NodeProps) {
         />
       </div>
       
-      {/* 裁剪编辑器现在在 page.tsx 中作为 Overlay 渲染 */}
-      
-      {/* 将 NodeResizeControl 放在最后，确保它在最上层 */}
       <NodeResizeControl className="group" style={{ background: 'transparent', border: 'none' }} minWidth={100} minHeight={50}>
         <ResizeIcon className="absolute right-0 bottom-0" />
       </NodeResizeControl>

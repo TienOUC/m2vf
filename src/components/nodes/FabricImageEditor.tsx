@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import type { ImageCropEditorOptions, CropHistoryRecord } from '../types/image-editor'; // 修复：移除未使用的ImageCropEditorInstance类型导入
-import { useHistory } from '../hooks/useHistory';
-import { useDebounce } from '../hooks/useDebounce';
+import type { ImageCropEditorOptions, CropHistoryRecord } from '@/types/image-editor'; // 修复：移除未使用的ImageCropEditorInstance类型导入
+import { useHistory } from '@/hooks/useHistory';
+import { useDebounce } from '@/hooks/useDebounce';
 
 // fabric.js 类型声明
 type Fabric = any;
@@ -25,7 +25,7 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
   const [loadingError, setLoadingError] = useState<string | null>(null);
   
   // 使用自定义Hook管理历史记录，获取canUndo和canRedo状态
-  const { save: saveHistory, undo: undoHistory, redo: redoHistory, getCurrentState, canUndo, canRedo } = useHistory<CropHistoryRecord>(5);
+  const { save: saveHistory, undo: undoHistory, redo: redoHistory, canUndo, canRedo } = useHistory<CropHistoryRecord>(5);
   
   // 默认配置 - 全屏显示，图片放大展示
   const defaultOptions: ImageCropEditorOptions = {
@@ -38,7 +38,7 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       borderWidth: 2,
       borderColor: '#ffffff',
       borderStyle: 'dashed',
-      cornerSize: 12, // 增大控制点，方便操作
+      cornerSize: 12,
       cornerColor: '#ffffff'
     },
     maskStyle: {
@@ -46,7 +46,6 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       opacity: 0.7
     },
     initialRatio: 1
-    // 移除：maxHistorySteps 已通过 useHistory Hook 内部处理
   };
 
   // 加载 fabric.js
@@ -469,13 +468,8 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
   const handleCrop = async () => {
     if (!fabricCanvasRef.current || !imageRef.current || !cropBoxRef.current) return;
 
-    const canvas = fabricCanvasRef.current;
     const img = imageRef.current;
     const cropBox = cropBoxRef.current;
-
-    // 获取原始图片尺寸
-    const originalWidth = img.width || 0;
-    const originalHeight = img.height || 0;
 
     // 获取裁剪框在图片上的实际位置和尺寸（考虑缩放）
     const imgLeft = img.left || 0;

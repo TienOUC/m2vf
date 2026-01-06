@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import UserAvatar from './UserAvatar';
+import UserAvatar from '@/components/layout/UserAvatar';
 import { AutoAwesome, Edit } from '@mui/icons-material';
 import { ROUTES } from '@/lib/config/api.config';
 import { useUIStore } from '@/lib/stores';
