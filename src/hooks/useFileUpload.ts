@@ -1,8 +1,15 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 export function useFileUpload(acceptType: string, initialUrl?: string) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileUrl, setFileUrl] = useState<string>(initialUrl || '');
+
+  // 当initialUrl变化时，同步更新本地状态
+  useEffect(() => {
+    if (initialUrl) {
+      setFileUrl(initialUrl);
+    }
+  }, [initialUrl]);
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>, onFileSelected?: (url: string) => void) => {
     const file = e.target.files?.[0];

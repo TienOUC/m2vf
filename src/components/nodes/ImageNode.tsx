@@ -125,4 +125,4 @@ function ImageNode({ data, id, selected }: NodeProps) {
   );
 }
 
-export default memo(ImageNode);
+export default ImageNode;

@@ -337,7 +337,7 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
       video: VideoNode,
       audio: AudioNode
     }),
-    [handleFontTypeChange, nodes, reactFlowInstance]
+    [handleFontTypeChange, reactFlowInstance, handleImageUpdate]
   );
 
   // 连接节点回调

@@ -67,6 +67,7 @@ export const useNodeAddition = ({
         position: pos,
         data: { 
           label: '图片节点',
+          imageUrl: undefined, // 明确初始化为undefined，确保一致的状态
           onTypeChange: handleTypeChange,
           onDelete: handleDelete,
           onReplace: (id: string) => {
