@@ -8,6 +8,7 @@ import { useFileUpload } from '../../hooks/useFileUpload';
 import { NodeBase } from './NodeBase';
 import ResizeIcon from './ResizeIcon';
 import Image from 'next/image';
+import FabricImageEditor from '../FabricImageEditor';
 
 export interface ImageNodeData {
   label?: string;
@@ -15,11 +16,13 @@ export interface ImageNodeData {
   onTypeChange?: (nodeId: string, newType: 'text' | 'image' | 'video') => void;
   onDelete?: (nodeId: string) => void;
   onReplace?: (nodeId: string) => void;
+  onEditStart?: () => void;
 }
 
 function ImageNode({ data, id, selected }: NodeProps) {
   const nodeData = data as ImageNodeData;
   const [localImageUrl, setLocalImageUrl] = useState<string>(nodeData?.imageUrl || '');
+  const [isCropping, setIsCropping] = useState<boolean>(false);
   
   // 使用公共 hook 处理文件上传
   const {
@@ -36,6 +39,24 @@ function ImageNode({ data, id, selected }: NodeProps) {
     });
   };
 
+  // 打开裁剪编辑器
+  const handleEditStart = () => {
+    if (localImageUrl || fileUrl) {
+      setIsCropping(true);
+    }
+  };
+
+  // 裁剪完成回调
+  const handleCropComplete = (croppedImageUrl: string) => {
+    setLocalImageUrl(croppedImageUrl);
+    setIsCropping(false);
+  };
+
+  // 取消裁剪
+  const handleCropCancel = () => {
+    setIsCropping(false);
+  };
+
   const controlStyle = {
     background: 'transparent',
     border: 'none'
@@ -48,6 +69,7 @@ function ImageNode({ data, id, selected }: NodeProps) {
       selected={selected}
       nodeType="image"
       onReplace={handleButtonClick}
+      onEditStart={handleEditStart}
     >
       <div className="absolute inset-0 p-2">
         {localImageUrl || fileUrl ? (
@@ -76,6 +98,18 @@ function ImageNode({ data, id, selected }: NodeProps) {
           className="hidden"
         />
       </div>
+      
+      {/* 裁剪编辑器 */}
+      {isCropping && (
+        <div className="absolute inset-0 z-50">
+          <FabricImageEditor
+            imageUrl={localImageUrl || fileUrl}
+            onCropComplete={handleCropComplete}
+            onCancel={handleCropCancel}
+          />
+        </div>
+      )}
+      
       {/* 将 NodeResizeControl 放在最后，确保它在最上层 */}
       <NodeResizeControl className="group" style={controlStyle} minWidth={100} minHeight={50}>
         <ResizeIcon className="absolute right-0 bottom-0" />

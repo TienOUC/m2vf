@@ -1,5 +1,5 @@
 import { NodeToolbar as ReactFlowNodeToolbar, Position } from '@xyflow/react';
-import { SwapHoriz, TextFields, Image as ImageIcon, VideoFile, Audiotrack, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, HorizontalRule, Fullscreen, DeleteOutline } from '@mui/icons-material';
+import { SwapHoriz, TextFields, Image as ImageIcon, VideoFile, Audiotrack, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, HorizontalRule, Fullscreen, DeleteOutline, Crop } from '@mui/icons-material';
 import { Tooltip } from '@mui/material';
 import { memo, useState, useRef } from 'react';
 import { useClickOutside } from '@/hooks';
@@ -25,6 +25,8 @@ export interface NodeToolbarProps {
   onNumberedListToggle?: (nodeId: string) => void;
   onHorizontalRuleInsert?: (nodeId: string) => void;
   onToggleFullscreen?: (nodeId: string) => void;
+  // 新增：图片裁剪功能 - 修复：添加nodeId参数，与NodeBase类型匹配
+  onEditStart?: (nodeId: string) => void;
 }
 
 const NodeToolbar = ({ 
@@ -40,6 +42,7 @@ const NodeToolbar = ({
   onNumberedListToggle,
   onHorizontalRuleInsert,
   onToggleFullscreen,
+  onEditStart,
   selected = false, 
   type = 'text',
   fontType,
@@ -239,6 +242,19 @@ const NodeToolbar = ({
             aria-label="更换文件"
           >
             {type === 'image' ? <ImageIcon fontSize="small" /> : type === 'video' ? <VideoFile fontSize="small" /> : <Audiotrack fontSize="small" />}
+          </button>
+        </Tooltip>
+      )}
+      
+      {/* 裁剪按钮 - 仅对图片节点显示 */}
+      {type === 'image' && (
+        <Tooltip title="裁剪图片" placement="top">
+          <button
+            onClick={() => onEditStart?.(nodeId)}
+            className="w-8 h-8 p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+            aria-label="裁剪图片"
+          >
+            <Crop fontSize="small" />
           </button>
         </Tooltip>
       )}
