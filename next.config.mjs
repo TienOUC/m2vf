@@ -1,10 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 生产环境下移除 console.log
   compiler: {
-    removeConsole: {
-      exclude: ['error', 'warn'], // 保留 console.error 和 console.warn
-    },
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'], 
+    } : false,
   },
 
   // 代理到后端，只在开发环境启用
