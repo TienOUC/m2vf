@@ -31,6 +31,98 @@ export const apiRequest = async (
     (headers as Record<string, string>).Authorization = `Bearer ${accessToken}`;
   }
 
+  // 开发环境下的 Mock 逻辑
+  if (process.env.NODE_ENV === 'development') {
+    // 检查是否是图片上传请求
+    const imageUploadMatch = url.match(/api\/images\/api\/projects\/(\d+)\/folders\/(\d+)\/images\/upload\//);
+    if (imageUploadMatch && options.method === 'POST') {
+      // 模拟图片上传响应
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          const projectId = imageUploadMatch[1];
+          const folderId = imageUploadMatch[2];
+          const formData = options.body as FormData;
+          const imageName = formData.get('name') as string || 'test-image.jpg';
+          
+          // 生成随机ID
+          const imageId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+          
+          // 创建模拟响应数据
+          const mockData = {
+            status: 200,
+            message: '上传成功',
+            data: {
+              id: imageId,
+              name: imageName,
+              url: `/test-images/test.jpg`,
+              thumbnail_url: `/test-images/test.jpg`,
+              width: 1920,
+              height: 1080,
+              size: Math.floor(Math.random() * (1024000 - 1024 + 1)) + 1024, // 1KB - 1MB
+              uploaded_at: new Date().toISOString(),
+              folder_id: parseInt(folderId),
+              project_id: parseInt(projectId),
+              description: formData.get('description') as string || ''
+            }
+          };
+          
+          // 创建 Response 对象
+          resolve(new Response(JSON.stringify(mockData), {
+            status: 200,
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }));
+        }, 500);
+      });
+    }
+    
+    // 检查是否是视频上传请求
+    const videoUploadMatch = url.match(/api\/images\/api\/projects\/(\d+)\/(?:folders\/(\d+)\/)?videos\/upload\//);
+    if (videoUploadMatch && options.method === 'POST') {
+      // 模拟视频上传响应
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          const projectId = videoUploadMatch[1];
+          const folderId = videoUploadMatch[2] ? parseInt(videoUploadMatch[2]) : null;
+          const formData = options.body as FormData;
+          const videoName = formData.get('name') as string || 'test-video.mp4';
+          
+          // 生成随机ID
+          const videoId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+          
+          // 创建模拟响应数据
+          const mockData = {
+            status: 200,
+            message: '上传成功',
+            data: {
+              id: videoId,
+              name: videoName,
+              url: `/test-images/test.jpg`, // 视频也使用同一测试图片，避免404
+              thumbnail_url: `/test-images/test.jpg`,
+              duration: Math.floor(Math.random() * (300 - 10 + 1)) + 10, // 10秒 - 5分钟
+              width: 1920,
+              height: 1080,
+              size: Math.floor(Math.random() * (102400000 - 1024000 + 1)) + 1024000, // 1MB - 100MB
+              uploaded_at: new Date().toISOString(),
+              folder_id: folderId,
+              project_id: parseInt(projectId),
+              description: formData.get('description') as string || ''
+            }
+          };
+          
+          // 创建 Response 对象
+          resolve(new Response(JSON.stringify(mockData), {
+            status: 200,
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }));
+        }, 1000);
+      });
+    }
+  }
+
   // 设置超时时间（默认使用配置文件中的值）
   const timeout = options.timeout || DEFAULT_CONFIG.REQUEST_TIMEOUT;
   const abortController = new AbortController();

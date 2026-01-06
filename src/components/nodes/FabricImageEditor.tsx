@@ -655,7 +655,7 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       </div>
 
       {/* 工具栏 - 固定在底部 */}
-      <div className="flex justify-center items-center p-4 text-white gap-4 bg-black/50 backdrop-blur-sm">
+      <div className="flex justify-center items-center p-4 text-white gap-4">
         <button
           onClick={resetCropBox}
           className="text-xs flex items-center justify-center px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
