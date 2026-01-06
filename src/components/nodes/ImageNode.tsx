@@ -16,7 +16,7 @@ export interface ImageNodeData {
   onTypeChange?: (nodeId: string, newType: 'text' | 'image' | 'video') => void;
   onDelete?: (nodeId: string) => void;
   onReplace?: (nodeId: string) => void;
-  onEditStart?: () => void;
+  onEditStart?: (nodeId: string) => void;
 }
 
 function ImageNode({ data, id, selected }: NodeProps) {
@@ -39,10 +39,27 @@ function ImageNode({ data, id, selected }: NodeProps) {
     });
   };
 
-  // 打开裁剪编辑器
-  const handleEditStart = () => {
-    if (localImageUrl || fileUrl) {
-      setIsCropping(true);
+  // 打开裁剪编辑器 - 先居中画布，再打开裁剪编辑器
+  const handleEditStart = (nodeId: string) => {
+    // 1. 检测图片节点是否已包含有效图片资源
+    const hasImage = !!(localImageUrl || fileUrl);
+    
+    if (hasImage) {
+      // 2. 响应裁剪按钮的点击事件 - 先调用画布居中逻辑
+      if (nodeData?.onEditStart) {
+        // 3-6. 画布居中逻辑在 page.tsx 的 onEditStart 中实现
+        // 它会计算偏移量、平滑移动画布，确保节点精确居中
+        nodeData.onEditStart(nodeId);
+        
+        // 7. 画布居中完成后，打开裁剪编辑器
+        // 使用 setTimeout 确保画布移动动画开始后再打开编辑器
+        setTimeout(() => {
+          setIsCropping(true);
+        }, 100); // 延迟100ms，让画布移动动画开始
+      } else {
+        // 如果没有 onEditStart 回调，直接打开裁剪编辑器
+        setIsCropping(true);
+      }
     }
   };
 
