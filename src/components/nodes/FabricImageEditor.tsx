@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { ImageCropEditorOptions, CropHistoryRecord } from '@/types/image-editor'; 
 import { useHistory } from '@/hooks/useHistory';
 import { useDebounce } from '@/hooks/useDebounce';
+import { Refresh, Undo, Redo } from '@mui/icons-material';
+import { Tooltip } from '@mui/material';
 
 // fabric.js 类型声明
 type Fabric = any;
@@ -499,9 +501,9 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
   }
 
   return (
-    <div className="w-full h-full flex flex-col bg-transparent">
+    <div className="w-full h-full flex flex-col items-center justify-center bg-transparent">
       {/* 画布容器 - 居中显示，限制最大尺寸 */}
-      <div className="flex-1 flex items-center justify-center overflow-auto p-4">
+      <div className="flex items-center justify-center overflow-auto">
         <canvas
           ref={canvasRef}
           className="shadow-2xl rounded-lg"
@@ -515,28 +517,37 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
         />
       </div>
 
-      {/* 工具栏 - 固定在底部 */}
-      <div className="flex justify-center items-center p-4 text-white gap-4">
-        <button
-          onClick={resetCropBox}
-          className="text-xs flex items-center justify-center px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
-        >
-          重置
-        </button>
-        <button
-          onClick={undo}
-          className="text-xs flex items-center justify-center px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
-          disabled={!canUndo}
-        >
-          撤销
-        </button>
-        <button
-          onClick={redo}
-          className="text-xs flex items-center justify-center px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
-          disabled={!canRedo}
-        >
-          重做
-        </button>
+      {/* 工具栏 - 紧挨着画布底部外侧，间隔8px */}
+      <div className="mt-2 flex justify-center items-center text-white gap-4">
+        <Tooltip title="重置" placement="top">
+          <button
+            onClick={resetCropBox}
+            className="text-xs flex items-center justify-center px-2 py-2  hover:bg-gray-600 rounded-md transition-colors"
+            aria-label="重置"
+          >
+            <Refresh fontSize="small" />
+          </button>
+        </Tooltip>
+        <Tooltip title="撤销" placement="top">
+          <button
+            onClick={undo}
+            className="text-xs flex items-center justify-center px-2 py-2 hover:bg-gray-600 rounded-md transition-colors"
+            disabled={!canUndo}
+            aria-label="撤销"
+          >
+            <Undo fontSize="small" />
+          </button>
+        </Tooltip>
+        <Tooltip title="重做" placement="top">
+          <button
+            onClick={redo}
+            className="text-xs flex items-center justify-center px-2 py-2  hover:bg-gray-600 rounded-md transition-colors"
+            disabled={!canRedo}
+            aria-label="重做"
+          >
+            <Redo fontSize="small" />
+          </button>
+        </Tooltip>
         <button
           onClick={onCancel}
           className="text-xs flex items-center justify-center px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
@@ -547,7 +558,7 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
           onClick={handleCrop}
           className="text-xs flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-md transition-colors font-medium"
         >
-          确认裁剪
+          确认
         </button>
       </div>
     </div>
