@@ -21,6 +21,7 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
   const fabricCanvasRef = useRef<any>(null);
   const imageRef = useRef<any>(null);
   const cropBoxRef = useRef<any>(null);
+  const maskRef = useRef<any>(null);
   const fabricRef = useRef<Fabric | null>(null);
   const [fabricLoaded, setFabricLoaded] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
@@ -226,6 +227,82 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
 
 
 
+  // 更新遮罩层的clipPath
+  const updateMaskClipPath = () => {
+    if (!fabricCanvasRef.current || !cropBoxRef.current || !maskRef.current || !fabricRef.current) return;
+    const fabric = fabricRef.current;
+    const canvas = fabricCanvasRef.current;
+    const cropBox = cropBoxRef.current;
+    const mask = maskRef.current;
+
+    // 获取裁剪框的实际边界，考虑originX和originY的影响
+    const bounds = cropBox.getBoundingRect(true);
+    
+    console.log( 'updateMaskClipPath', bounds.left, bounds.top, bounds.width, bounds.height)
+
+    // 使用裁剪框的实际边界创建洞形效果
+    const pathStr = `M0 0 L${canvas.width} 0 L${canvas.width} ${canvas.height} L0 ${canvas.height} z M${bounds.left} ${bounds.top} L${bounds.left + bounds.width} ${bounds.top} L${bounds.left + bounds.width} ${bounds.top + bounds.height} L${bounds.left} ${bounds.top + bounds.height} z`;
+
+    
+    console.log(pathStr)
+    // 更新遮罩层的clipPath
+    mask.clipPath.set({
+      path: pathStr
+    });
+    canvas.renderAll();
+  };
+
+  // 创建遮罩层
+  const createMask = () => {
+    if (!fabricCanvasRef.current || !imageRef.current || !cropBoxRef.current || !fabricRef.current) return;
+    const fabric = fabricRef.current;
+    const canvas = fabricCanvasRef.current;
+    const img = imageRef.current;
+    const cropBox = cropBoxRef.current;
+
+    // 移除已存在的遮罩层
+    if (maskRef.current) {
+      canvas.remove(maskRef.current);
+      maskRef.current = null;
+    }
+
+    // 获取裁剪框的实际边界，考虑originX和originY的影响
+    const bounds = cropBox.getBoundingRect(true);
+    
+    console.log( 'createMask', bounds.left, bounds.top, bounds.width, bounds.height)
+    // 使用裁剪框的实际边界创建洞形效果
+    const pathStr = `M0 0 L${canvas.width} 0 L${canvas.width} ${canvas.height} L0 ${canvas.height} z M${bounds.left} ${bounds.top} L${bounds.left + bounds.width} ${bounds.top} L${bounds.left + bounds.width} ${bounds.top + bounds.height} L${bounds.left} ${bounds.top + bounds.height} z`;
+    console.log(pathStr)
+    // 创建整个画布大小的矩形作为遮罩层
+    const mask = new fabric.Rect({
+      left: 0,
+      top: 0,
+      width: canvas.width,
+      height: canvas.height,
+      fill: 'rgba(0, 0, 0, 0.6)',
+      selectable: false,
+      evented: false,
+      absolutePositioned: true,
+      // 使用clipPath和evenodd fillRule创建洞形效果
+      clipPath: new fabric.Path(pathStr, {
+        fillRule: 'evenodd'
+      })
+    });
+    //   const _center = cropBox.getCenterPoint()
+    //   mask.setPositionByOrigin(
+    //   _center, 
+    //   'center', 
+    //   'center' 
+    // );
+    maskRef.current = mask;
+
+    // 将遮罩层添加到图片之上，裁剪框之下
+    canvas.add(mask);
+    canvas.sendObjectToBack(img);
+    canvas.bringObjectToFront(cropBox);
+    canvas.renderAll();
+  };
+
   // 创建裁剪框
   const createCropBox = () => {
     if (!fabricCanvasRef.current || !imageRef.current || !fabricRef.current) return;
@@ -290,17 +367,28 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     
     cropBox.on('moving', (e: any) => {
       if (!e.target) return;
+      updateMaskClipPath();
       debouncedSaveHistory();
     });
     
     cropBox.on('scaling', (e: any) => {
       if (!e.target) return;
+      updateMaskClipPath();
+      debouncedSaveHistory();
+    });
+    
+    cropBox.on('rotating', (e: any) => {
+      if (!e.target) return;
+      updateMaskClipPath();
       debouncedSaveHistory();
     });
     
     cropBoxRef.current = cropBox;
     canvas.add(cropBox);
     canvas.setActiveObject(cropBox);
+    
+    // 创建遮罩层
+    createMask();
   };
 
 
@@ -366,6 +454,8 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       scaleY: record.scaleY
     });
 
+    // 更新遮罩层的clipPath
+    updateMaskClipPath();
     fabricCanvasRef.current?.renderAll();
   };
 
@@ -440,6 +530,7 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
 
     imageRef.current = null;
     cropBoxRef.current = null;
+    maskRef.current = null;
   };
 
   useEffect(() => {
