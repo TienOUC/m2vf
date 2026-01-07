@@ -112,18 +112,13 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       return;
     }
 
-    fabric.Image.fromURL(url, {
-      crossOrigin: 'anonymous'
-    })
-    .then((img: any) => {
-      if (!img || !canvasRef.current) {
-        setLoadingError('Failed to load image.');
-        return;
-      }
-
-      imageRef.current = img;
-      const imgWidth = img.width;
-      const imgHeight = img.height;
+    // 先使用原生Image对象获取原始图片尺寸
+    const originalImage = new Image();
+    originalImage.crossOrigin = 'anonymous';
+    originalImage.onload = () => {
+      // 获取原始图片尺寸
+      const imgWidth = originalImage.naturalWidth;
+      const imgHeight = originalImage.naturalHeight;
 
       if (imgWidth === 0 || imgHeight === 0) {
         setLoadingError('Failed to load image - invalid dimensions.');
@@ -138,35 +133,40 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       // 2. 计算图片原始宽高比
       const aspectRatio = imgWidth / imgHeight;
       
-      // 3. 重新设计：先计算正确的缩放比例
-      // 以图片的最长边为基准，计算缩放比例
+      // 3. 计算正确的缩放比例
+      // 确保图片完全显示在viewport内，并且不超过80%的视口大小
       let scale: number;
-      if (imgWidth >= imgHeight) {
-        // 横屏或正方形图片：以宽度为基准，缩放后宽度占满viewport的80%
-        scale = viewportWidth / imgWidth;
+      if (aspectRatio >= 1) {
+        // 横屏或正方形图片：以宽度为基准，确保宽度不超过viewport的80%
+        scale = Math.min(viewportWidth / imgWidth, viewportHeight / imgHeight);
       } else {
-        // 竖屏图片：以高度为基准，缩放后高度占满viewport的80%
-        scale = viewportHeight / imgHeight;
+        // 竖屏图片：以高度为基准，确保高度不超过viewport的80%
+        scale = Math.min(viewportHeight / imgHeight, viewportWidth / imgWidth);
       }
+
+      // 现在使用fabric.js加载图片
+      fabric.Image.fromURL(url, {
+        crossOrigin: 'anonymous'
+      })
+      .then((img: any) => {
+        if (!img || !canvasRef.current) {
+          setLoadingError('Failed to load image.');
+          return;
+        }
+
+        imageRef.current = img;
       
       // 4. 使用缩放比例计算图片放大后的实际尺寸
       // 这个尺寸就是图片在canvas中的最终尺寸
       const scaledWidth = imgWidth * scale;
       const scaledHeight = imgHeight * scale;
       
-      // 4. 直接设置HTML canvas元素的尺寸
+      // 5. 直接设置HTML canvas元素的实际尺寸
       const htmlCanvas = canvasRef.current;
       if (htmlCanvas) {
-        // 设置HTML canvas元素的实际尺寸
         htmlCanvas.width = scaledWidth;
         htmlCanvas.height = scaledHeight;
-        
-        // 设置CSS样式，确保在页面上正确显示
-        htmlCanvas.style.width = `${scaledWidth}px`;
-        htmlCanvas.style.height = `${scaledHeight}px`;
       }
-      
-      // 移除重复的缩放计算，我们已经在第143-150行计算了正确的scale
       
       // 6. 销毁旧的canvas实例（如果存在）
       if (fabricCanvasRef.current) {
@@ -194,19 +194,41 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       // 9. 保存canvas引用
       fabricCanvasRef.current = canvas;
       
-      // 10. 直接使用计算好的缩放比例，确保图片完全占满canvas
-      // 先设置图片的缩放和位置，再添加到画布
+      // 10. 先将图片重置到原始尺寸和位置
+      // 移除所有缩放和定位
       img.set({
         left: 0,
         top: 0,
-        scaleX: scale, // 使用我们计算好的精确缩放比例
-        scaleY: scale, // 保持宽高比一致
+        scaleX: 1,
+        scaleY: 1,
         selectable: false,
         evented: false
       });
       
-      // 11. 添加图片到画布并渲染
+      // 11. 然后应用计算好的缩放比例
+      img.set({
+        scaleX: scale,
+        scaleY: scale
+      });
+      
+      // 12. 添加图片到画布
       canvas.add(img);
+      
+      // 13. 使用fabric.js v7.1推荐的setPositionByOrigin方法实现居中
+      // 计算画布中心坐标
+      const canvasCenterX = canvas.getWidth() / 2;
+      const canvasCenterY = canvas.getHeight() / 2;
+      
+      // 使用setPositionByOrigin方法将图片居中
+      // setPositionByOrigin(目标坐标, 原点X, 原点Y)
+      // 目标坐标是画布中心，图片原点设为自身中心
+      img.setPositionByOrigin(
+        new fabric.Point(canvasCenterX, canvasCenterY),
+        'center', // 图片的X原点设为自身中心
+        'center'  // 图片的Y原点设为自身中心
+      );
+      
+      // 14. 发送图片到图层底部并渲染
       canvas.sendObjectToBack(img);
       canvas.renderAll();
       
@@ -229,6 +251,10 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     });
   };
 
+  // 设置图片源，触发加载
+  originalImage.src = url;
+}
+
   // 创建遮罩层 - 覆盖整个画布
   const createMask = () => {
     if (!fabricCanvasRef.current || !imageRef.current || !fabricRef.current) return;
@@ -250,11 +276,11 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     const canvas = fabricCanvasRef.current;
     const img = imageRef.current;
     
-    // 获取放大后图片的实际尺寸（等于canvas尺寸）
+    // 获取放大后图片的实际尺寸
     const imgWidth = img.width * img.scaleX;
     const imgHeight = img.height * img.scaleY;
-    const imgLeft = 0; // 图片左上角对齐canvas，所以left和top都是0
-    const imgTop = 0;
+    const imgLeft = img.left || 0;
+    const imgTop = img.top || 0;
 
     // 计算裁剪框初始尺寸（默认1:1比例，最大不超过图片尺寸，最小100x100）
     const initialSize = Math.min(
@@ -262,7 +288,7 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       300
     );
 
-    // 计算裁剪框初始位置（居中）
+    // 计算裁剪框初始位置（居中于图片上）
     const left = imgLeft + (imgWidth - initialSize) / 2;
     const top = imgTop + (imgHeight - initialSize) / 2;
 
