@@ -84,12 +84,19 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       width: defaultOptions.canvasWidth,
       height: defaultOptions.canvasHeight,
       preserveObjectStacking: true,
-      selection: false,
+      selection: true, // 允许选择，以便裁剪框可以交互
       backgroundColor: '#ffffff', // 白色背景，确保图片可见
       // 添加渲染配置
       renderOnAddRemove: true,
       skipTargetFind: false,
     });
+
+    // 修复upper-canvas背景问题：设置为透明
+    const upperCanvas = canvas.upperCanvasEl;
+    if (upperCanvas) {
+      upperCanvas.style.backgroundColor = 'transparent';
+      upperCanvas.style.background = 'transparent';
+    }
 
     fabricCanvasRef.current = canvas;
     loadImage(imageUrl);
@@ -102,7 +109,6 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     const fabric = fabricRef.current;
     const canvas = fabricCanvasRef.current;
 
-    // 检查 URL 是否有效
     if (!url || typeof url !== 'string' || url.length === 0) {
       setLoadingError('Invalid image URL provided.');
       return;
@@ -114,51 +120,34 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     maskRef.current = null;
     cropBoxRef.current = null;
 
-    // 使用 fabric.Image.fromURL 加载图片（Promise 方式）
     fabric.Image.fromURL(url, {
       crossOrigin: 'anonymous'
     })
     .then((img: any) => {
-      if (!img) {
+      if (!img || !canvas) {
         setLoadingError('Failed to load image.');
         return;
       }
 
-      if (!canvas) return;
-
       imageRef.current = img;
-
-      // 计算图片适配尺寸（保持比例，放大预览显示）
-      const canvasWidth = canvas.width || defaultOptions.canvasWidth;
-      const canvasHeight = canvas.height || defaultOptions.canvasHeight;
       const imgWidth = img.width;
       const imgHeight = img.height;
 
-      // 如果图片尺寸为0，说明加载失败
       if (imgWidth === 0 || imgHeight === 0) {
         setLoadingError('Failed to load image - invalid dimensions.');
         return;
       }
 
-      // 计算缩放比例 - 图片放大预览，占满可视区域的80-90%
-      // 优先使用较大的缩放比例，让图片更清晰可见
-      const scaleX = (canvasWidth * 0.85) / imgWidth;
-      const scaleY = (canvasHeight * 0.85) / imgHeight;
-      const scaleToFit = Math.min(scaleX, scaleY);
+      // 计算缩放比例 - 让图片按比例填充满canvas
+      const canvasWidth = defaultOptions.canvasWidth;
+      const canvasHeight = defaultOptions.canvasHeight;
+      const scaleX = canvasWidth / imgWidth;
+      const scaleY = canvasHeight / imgHeight;
+      const scale = Math.min(scaleX, scaleY);
       
-      // 如果原图较小，放大显示（至少放大1.2倍）
-      // 如果原图较大，缩小到合适尺寸（不超过画布的90%）
-      const minScale = Math.max(scaleToFit, 1.2); // 至少放大1.2倍
-      const maxScaleX = (canvasWidth * 0.95) / imgWidth;
-      const maxScaleY = (canvasHeight * 0.95) / imgHeight;
-      const maxScale = Math.min(maxScaleX, maxScaleY);
-      const scale = Math.min(minScale, maxScale); // 取较小值，确保图片完全显示
-
-      // 计算图片位置（居中显示）
       const left = (canvasWidth - imgWidth * scale) / 2;
       const top = (canvasHeight - imgHeight * scale) / 2;
 
-      // 设置图片属性
       img.set({
         left,
         top,
@@ -168,26 +157,16 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
         evented: false
       });
 
-      // 添加图片到画布
       canvas.add(img);
-      
-      // 确保图片在最底层
       canvas.sendObjectToBack(img);
+      canvas.renderAll();
 
-      // 创建遮罩层（覆盖整个画布）
       createMask();
-
-      // 创建裁剪框（在遮罩层上方）
       createCropBox();
-
-      // 保存初始状态到历史记录
       saveCurrentStateToHistory();
-      
-      // 先更新遮罩层的孔，创建完整的遮罩层
       updateMaskHole();
-      // 确保裁剪框在最上方
+      
       canvas.bringObjectToFront(cropBoxRef.current);
-      // 渲染画布
       canvas.renderAll();
     })
     .catch((error: any) => {
@@ -198,10 +177,8 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
 
   // 创建遮罩层 - 覆盖整个画布
   const createMask = () => {
-    console.log('createMask')
     if (!fabricCanvasRef.current || !imageRef.current || !fabricRef.current) return;
     
-    const fabric = fabricRef.current;
     const canvas = fabricCanvasRef.current;
 
     // 移除旧的遮罩层
@@ -209,13 +186,11 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       canvas.remove(maskRef.current);
     }
 
-    // 初始化遮罩引用为 null，等待 updateMaskHole 创建真正的遮罩
     maskRef.current = null;
   };
 
   // 创建裁剪框
   const createCropBox = () => {
-   console.log('createCropBox')
     if (!fabricCanvasRef.current || !imageRef.current || !fabricRef.current) return;
     const fabric = fabricRef.current;
     const canvas = fabricCanvasRef.current;
@@ -232,11 +207,9 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       300
     );
 
-    // 计算裁剪框初始位置（居中）
     const left = imgLeft + (imgWidth - initialSize) / 2;
     const top = imgTop + (imgHeight - initialSize) / 2;
 
-    // 创建裁剪框 - 可自由拖动和调整大小
     const cropBox = new fabric.Rect({
       left,
       top,
@@ -245,103 +218,33 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       fill: 'transparent',
       stroke: defaultOptions.cropBoxStyle?.borderColor || '#ffffff',
       strokeWidth: defaultOptions.cropBoxStyle?.borderWidth || 2,
-      strokeDashArray: [5, 5], // 虚线边框
-      cornerSize: defaultOptions.cropBoxStyle?.cornerSize || 12, // 增大控制点
+      strokeDashArray: [5, 5],
+      cornerSize: defaultOptions.cropBoxStyle?.cornerSize || 12,
       cornerColor: defaultOptions.cropBoxStyle?.cornerColor || '#ffffff',
-      cornerStyle: 'circle', // 圆形控制点，更美观
+      cornerStyle: 'circle',
       transparentCorners: false,
-      hasControls: true, // 启用控制点，可以调整大小
-      hasBorders: true, // 启用边框
-      lockRotation: true, // 锁定旋转
-      lockUniScaling: false, // 允许非等比缩放
+      hasControls: true,
+      hasBorders: true,
+      lockRotation: true,
+      lockUniScaling: false,
       minWidth: defaultOptions.minCropSize?.width || 100,
       minHeight: defaultOptions.minCropSize?.height || 100,
       borderColor: defaultOptions.cropBoxStyle?.borderColor || '#ffffff',
       borderScaleFactor: 1,
       padding: 0,
-      moveCursor: 'move', // 移动时的光标
-      hoverCursor: 'move' // 悬停时的光标
+      moveCursor: 'move',
+      hoverCursor: 'move'
     });
 
-    // 监听裁剪框变化事件
     cropBox.on('moving', (e: any) => {
-      // 限制裁剪框在图片范围内移动
-      const currentCanvas = fabricCanvasRef.current;
-      const img = imageRef.current;
-      if (img && currentCanvas) {
-        const imgLeft = img.left || 0;
-        const imgTop = img.top || 0;
-        const imgWidth = (img.width || 0) * (img.scaleX || 1);
-        const imgHeight = (img.height || 0) * (img.scaleY || 1);
-        const cropWidth = cropBox.width || 0;
-        const cropHeight = cropBox.height || 0;
-        
-        // 限制移动范围
-        const newLeft = Math.max(imgLeft, Math.min(e.target.left, imgLeft + imgWidth - cropWidth));
-        const newTop = Math.max(imgTop, Math.min(e.target.top, imgTop + imgHeight - cropHeight));
-        
-        cropBox.set({
-          left: newLeft,
-          top: newTop
-        });
-        currentCanvas.renderAll();
-      }
+      if (!e.target) return;
+      updateMaskHole();
       debouncedSaveHistory();
     });
     
     cropBox.on('scaling', (e: any) => {
-      // 限制裁剪框在图片范围内缩放
-      const currentCanvas = fabricCanvasRef.current;
-      const img = imageRef.current;
-      if (img && currentCanvas) {
-        const imgLeft = img.left || 0;
-        const imgTop = img.top || 0;
-        const imgWidth = (img.width || 0) * (img.scaleX || 1);
-        const imgHeight = (img.height || 0) * (img.scaleY || 1);
-        
-        const targetCropBox = e.target;
-        const cropLeft = targetCropBox.left || 0;
-        const cropTop = targetCropBox.top || 0;
-        const cropWidth = targetCropBox.width || 0;
-        const cropHeight = targetCropBox.height || 0;
-        
-        // 确保裁剪框不超出图片范围
-        let newLeft = cropLeft;
-        let newTop = cropTop;
-        let newWidth = cropWidth;
-        let newHeight = cropHeight;
-        
-        if (cropLeft < imgLeft) {
-          newLeft = imgLeft;
-          newWidth = cropWidth - (imgLeft - cropLeft);
-        }
-        if (cropTop < imgTop) {
-          newTop = imgTop;
-          newHeight = cropHeight - (imgTop - cropTop);
-        }
-        if (cropLeft + cropWidth > imgLeft + imgWidth) {
-          newWidth = imgLeft + imgWidth - newLeft;
-        }
-        if (cropTop + cropHeight > imgTop + imgHeight) {
-          newHeight = imgTop + imgHeight - newTop;
-        }
-        
-        // 确保最小尺寸
-        if (newWidth < (defaultOptions.minCropSize?.width || 100)) {
-          newWidth = defaultOptions.minCropSize?.width || 100;
-        }
-        if (newHeight < (defaultOptions.minCropSize?.height || 100)) {
-          newHeight = defaultOptions.minCropSize?.height || 100;
-        }
-        
-        targetCropBox.set({
-          left: newLeft,
-          top: newTop,
-          width: newWidth,
-          height: newHeight
-        });
-        currentCanvas.renderAll();
-      }
+      if (!e.target) return;
+      updateMaskHole();
       debouncedSaveHistory();
     });
 
@@ -349,27 +252,23 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     canvas.add(cropBox);
     canvas.setActiveObject(cropBox);
 
-    // 创建裁剪区域的孔（用于显示裁剪区域内的图片）
     updateMaskHole();
   };
 
   // 更新遮罩层的孔（显示裁剪区域内的图片）
   const updateMaskHole = () => {
-    console.log('updateMaskHole')
-    if (!cropBoxRef.current || !fabricCanvasRef.current || !fabricRef.current) return;
+    if (!cropBoxRef.current || !fabricCanvasRef.current || !fabricRef.current || !imageRef.current) return;
     
     const fabric = fabricRef.current;
     const canvas = fabricCanvasRef.current;
     const cropBox = cropBoxRef.current;
+    const img = imageRef.current;
 
-    // 获取裁剪框的位置和尺寸
     const cropLeft = cropBox.left || 0;
     const cropTop = cropBox.top || 0;
     const cropWidth = cropBox.width || 0;
     const cropHeight = cropBox.height || 0;
     
-    // 创建一个包含透明洞的遮罩矩形
-    // 首先创建一个覆盖整个画布的遮罩
     const canvasWidth = canvas.width || defaultOptions.canvasWidth;
     const canvasHeight = canvas.height || defaultOptions.canvasHeight;
     
@@ -378,60 +277,37 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       canvas.remove(maskRef.current);
     }
     
-    // 创建背景遮罩（全黑）
-    const backgroundMask = new fabric.Rect({
+    // 使用SVG路径创建带孔的遮罩
+    const maskPath = `M0 0 L${canvasWidth} 0 L${canvasWidth} ${canvasHeight} L0 ${canvasHeight} Z M${cropLeft} ${cropTop} L${cropLeft + cropWidth} ${cropTop} L${cropLeft + cropWidth} ${cropTop + cropHeight} L${cropLeft} ${cropTop + cropHeight} Z`;
+    
+    const mask = new fabric.Path(maskPath, {
       left: 0,
       top: 0,
-      width: canvasWidth,
-      height: canvasHeight,
       fill: defaultOptions.maskStyle?.color || '#000000',
       opacity: defaultOptions.maskStyle?.opacity || 0.7,
       selectable: false,
       evented: false,
+      strokeWidth: 0
     });
     
-    // 创建裁剪区域（透明区域）
-    const cropArea = new fabric.Rect({
-      left: cropLeft,
-      top: cropTop,
-      width: cropWidth,
-      height: cropHeight,
-      fill: 'rgba(0,0,0,0)', // 透明
-      selectable: false,
-      evented: false,
-      stroke: defaultOptions.cropBoxStyle?.borderColor || '#ffffff',
-      strokeWidth: defaultOptions.cropBoxStyle?.borderWidth || 2,
-      strokeDashArray: [5, 5], // 虚线边框
-    });
+    maskRef.current = mask;
+    canvas.add(mask);
     
-    // 将背景遮罩和裁剪区域组合成一个组
-    const maskGroup = new fabric.Group([backgroundMask, cropArea], {
-      selectable: false,
-      evented: false,
-    });
-    
-    // 更新遮罩引用
-    maskRef.current = maskGroup;
-    
-    // 添加新的遮罩到画布
-    canvas.add(maskGroup);
-    
-    // 确保裁剪框始终在最上方，方便用户操作
+    // 确保正确的层级顺序
+    canvas.sendObjectToBack(img);
+    canvas.bringObjectToFront(mask);
     canvas.bringObjectToFront(cropBox);
     
-    // 渲染画布
     canvas.renderAll();
   };
 
   // 创建保存历史记录的函数
   const saveCurrentStateToHistory = () => {
-    console.log('saveCurrentStateToHistory')
     if (!fabricCanvasRef.current || !cropBoxRef.current || !imageRef.current) return;
 
     const cropBox = cropBoxRef.current;
     const img = imageRef.current;
 
-    // 创建历史记录
     const record: CropHistoryRecord = {
       cropBox: {
         left: cropBox.left || 0,
@@ -443,7 +319,6 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       scaleY: img.scaleY || 1
     };
 
-    // 使用自定义Hook保存历史记录
     saveHistory(record);
   };
 
@@ -618,30 +493,6 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       destroyEditor();
     };
   }, [fabricLoaded, imageUrl]);
-
-  // 监听裁剪框变化，更新遮罩层
-  useEffect(() => {
-    if (!fabricCanvasRef.current || !cropBoxRef.current) return;
-
-    const canvas = fabricCanvasRef.current;
-    const cropBox = cropBoxRef.current;
-
-    const handleObjectMoving = () => {
-      updateMaskHole();
-    };
-
-    const handleObjectScaling = () => {
-      updateMaskHole();
-    };
-
-    canvas.on('object:moving', handleObjectMoving);
-    canvas.on('object:scaling', handleObjectScaling);
-
-    return () => {
-      canvas.off('object:moving', handleObjectMoving);
-      canvas.off('object:scaling', handleObjectScaling);
-    };
-  }, []);
 
   // 显示加载状态或错误信息
   if (loadingError) {
