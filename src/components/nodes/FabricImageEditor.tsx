@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import type { ImageCropEditorOptions, CropHistoryRecord } from '@/types/image-editor'; // 修复：移除未使用的ImageCropEditorInstance类型导入
+import type { ImageCropEditorOptions, CropHistoryRecord } from '@/types/image-editor'; 
 import { useHistory } from '@/hooks/useHistory';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -24,7 +24,6 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
   const [fabricLoaded, setFabricLoaded] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   
-  // 使用自定义Hook管理历史记录，获取canUndo和canRedo状态
   const { save: saveHistory, undo: undoHistory, redo: redoHistory, canUndo, canRedo } = useHistory<CropHistoryRecord>(5);
   
   // 默认配置 - 全屏显示，图片放大展示
@@ -119,7 +118,7 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     fabric.Image.fromURL(url, {
       crossOrigin: 'anonymous'
     })
-    .then(img => {
+    .then((img: any) => {
       if (!img) {
         setLoadingError('Failed to load image.');
         return;
@@ -191,7 +190,7 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       // 渲染画布
       canvas.renderAll();
     })
-    .catch(error => {
+    .catch((error: any) => {
       setLoadingError('Failed to load image.');
       console.error('Image loading error:', error);
     });
@@ -199,6 +198,7 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
 
   // 创建遮罩层 - 覆盖整个画布
   const createMask = () => {
+    console.log('createMask')
     if (!fabricCanvasRef.current || !imageRef.current || !fabricRef.current) return;
     
     const fabric = fabricRef.current;
@@ -215,9 +215,8 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
 
   // 创建裁剪框
   const createCropBox = () => {
-    console.log('createCropBox')
+   console.log('createCropBox')
     if (!fabricCanvasRef.current || !imageRef.current || !fabricRef.current) return;
-    
     const fabric = fabricRef.current;
     const canvas = fabricCanvasRef.current;
     const img = imageRef.current;
@@ -356,6 +355,7 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
 
   // 更新遮罩层的孔（显示裁剪区域内的图片）
   const updateMaskHole = () => {
+    console.log('updateMaskHole')
     if (!cropBoxRef.current || !fabricCanvasRef.current || !fabricRef.current) return;
     
     const fabric = fabricRef.current;
@@ -425,6 +425,7 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
 
   // 创建保存历史记录的函数
   const saveCurrentStateToHistory = () => {
+    console.log('saveCurrentStateToHistory')
     if (!fabricCanvasRef.current || !cropBoxRef.current || !imageRef.current) return;
 
     const cropBox = cropBoxRef.current;
