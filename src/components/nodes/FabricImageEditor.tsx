@@ -73,20 +73,19 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     };
   }, []);
 
-  // 初始化画布
+  // 初始化画布 - 不设置固定尺寸，后续根据图片实际尺寸调整
   const initCanvas = () => {
     if (!canvasRef.current || !fabricRef.current) return;
 
     const fabric = fabricRef.current;
 
-    // 创建fabric画布 - 使用适当尺寸，白色背景
+    // 创建fabric画布 - 初始尺寸很小，后续根据图片实际尺寸调整
     const canvas = new fabric.Canvas(canvasRef.current, {
-      width: defaultOptions.canvasWidth,
-      height: defaultOptions.canvasHeight,
+      width: 100,
+      height: 100,
       preserveObjectStacking: true,
-      selection: true, // 允许选择，以便裁剪框可以交互
-      backgroundColor: '#ffffff', // 白色背景，确保图片可见
-      // 添加渲染配置
+      selection: true,
+      backgroundColor: '#ffffff',
       renderOnAddRemove: true,
       skipTargetFind: false,
     });
@@ -104,27 +103,20 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
 
   // 加载图片并适配尺寸
   const loadImage = (url: string) => {
-    if (!fabricCanvasRef.current || !fabricRef.current) return;
+    if (!canvasRef.current || !fabricRef.current) return;
     
     const fabric = fabricRef.current;
-    const canvas = fabricCanvasRef.current;
-
+    
     if (!url || typeof url !== 'string' || url.length === 0) {
       setLoadingError('Invalid image URL provided.');
       return;
     }
 
-    // 清空画布上所有对象，确保重新加载
-    canvas.clear();
-    imageRef.current = null;
-    maskRef.current = null;
-    cropBoxRef.current = null;
-
     fabric.Image.fromURL(url, {
       crossOrigin: 'anonymous'
     })
     .then((img: any) => {
-      if (!img || !canvas) {
+      if (!img || !canvasRef.current) {
         setLoadingError('Failed to load image.');
         return;
       }
@@ -138,36 +130,98 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
         return;
       }
 
-      // 计算缩放比例 - 让图片按比例填充满canvas
-      const canvasWidth = defaultOptions.canvasWidth;
-      const canvasHeight = defaultOptions.canvasHeight;
-      const scaleX = canvasWidth / imgWidth;
-      const scaleY = canvasHeight / imgHeight;
-      const scale = Math.min(scaleX, scaleY);
+      // 计算图片放大比例和canvas尺寸
+      // 1. 获取页面可视区域的80%作为基准
+      const viewportWidth = window.innerWidth * 0.8;
+      const viewportHeight = window.innerHeight * 0.8;
       
-      const left = (canvasWidth - imgWidth * scale) / 2;
-      const top = (canvasHeight - imgHeight * scale) / 2;
-
+      // 2. 计算图片原始宽高比
+      const aspectRatio = imgWidth / imgHeight;
+      
+      // 3. 重新设计：先计算正确的缩放比例
+      // 以图片的最长边为基准，计算缩放比例
+      let scale: number;
+      if (imgWidth >= imgHeight) {
+        // 横屏或正方形图片：以宽度为基准，缩放后宽度占满viewport的80%
+        scale = viewportWidth / imgWidth;
+      } else {
+        // 竖屏图片：以高度为基准，缩放后高度占满viewport的80%
+        scale = viewportHeight / imgHeight;
+      }
+      
+      // 4. 使用缩放比例计算图片放大后的实际尺寸
+      // 这个尺寸就是图片在canvas中的最终尺寸
+      const scaledWidth = imgWidth * scale;
+      const scaledHeight = imgHeight * scale;
+      
+      // 4. 直接设置HTML canvas元素的尺寸
+      const htmlCanvas = canvasRef.current;
+      if (htmlCanvas) {
+        // 设置HTML canvas元素的实际尺寸
+        htmlCanvas.width = scaledWidth;
+        htmlCanvas.height = scaledHeight;
+        
+        // 设置CSS样式，确保在页面上正确显示
+        htmlCanvas.style.width = `${scaledWidth}px`;
+        htmlCanvas.style.height = `${scaledHeight}px`;
+      }
+      
+      // 移除重复的缩放计算，我们已经在第143-150行计算了正确的scale
+      
+      // 6. 销毁旧的canvas实例（如果存在）
+      if (fabricCanvasRef.current) {
+        fabricCanvasRef.current.dispose();
+        fabricCanvasRef.current = null;
+      }
+      
+      // 7. 使用计算好的尺寸创建新的fabric.Canvas实例
+      const canvas = new fabric.Canvas(canvasRef.current, {
+        width: scaledWidth,
+        height: scaledHeight,
+        preserveObjectStacking: true,
+        selection: true,
+        backgroundColor: '#ffffff',
+        renderOnAddRemove: true,
+        skipTargetFind: false,
+      });
+      
+      // 8. 修复upper-canvas背景问题
+      if (canvas.upperCanvasEl) {
+        canvas.upperCanvasEl.style.backgroundColor = 'transparent';
+        canvas.upperCanvasEl.style.background = 'transparent';
+      }
+      
+      // 9. 保存canvas引用
+      fabricCanvasRef.current = canvas;
+      
+      // 10. 直接使用计算好的缩放比例，确保图片完全占满canvas
+      // 先设置图片的缩放和位置，再添加到画布
       img.set({
-        left,
-        top,
-        scaleX: scale,
-        scaleY: scale,
+        left: 0,
+        top: 0,
+        scaleX: scale, // 使用我们计算好的精确缩放比例
+        scaleY: scale, // 保持宽高比一致
         selectable: false,
         evented: false
       });
-
+      
+      // 11. 添加图片到画布并渲染
       canvas.add(img);
       canvas.sendObjectToBack(img);
       canvas.renderAll();
-
-      createMask();
+      
+      // 12. 创建裁剪框
+      // 注释掉遮罩相关功能
+      // createMask();
       createCropBox();
       saveCurrentStateToHistory();
-      updateMaskHole();
+      // updateMaskHole();
       
-      canvas.bringObjectToFront(cropBoxRef.current);
-      canvas.renderAll();
+      // 13. 确保裁剪框在最上方
+      if (cropBoxRef.current) {
+        canvas.bringObjectToFront(cropBoxRef.current);
+        canvas.renderAll();
+      }
     })
     .catch((error: any) => {
       setLoadingError('Failed to load image.');
@@ -196,10 +250,11 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     const canvas = fabricCanvasRef.current;
     const img = imageRef.current;
     
-    const imgWidth = (img.width || 0) * (img.scaleX || 1);
-    const imgHeight = (img.height || 0) * (img.scaleY || 1);
-    const imgLeft = img.left || 0;
-    const imgTop = img.top || 0;
+    // 获取放大后图片的实际尺寸（等于canvas尺寸）
+    const imgWidth = img.width * img.scaleX;
+    const imgHeight = img.height * img.scaleY;
+    const imgLeft = 0; // 图片左上角对齐canvas，所以left和top都是0
+    const imgTop = 0;
 
     // 计算裁剪框初始尺寸（默认1:1比例，最大不超过图片尺寸，最小100x100）
     const initialSize = Math.min(
@@ -207,6 +262,7 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       300
     );
 
+    // 计算裁剪框初始位置（居中）
     const left = imgLeft + (imgWidth - initialSize) / 2;
     const top = imgTop + (imgHeight - initialSize) / 2;
 
@@ -238,13 +294,13 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
 
     cropBox.on('moving', (e: any) => {
       if (!e.target) return;
-      updateMaskHole();
+      // updateMaskHole();
       debouncedSaveHistory();
     });
     
     cropBox.on('scaling', (e: any) => {
       if (!e.target) return;
-      updateMaskHole();
+      // updateMaskHole();
       debouncedSaveHistory();
     });
 
@@ -252,7 +308,7 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     canvas.add(cropBox);
     canvas.setActiveObject(cropBox);
 
-    updateMaskHole();
+    // updateMaskHole();
   };
 
   // 更新遮罩层的孔（显示裁剪区域内的图片）
@@ -370,8 +426,8 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     // 更新画布
     fabricCanvasRef.current?.renderAll();
 
-    // 更新遮罩层孔
-    updateMaskHole();
+    // 注释掉遮罩相关功能
+    // updateMaskHole();
   };
 
   // 执行裁剪
