@@ -217,28 +217,52 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
 
 
 
-  // 更新遮罩层的clipPath
+  // 更新遮罩层
   const updateMaskClipPath = () => {
     if (!fabricCanvasRef.current || !cropBoxRef.current || !maskRef.current || !fabricRef.current) return;
     const fabric = fabricRef.current;
     const canvas = fabricCanvasRef.current;
     const cropBox = cropBoxRef.current;
-    const mask = maskRef.current;
+    const maskGroup = maskRef.current;
 
-    // 获取裁剪框的实际边界，考虑originX和originY的影响
+    // 获取裁剪框的实际边界
     const bounds = cropBox.getBoundingRect(true);
-    
-    console.log( 'updateMaskClipPath', bounds.left, bounds.top, bounds.width, bounds.height)
 
-    // 使用裁剪框的实际边界创建洞形效果
-    const pathStr = `M0 0 L${canvas.width} 0 L${canvas.width} ${canvas.height} L0 ${canvas.height} z M${bounds.left} ${bounds.top} L${bounds.left + bounds.width} ${bounds.top} L${bounds.left + bounds.width} ${bounds.top + bounds.height} L${bounds.left} ${bounds.top + bounds.height} z`;
-
-    
-    console.log(pathStr)
-    // 更新遮罩层的clipPath
-    mask.clipPath.set({
-      path: pathStr
-    });
+    // 更新四个遮罩矩形的位置和尺寸
+      if (maskGroup && maskGroup._objects && maskGroup._objects.length === 4) {
+        const [topMask, bottomMask, leftMask, rightMask] = maskGroup._objects;
+        
+        // 更新上遮罩
+        topMask.set({
+          height: Math.max(0, bounds.top)
+        });
+        topMask.setCoords();
+        
+        // 更新下遮罩
+        bottomMask.set({
+          top: bounds.top + bounds.height,
+          height: Math.max(0, canvas.height - (bounds.top + bounds.height))
+        });
+        bottomMask.setCoords();
+        
+        // 更新左遮罩
+        leftMask.set({
+          width: Math.max(0, bounds.left),
+          height: Math.max(0, bounds.height)
+        });
+        leftMask.setCoords();
+        
+        // 更新右遮罩
+        rightMask.set({
+          left: bounds.left + bounds.width,
+          width: Math.max(0, canvas.width - (bounds.left + bounds.width)),
+          height: Math.max(0, bounds.height)
+        });
+        rightMask.setCoords();
+        
+        // 更新Group的尺寸和位置
+        maskGroup.setCoords();
+    }
     canvas.renderAll();
   };
 
@@ -256,33 +280,70 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       maskRef.current = null;
     }
 
-    // 获取裁剪框的实际边界，考虑originX和originY的影响
+    // 获取裁剪框的实际边界（相对于画布的绝对坐标）
     const bounds = cropBox.getBoundingRect(true);
     
-    console.log( 'createMask', bounds.left, bounds.top, bounds.width, bounds.height)
-    // 使用裁剪框的实际边界创建洞形效果
-    const pathStr = `M0 0 L${canvas.width} 0 L${canvas.width} ${canvas.height} L0 ${canvas.height} z M${bounds.left} ${bounds.top} L${bounds.left + bounds.width} ${bounds.top} L${bounds.left + bounds.width} ${bounds.top + bounds.height} L${bounds.left} ${bounds.top + bounds.height} z`;
-    console.log(pathStr)
-    // 创建整个画布大小的矩形作为遮罩层
-    const mask = new fabric.Rect({
-      left: 0,
-      top: 0,
-      width: canvas.width,
-      height: canvas.height,
-      fill: 'rgba(0, 0, 0, 0.6)',
+    // 创建四个矩形来模拟洞形遮罩效果
+    // 这种方法比使用inverted属性更可靠
+    const maskGroup = new fabric.Group([], {
       selectable: false,
-      evented: false,
-      absolutePositioned: true,
-      // 使用clipPath和evenodd fillRule创建洞形效果
-      clipPath: new fabric.Path(pathStr, {
-        fillRule: 'evenodd'
-      })
+      evented: false
     });
 
-    maskRef.current = mask;
+    // 创建四个遮罩矩形：上、下、左、右
+    // 使用Math.max确保尺寸不为负数
+    const masks = [
+      // 上遮罩
+      new fabric.Rect({
+        left: 0,
+        top: 0,
+        width: canvas.width,
+        height: Math.max(0, bounds.top),
+        fill: 'rgba(0, 0, 0, 0.6)',
+        selectable: false,
+        evented: false
+      }),
+      // 下遮罩
+      new fabric.Rect({
+        left: 0,
+        top: bounds.top + bounds.height,
+        width: canvas.width,
+        height: Math.max(0, canvas.height - (bounds.top + bounds.height)),
+        fill: 'rgba(0, 0, 0, 0.6)',
+        selectable: false,
+        evented: false
+      }),
+      // 左遮罩
+      new fabric.Rect({
+        left: 0,
+        top: bounds.top,
+        width: Math.max(0, bounds.left),
+        height: Math.max(0, bounds.height),
+        fill: 'rgba(0, 0, 0, 0.6)',
+        selectable: false,
+        evented: false
+      }),
+      // 右遮罩
+      new fabric.Rect({
+        left: bounds.left + bounds.width,
+        top: bounds.top,
+        width: Math.max(0, canvas.width - (bounds.left + bounds.width)),
+        height: Math.max(0, bounds.height),
+        fill: 'rgba(0, 0, 0, 0.6)',
+        selectable: false,
+        evented: false
+      })
+    ];
+
+    masks.forEach(maskRect => {
+      maskGroup.add(maskRect);
+      maskRect.setCoords();
+    });
+
+    maskRef.current = maskGroup;
 
     // 将遮罩层添加到图片之上，裁剪框之下
-    canvas.add(mask);
+    canvas.add(maskGroup);
     canvas.sendObjectToBack(img);
     canvas.bringObjectToFront(cropBox);
     canvas.renderAll();
@@ -456,8 +517,8 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     const imgScaleY = img.scaleY || 1;
 
     // 计算裁剪区域相对于原始图片的坐标
-    const cropLeft = (cropBox.left || 0 - imgLeft) / imgScaleX;
-    const cropTop = (cropBox.top || 0 - imgTop) / imgScaleY;
+    const cropLeft = ((cropBox.left || 0) - imgLeft) / imgScaleX;
+    const cropTop = ((cropBox.top || 0) - imgTop) / imgScaleY;
     const cropWidth = (cropBox.width || 0) / imgScaleX;
     const cropHeight = (cropBox.height || 0) / imgScaleY;
 
