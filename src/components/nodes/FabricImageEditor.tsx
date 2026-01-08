@@ -182,28 +182,18 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       
       fabricCanvasRef.current = canvas;
       
-      // 使用fabric.js v7.1推荐的setPositionByOrigin方法实现居中
-      // setPositionByOrigin(目标坐标, 原点X, 原点Y)
-      // 目标坐标是画布中心，图片原点设为自身中心
       img.set({
         left: 0,
         top: 0,
-        scaleX: scale, // 直接设置正确的缩放比例
-        scaleY: scale, // 直接设置正确的缩放比例
+        scaleX: scale, 
+        scaleY: scale, 
         selectable: false,
-        evented: false
+        evented: false,
+        originX: 'left',
+        originY: 'top'
       });
       
       canvas.add(img);
-      
-      const canvasCenterX = canvas.getWidth() / 2;
-      const canvasCenterY = canvas.getHeight() / 2;
-      
-      img.setPositionByOrigin(
-        new fabric.Point(canvasCenterX, canvasCenterY),
-        'center',
-        'center'
-      );
       
       canvas.sendObjectToBack(img);
       canvas.renderAll();
@@ -288,12 +278,7 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
         fillRule: 'evenodd'
       })
     });
-    //   const _center = cropBox.getCenterPoint()
-    //   mask.setPositionByOrigin(
-    //   _center, 
-    //   'center', 
-    //   'center' 
-    // );
+
     maskRef.current = mask;
 
     // 将遮罩层添加到图片之上，裁剪框之下
@@ -322,11 +307,15 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     cropWidth = Math.max(cropWidth, defaultOptions.minCropSize?.width || 100);
     cropHeight = Math.max(cropHeight, defaultOptions.minCropSize?.height || 100);
 
-    const imageCenter = img.getCenterPoint();
+    // 计算裁剪框初始位置，使其居中显示
+    const cropBoxLeft = (img.width * img.scaleX - cropWidth) / 2;
+    const cropBoxTop = (img.height * img.scaleY - cropHeight) / 2;
     
     const cropBox = new fabric.Rect({
       width: cropWidth,
       height: cropHeight,
+      left: cropBoxLeft,
+      top: cropBoxTop,
       fill: 'transparent',
       stroke: defaultOptions.cropBoxStyle?.borderColor || '#ffffff',
       strokeWidth: defaultOptions.cropBoxStyle?.borderWidth || 2,
@@ -346,6 +335,8 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       padding: 0,
       moveCursor: 'move',
       hoverCursor: 'move',
+      originX: 'left',
+      originY: 'top',
       _controlsVisibility: {
         tl: true,  
         tr: true,  
@@ -357,13 +348,6 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
         mt: false  
       }
     });
-    
-    // 将裁剪框中心与图片中心对齐
-    cropBox.setPositionByOrigin(
-      imageCenter, 
-      'center', 
-      'center' 
-    );
     
     cropBox.on('moving', (e: any) => {
       if (!e.target) return;
