@@ -690,24 +690,28 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
           </button>
         </Tooltip>
         <Tooltip title="撤销" placement="top">
-          <button
-            onClick={undo}
-            className="text-xs flex items-center justify-center px-2 py-2 hover:bg-gray-600 rounded-md transition-colors"
-            disabled={!canUndo}
-            aria-label="撤销"
-          >
-            <Undo fontSize="small" />
-          </button>
+          <span>
+            <button
+              onClick={undo}
+              className="text-xs flex items-center justify-center px-2 py-2 hover:bg-gray-600 rounded-md transition-colors"
+              disabled={!canUndo}
+              aria-label="撤销"
+            >
+              <Undo fontSize="small" />
+            </button>
+          </span>
         </Tooltip>
         <Tooltip title="重做" placement="top">
-          <button
-            onClick={redo}
-            className="text-xs flex items-center justify-center px-2 py-2  hover:bg-gray-600 rounded-md transition-colors"
-            disabled={!canRedo}
-            aria-label="重做"
-          >
-            <Redo fontSize="small" />
-          </button>
+          <span>
+            <button
+              onClick={redo}
+              className="text-xs flex items-center justify-center px-2 py-2  hover:bg-gray-600 rounded-md transition-colors"
+              disabled={!canRedo}
+              aria-label="重做"
+            >
+              <Redo fontSize="small" />
+            </button>
+          </span>
         </Tooltip>
         <button
           onClick={onCancel}
