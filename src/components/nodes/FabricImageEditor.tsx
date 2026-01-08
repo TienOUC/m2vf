@@ -229,39 +229,45 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     const bounds = cropBox.getBoundingRect(true);
 
     // 更新四个遮罩矩形的位置和尺寸
-      if (maskGroup && maskGroup._objects && maskGroup._objects.length === 4) {
-        const [topMask, bottomMask, leftMask, rightMask] = maskGroup._objects;
-        
-        // 更新上遮罩
-        topMask.set({
-          height: Math.max(0, bounds.top)
-        });
-        topMask.setCoords();
-        
-        // 更新下遮罩
-        bottomMask.set({
-          top: bounds.top + bounds.height,
-          height: Math.max(0, canvas.height - (bounds.top + bounds.height))
-        });
-        bottomMask.setCoords();
-        
-        // 更新左遮罩
-        leftMask.set({
-          width: Math.max(0, bounds.left),
-          height: Math.max(0, bounds.height)
-        });
-        leftMask.setCoords();
-        
-        // 更新右遮罩
-        rightMask.set({
-          left: bounds.left + bounds.width,
-          width: Math.max(0, canvas.width - (bounds.left + bounds.width)),
-          height: Math.max(0, bounds.height)
-        });
-        rightMask.setCoords();
-        
-        // 更新Group的尺寸和位置
-        maskGroup.setCoords();
+    if (maskGroup && maskGroup._objects && maskGroup._objects.length === 4) {
+      const [topMask, bottomMask, leftMask, rightMask] = maskGroup._objects;
+
+      // 计算每个遮罩矩形的绝对坐标
+      // topMask: 从 (0,0) 到 (canvas.width, bounds.top)
+      topMask.set({
+        left: 0,
+        top: 0,
+        width: canvas.width,
+        height: bounds.top
+      });
+      topMask.setCoords();
+
+      // bottomMask: 从 (0, bounds.top + bounds.height) 到 (canvas.width, canvas.height)
+      bottomMask.set({
+        left: 0,
+        top: bounds.top + bounds.height,
+        width: canvas.width,
+        height: canvas.height - (bounds.top + bounds.height)
+      });
+      bottomMask.setCoords();
+
+      // leftMask: 从 (0, bounds.top) 到 (bounds.left, bounds.top + bounds.height)
+      leftMask.set({
+        left: 0,
+        top: bounds.top,
+        width: bounds.left,
+        height: bounds.height
+      });
+      leftMask.setCoords();
+
+      // rightMask: 从 (bounds.left + bounds.width, bounds.top) 到 (canvas.width, bounds.top + bounds.height)
+      rightMask.set({
+        left: bounds.left + bounds.width,
+        top: bounds.top,
+        width: canvas.width - (bounds.left + bounds.width),
+        height: bounds.height
+      });
+      rightMask.setCoords();
     }
     canvas.renderAll();
   };
@@ -282,12 +288,14 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
 
     // 获取裁剪框的实际边界（相对于画布的绝对坐标）
     const bounds = cropBox.getBoundingRect(true);
-    
+
     // 创建四个矩形来模拟洞形遮罩效果
-    // 这种方法比使用inverted属性更可靠
+    // 使用 fabric.Group 但确保子对象使用绝对坐标
     const maskGroup = new fabric.Group([], {
       selectable: false,
-      evented: false
+      evented: false,
+      originX: 'left',
+      originY: 'top'
     });
 
     // 创建四个遮罩矩形：上、下、左、右
@@ -301,7 +309,9 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
         height: Math.max(0, bounds.top),
         fill: 'rgba(0, 0, 0, 0.6)',
         selectable: false,
-        evented: false
+        evented: false,
+        originX: 'left',
+        originY: 'top'
       }),
       // 下遮罩
       new fabric.Rect({
@@ -311,7 +321,9 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
         height: Math.max(0, canvas.height - (bounds.top + bounds.height)),
         fill: 'rgba(0, 0, 0, 0.6)',
         selectable: false,
-        evented: false
+        evented: false,
+        originX: 'left',
+        originY: 'top'
       }),
       // 左遮罩
       new fabric.Rect({
@@ -321,7 +333,9 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
         height: Math.max(0, bounds.height),
         fill: 'rgba(0, 0, 0, 0.6)',
         selectable: false,
-        evented: false
+        evented: false,
+        originX: 'left',
+        originY: 'top'
       }),
       // 右遮罩
       new fabric.Rect({
@@ -331,7 +345,9 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
         height: Math.max(0, bounds.height),
         fill: 'rgba(0, 0, 0, 0.6)',
         selectable: false,
-        evented: false
+        evented: false,
+        originX: 'left',
+        originY: 'top'
       })
     ];
 
@@ -339,6 +355,15 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       maskGroup.add(maskRect);
       maskRect.setCoords();
     });
+
+    // 设置 Group 本身的坐标为原点，确保子对象坐标是绝对的
+    maskGroup.set({
+      left: 0,
+      top: 0,
+      width: canvas.width,
+      height: canvas.height
+    });
+    maskGroup.setCoords();
 
     maskRef.current = maskGroup;
 
