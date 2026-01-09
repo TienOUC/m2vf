@@ -67,11 +67,14 @@ export const createCropBox = (fabric: Fabric, config: CropBoxConfig): FabricObje
 export const createMask = (fabric: Fabric, canvas: FabricCanvas, cropBox: FabricObject, maskConfig: MaskConfig = { color: 'rgba(0, 0, 0, 0.7)', opacity: 0.7 }): FabricObject | null => {
   if (!canvas || !cropBox) return null;
 
-  // 直接使用裁剪框的坐标，确保坐标系统统一
-  const cropBoxLeft = cropBox.left || 0;
-  const cropBoxTop = cropBox.top || 0;
-  const cropBoxWidth = cropBox.width || 0;
-  const cropBoxHeight = cropBox.height || 0;
+
+  // 使用getBoundingRect()获取裁剪框的实际边界，确保坐标系统统一
+  const boundingRect = cropBox.getBoundingRect(true);
+  
+  const cropBoxLeft = boundingRect.left;
+  const cropBoxTop = boundingRect.top;
+  const cropBoxWidth = boundingRect.width;
+  const cropBoxHeight = boundingRect.height;
 
   // 使用推荐的 clipPath + 奇偶填充规则方式
   // 创建全屏遮罩层，通过 clipPath 实现挖空效果
@@ -81,13 +84,27 @@ export const createMask = (fabric: Fabric, canvas: FabricCanvas, cropBox: Fabric
     width: canvas.width,
     height: canvas.height,
     fill: maskConfig.color,
+    opacity: maskConfig.opacity,
     selectable: false,
     evented: false,
+    originX: 'left',
+    originY: 'top',
     // 核心：使用 clipPath + 奇偶填充规则实现挖空效果
-    clipPath: new fabric.Path(getMaskPath(canvas.width, canvas.height, cropBoxLeft, cropBoxTop, cropBoxWidth, cropBoxHeight), { 
-      fillRule: 'evenodd' 
-    })
+    clipPath: (() => {
+      const path = new fabric.Path(getMaskPath(canvas.width, canvas.height, cropBoxLeft, cropBoxTop, cropBoxWidth, cropBoxHeight), { 
+        fillRule: 'evenodd',
+        originX: 'left',
+        originY: 'top',
+        left: 0,
+        top: 0,
+        absolutePositioned: true
+      });
+      console.log('Created clipPath with path:', path.path);
+      return path;
+    })()
   });
+
+
 
   return maskLayer as FabricObject;
 };
@@ -110,19 +127,20 @@ export const resetMaskBoundsCache = () => {
 export const updateMaskClipPath = (canvas: FabricCanvas | null, cropBox: FabricObject | null, maskLayer: FabricObject | null) => {
   if (!canvas || !cropBox || !maskLayer) return;
 
-  // 直接使用裁剪框的坐标，确保坐标系统统一
-  const cropBoxLeft = cropBox.left || 0;
-  const cropBoxTop = cropBox.top || 0;
-  const cropBoxWidth = cropBox.width || 0;
-  const cropBoxHeight = cropBox.height || 0;
+  // 使用getBoundingRect()获取裁剪框的实际边界，确保坐标系统统一
+  const boundingRect = cropBox.getBoundingRect(true);
+  const cropBoxLeft = boundingRect.left;
+  const cropBoxTop = boundingRect.top;
+  const cropBoxWidth = boundingRect.width;
+  const cropBoxHeight = boundingRect.height;
 
-  // 检查边界是否发生变化，避免不必要的更新
+  // 优化：增加阈值避免过于频繁的更新
   if (lastBounds && 
-      Math.abs(lastBounds.left - cropBoxLeft) < 0.5 &&
-      Math.abs(lastBounds.top - cropBoxTop) < 0.5 &&
-      Math.abs(lastBounds.width - cropBoxWidth) < 0.5 &&
-      Math.abs(lastBounds.height - cropBoxHeight) < 0.5) {
-    // 边界变化很小，跳过更新
+      Math.abs(lastBounds.left - cropBoxLeft) < 1.0 &&
+      Math.abs(lastBounds.top - cropBoxTop) < 1.0 &&
+      Math.abs(lastBounds.width - cropBoxWidth) < 1.0 &&
+      Math.abs(lastBounds.height - cropBoxHeight) < 1.0) {
+    // 边界变化很小，跳过更新以提高性能
     return;
   }
 
@@ -136,17 +154,58 @@ export const updateMaskClipPath = (canvas: FabricCanvas | null, cropBox: FabricO
 
   // 更新遮罩层的 clipPath 路径
   if (maskLayer.clipPath) {
-    maskLayer.clipPath.set({
-      path: getMaskPath(canvas.width, canvas.height, cropBoxLeft, cropBoxTop, cropBoxWidth, cropBoxHeight)
-    });
-    maskLayer.clipPath.setCoords();
+    // 重新创建 clipPath 而不是更新现有对象
+    const newPath = new (maskLayer.clipPath.constructor as any)(
+      getMaskPath(canvas.width, canvas.height, cropBoxLeft, cropBoxTop, cropBoxWidth, cropBoxHeight),
+      {
+        fillRule: 'evenodd',
+        originX: 'left',
+        originY: 'top',
+        left: 0,
+        top: 0,
+        absolutePositioned: true
+      }
+    );
+    
+    // 替换 clipPath
+    maskLayer.clipPath = newPath;
   }
   
-  // 确保遮罩层自身坐标正确
+  // 优化：只更新必要的对象，避免全局重绘
   maskLayer.setCoords();
   
-  // 立即重绘整个画布，确保遮罩层与裁剪框同步更新
-  canvas.renderAll();
+  // 标记遮罩层需要重绘
+  (maskLayer as any).dirty = true;
+  
+  // 使用异步重绘提高性能
+  (canvas as any).requestRenderAll?.() || canvas.renderAll();
+};
+
+export const addImageToCanvas = (fabric: Fabric, canvas: FabricCanvas, imageUrl: string, callback?: (img: FabricObject) => void): void => {
+  fabric.Image.fromURL(imageUrl, (img: FabricObject) => {
+    // 设置图片原点为左上角，与画布一致
+    img.set({
+      originX: 'left',
+      originY: 'top',
+      left: 0,
+      top: 0
+    });
+    canvas.add(img);
+    callback?.(img);
+  }, {
+    crossOrigin: 'anonymous' // 处理跨域图片
+  });
+};
+
+export const getImageCoordinates = (img: FabricObject): { left: number; top: number; width: number; height: number } => {
+  // 使用getBoundingRect()获取图片的实际边界
+  const boundingRect = img.getBoundingRect();
+  return {
+    left: boundingRect.left,
+    top: boundingRect.top,
+    width: boundingRect.width,
+    height: boundingRect.height
+  };
 };
 
 export const destroyCanvas = (canvas: FabricCanvas | null) => {

@@ -72,6 +72,8 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
         cropBoxRef.current.off('moving');
         cropBoxRef.current.off('scaling');
         cropBoxRef.current.off('rotating');
+        
+
       } catch (error) {
         console.warn('Error removing crop box event listeners:', error);
       }
@@ -84,9 +86,20 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     cleanupCropBoxEventListeners();
     
     // 注册新的事件监听器
-    cropBox.on('moving', () => handleCropBoxChange());
-    cropBox.on('scaling', () => handleCropBoxChange());
-    cropBox.on('rotating', () => handleCropBoxChange());
+    // 为高频事件添加节流，提高拖动流畅度
+    let throttleTimer: number | null = null;
+    
+    const throttledHandleCropBoxChange = () => {
+      if (throttleTimer) return;
+      throttleTimer = window.setTimeout(() => {
+        handleCropBoxChange();
+        throttleTimer = null;
+      }, 16); // 约60fps
+    };
+    
+    cropBox.on('moving', throttledHandleCropBoxChange);
+    cropBox.on('scaling', throttledHandleCropBoxChange);
+    cropBox.on('rotating', throttledHandleCropBoxChange);
   };
 
   // 创建裁剪框和遮罩层
@@ -156,9 +169,12 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
 
     maskRef.current = maskGroup;
 
-    // 将遮罩层添加到画布，置于最底层（图片之下）
+
+
+    // 将遮罩层添加到画布，正确的层级顺序：裁剪框 → 遮罩层 → 图片
     canvas.add(maskGroup);
-    canvas.sendObjectToBack(maskGroup);
+    canvas.sendObjectToBack(img);
+    canvas.bringObjectToFront(maskGroup);
     canvas.bringObjectToFront(cropBox);
     canvas.renderAll();
   };
