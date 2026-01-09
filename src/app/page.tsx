@@ -52,7 +52,7 @@ export default function HomePage() {
               多模态支持
             </h3>
             <p className="text-neutral-600 leading-relaxed">
-              支持文本、图像、音频等多种数据格式，满足多样化需求
+              支持文本、图像等多种数据格式，满足多样化需求
             </p>
           </div>
         </div>

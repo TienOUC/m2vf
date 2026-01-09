@@ -4,20 +4,20 @@ import type { NodeProps } from '@xyflow/react';
 export interface NodeData {
   label?: string;
   backgroundColor?: string;
-  onTypeChange?: (nodeId: string, newType: 'text' | 'image' | 'video' | 'audio') => void;
+  onTypeChange?: (nodeId: string, newType: 'text' | 'image' | 'video') => void;
   onDelete?: (nodeId: string) => void;
   onBackgroundColorChange?: (nodeId: string, color: string) => void;
   getContent?: (nodeId: string) => string;
 }
 
 export interface NodeType {
-  type: 'text' | 'image' | 'video' | 'audio';
+  type: 'text' | 'image' | 'video';
 }
 
 export function useNodeBase<T extends NodeData>(data: T, id: string) {
   const nodeData = data as NodeData;
 
-  const handleTypeChange = useCallback((newType: 'text' | 'image' | 'video' | 'audio') => {
+  const handleTypeChange = useCallback((newType: 'text' | 'image' | 'video') => {
     if (nodeData?.onTypeChange && id) {
       nodeData.onTypeChange(id, newType);
     }

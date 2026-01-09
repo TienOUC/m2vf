@@ -6,7 +6,7 @@ import { NodeData } from '@/hooks/useNodeBase';
 
 export interface BaseNodeProps extends Pick<NodeProps, 'id' | 'data' | 'selected'> {
   children: React.ReactNode;
-  nodeType: 'text' | 'image' | 'video' | 'audio';
+  nodeType: 'text' | 'image' | 'video';
   icon?: React.ReactNode;
   title?: string;
   onReplace?: (nodeId: string) => void;

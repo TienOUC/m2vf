@@ -8,7 +8,7 @@ import { isUserLoggedIn } from '@/lib/utils/token';
 import { ROUTES } from '@/lib/config/api.config';
 import Navbar from '@/components/layout/Navbar';
 import LeftSidebar from '@/components/layout/LeftSidebar';
-import { TextNode, ImageNode, VideoNode, AudioNode } from '@/components/nodes';
+import { TextNode, ImageNode, VideoNode } from '@/components/nodes';
 import FabricImageEditor from '@/components/nodes/FabricImageEditor';
 import { useNodeAddition } from '@/hooks/useNodeAddition';
 import { useNodeCentering } from '@/hooks/useNodeCentering';
@@ -153,7 +153,7 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
 
   // 节点类型切换回调
   const handleTypeChange = useCallback(
-    (nodeId: string, newType: 'text' | 'image' | 'video' | 'audio') => {
+    (nodeId: string, newType: 'text' | 'image' | 'video') => {
       setNodes((nds) =>
         nds.map((node) => {
           if (node.id === nodeId) {
@@ -164,9 +164,7 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
                   ? '文本节点'
                   : newType === 'image'
                   ? '图片节点'
-                  : newType === 'video'
-                  ? '视频节点'
-                  : '音频节点',
+                  : '视频节点',
               onTypeChange: handleTypeChange,
               onDelete: handleDelete,
               // 如果是文本节点转换为其他类型，移除背景色相关属性
@@ -175,11 +173,10 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
               ...(node.type !== 'text' && newType === 'text' && { backgroundColor: '#ffffff', onBackgroundColorChange: handleBackgroundColorChange }),
             };
 
-            // 为图片、视频和音频节点添加onReplace回调
+            // 为图片和视频节点添加onReplace回调
             if (
               newType === 'image' ||
-              newType === 'video' ||
-              newType === 'audio'
+              newType === 'video'
             ) {
               return {
                 ...node,
@@ -275,8 +272,7 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
           />
         );
       },
-      video: VideoNode,
-      audio: AudioNode
+      video: VideoNode
     }),
     [handleFontTypeChange, handleImageUpdate, centerNode]
   );
@@ -288,7 +284,7 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
   );
 
   // 使用节点添加 hooks
-  const { addTextNode, addImageNode, addVideoNode, addAudioNode } =
+  const { addTextNode, addImageNode, addVideoNode } =
     useNodeAddition({
       nodeId,
       setNodeId,
@@ -312,11 +308,7 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
     alert('上传视频功能即将实现');
   }, []);
 
-  const handleUploadAudio = useCallback(() => {
-    console.log('上传音频功能');
-    // 这里可以添加音频上传逻辑
-    alert('上传音频功能即将实现');
-  }, []);
+
 
 
   // 双击画布添加节点（默认添加文本节点）
@@ -414,10 +406,8 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
           onAddTextNode={addTextNode}
           onAddImageNode={addImageNode}
           onAddVideoNode={addVideoNode}
-          onAddAudioNode={addAudioNode}
           onUploadImage={handleUploadImage}
           onUploadVideo={handleUploadVideo}
-          onUploadAudio={handleUploadAudio}
           projectId={projectId ? parseInt(projectId) : undefined}
         />
       </ReactFlow>

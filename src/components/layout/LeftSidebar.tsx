@@ -7,7 +7,7 @@ import {
   TextFields,
   Image as ImageIcon,
   VideoFile,
-  Audiotrack,
+
   UploadFile,
   Collections
 } from '@mui/icons-material';
@@ -19,11 +19,8 @@ interface LeftSidebarProps {
   onAddTextNode?: () => void;
   onAddImageNode?: () => void;
   onAddVideoNode?: () => void;
-  onAddAudioNode?: () => void;
-
   onUploadImage?: () => void;
   onUploadVideo?: () => void;
-  onUploadAudio?: () => void;
   projectId?: number;
 }
 
@@ -33,10 +30,8 @@ export default function LeftSidebar({
   onAddTextNode,
   onAddImageNode,
   onAddVideoNode,
-  onAddAudioNode,
   onUploadImage,
   onUploadVideo,
-  onUploadAudio,
   projectId
 }: LeftSidebarProps) {
   const [showAddMenu, setShowAddMenu] = useState(false);
@@ -108,14 +103,6 @@ export default function LeftSidebar({
               closeAllMenus();
             }}
           />
-          <MenuButton
-            icon={<Audiotrack fontSize="small" />}
-            label="音频"
-            onClick={() => {
-              onAddAudioNode?.();
-              closeAllMenus();
-            }}
-          />
         </FloatingMenu>
       </div>
 
@@ -164,14 +151,6 @@ export default function LeftSidebar({
             label="上传视频"
             onClick={() => {
               onUploadVideo?.();
-              closeAllMenus();
-            }}
-          />
-          <MenuButton
-            icon={<Audiotrack fontSize="small" />}
-            label="上传音频"
-            onClick={() => {
-              onUploadAudio?.();
               closeAllMenus();
             }}
           />

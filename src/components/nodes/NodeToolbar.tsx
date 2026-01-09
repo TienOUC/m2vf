@@ -1,5 +1,5 @@
 import { NodeToolbar as ReactFlowNodeToolbar, Position } from '@xyflow/react';
-import { SwapHoriz, TextFields, Image as ImageIcon, VideoFile, Audiotrack, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, HorizontalRule, Fullscreen, DeleteOutline, Crop } from '@mui/icons-material';
+import { SwapHoriz, TextFields, Image as ImageIcon, VideoFile, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, HorizontalRule, Fullscreen, DeleteOutline, Crop } from '@mui/icons-material';
 import { Tooltip } from '@mui/material';
 import { memo, useState, useRef } from 'react';
 import { useClickOutside } from '@/hooks';
@@ -7,14 +7,14 @@ import { copyToClipboard, copyRichTextToClipboard } from '@/lib/utils';
 
 export interface NodeToolbarProps {
   nodeId: string;
-  onTypeChange?: (nodeId: string, newType: 'text' | 'image' | 'video' | 'audio') => void;
+  onTypeChange?: (nodeId: string, newType: 'text' | 'image' | 'video') => void;
   onDelete?: (nodeId: string) => void;
   onReplace?: (nodeId: string) => void;
   onBackgroundColorChange?: (nodeId: string, color: string) => void;
   onFontTypeChange?: (nodeId: string, fontType: 'h1' | 'h2' | 'h3' | 'p') => void;
   backgroundColor?: string;
   selected?: boolean;
-  type?: 'text' | 'image' | 'video' | 'audio';
+  type?: 'text' | 'image' | 'video';
   fontType?: 'h1' | 'h2' | 'h3' | 'p';
   getContent?: (nodeId: string) => string;
   getRichContent?: (nodeId: string) => string;
@@ -60,7 +60,7 @@ const NodeToolbar = ({
     }
   });
 
-  const handleTypeChange = (newType: 'text' | 'image' | 'video' | 'audio') => {
+  const handleTypeChange = (newType: 'text' | 'image' | 'video') => {
     onTypeChange && onTypeChange(nodeId, newType);
   };
 
@@ -142,25 +142,16 @@ const NodeToolbar = ({
         return [
           { type: 'image' as const, label: '图片', icon: <ImageIcon fontSize="small" /> },
           { type: 'video' as const, label: '视频', icon: <VideoFile fontSize="small" /> },
-          { type: 'audio' as const, label: '音频', icon: <Audiotrack fontSize="small" /> },
         ];
       case 'image':
         return [
           { type: 'text' as const, label: '文本', icon: <TextFields fontSize="small" /> },
           { type: 'video' as const, label: '视频', icon: <VideoFile fontSize="small" /> },
-          { type: 'audio' as const, label: '音频', icon: <Audiotrack fontSize="small" /> },
         ];
       case 'video':
         return [
           { type: 'text' as const, label: '文本', icon: <TextFields fontSize="small" /> },
           { type: 'image' as const, label: '图片', icon: <ImageIcon fontSize="small" /> },
-          { type: 'audio' as const, label: '音频', icon: <Audiotrack fontSize="small" /> },
-        ];
-      case 'audio':
-        return [
-          { type: 'text' as const, label: '文本', icon: <TextFields fontSize="small" /> },
-          { type: 'image' as const, label: '图片', icon: <ImageIcon fontSize="small" /> },
-          { type: 'video' as const, label: '视频', icon: <VideoFile fontSize="small" /> },
         ];
       default:
         return [];
@@ -233,15 +224,15 @@ const NodeToolbar = ({
         </div>
       </div>
       
-      {/* 更换文件按钮 - 仅对图片、视频和音频节点显示 */}
-      {(type === 'image' || type === 'video' || type === 'audio') && (
+      {/* 更换文件按钮 - 仅对图片和视频节点显示 */}
+      {(type === 'image' || type === 'video') && (
         <Tooltip title="更换文件" placement="top">
           <button
             onClick={handleReplace}
             className="w-8 h-8 p-1 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-md transition-colors"
             aria-label="更换文件"
           >
-            {type === 'image' ? <ImageIcon fontSize="small" /> : type === 'video' ? <VideoFile fontSize="small" /> : <Audiotrack fontSize="small" />}
+            {type === 'image' ? <ImageIcon fontSize="small" /> : <VideoFile fontSize="small" />}
           </button>
         </Tooltip>
       )}
