@@ -48,7 +48,22 @@ export const createCropBox = (fabric: Fabric, config: CropBoxConfig): FabricObje
     moveCursor: 'move',
     hoverCursor: 'move',
     originX: 'left',
-    originY: 'top'
+    originY: 'top',
+    // 添加缩放约束事件处理器
+    onBeforeScaleRotate: (target: unknown) => {
+      // 在缩放前进行约束检查
+      return true;
+    },
+    _controlsVisibility: {
+      tl: true,  
+      tr: true,  
+      bl: true,  
+      br: true, 
+      ml: true,  
+      mr: true,  
+      mb: true,  
+      mt: false  
+    }
   });
 
   return cropBox as FabricObject;
