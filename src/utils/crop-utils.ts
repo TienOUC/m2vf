@@ -31,8 +31,9 @@ export const calculateImageDimensions = (naturalWidth: number, naturalHeight: nu
 };
 
 export const calculateCropBoxPosition = (imageWidth: number, imageHeight: number, scale: number, minCropSize: { width: number; height: number }) => {
-  const imgWidth = imageWidth * scale;
-  const imgHeight = imageHeight * scale;
+  // 如果scale为1，说明传入的尺寸已经是画布上的实际尺寸
+  const imgWidth = scale === 1 ? imageWidth : imageWidth * scale;
+  const imgHeight = scale === 1 ? imageHeight : imageHeight * scale;
   
   // 计算裁剪框初始尺寸：图片的80%，保持宽高比
   const scaleFactor = 0.8;
@@ -43,7 +44,11 @@ export const calculateCropBoxPosition = (imageWidth: number, imageHeight: number
   cropWidth = Math.max(cropWidth, minCropSize.width);
   cropHeight = Math.max(cropHeight, minCropSize.height);
 
-  // 计算裁剪框初始位置，使其居中显示
+  // 确保裁剪框不超过图片尺寸
+  cropWidth = Math.min(cropWidth, imgWidth);
+  cropHeight = Math.min(cropHeight, imgHeight);
+
+  // 基于左上角原点(0,0)，计算裁剪框居中位置
   const cropBoxLeft = (imgWidth - cropWidth) / 2;
   const cropBoxTop = (imgHeight - cropHeight) / 2;
 
@@ -69,17 +74,35 @@ export const calculateCropCoordinates = (image: FabricObject | null, cropBox: Fa
     };
   }
 
-  // 获取裁剪框在图片上的实际位置和尺寸（考虑缩放）
+  // 获取图片的变换信息
   const imgLeft = image.left || 0;
   const imgTop = image.top || 0;
   const imgScaleX = image.scaleX || 1;
   const imgScaleY = image.scaleY || 1;
+  const imgWidth = (image.width || 0) * imgScaleX;
+  const imgHeight = (image.height || 0) * imgScaleY;
 
-  // 计算裁剪区域相对于原始图片的坐标
-  const cropLeft = ((cropBox.left || 0) - imgLeft) / imgScaleX;
-  const cropTop = ((cropBox.top || 0) - imgTop) / imgScaleY;
-  const cropWidth = (cropBox.width || 0) / imgScaleX;
-  const cropHeight = (cropBox.height || 0) / imgScaleY;
+  // 获取裁剪框的变换信息
+  const cropBoxLeft = cropBox.left || 0;
+  const cropBoxTop = cropBox.top || 0;
+  // 裁剪框的缩放只是UI效果，不影响实际裁剪尺寸
+  const cropBoxWidth = cropBox.width || 0;
+  const cropBoxHeight = cropBox.height || 0;
+
+  // 计算裁剪框相对于图片左上角的坐标（考虑图片的缩放和位置）
+  // 裁剪框在画布坐标系中的坐标需要转换为相对于图片的坐标
+  const relativeLeft = cropBoxLeft - imgLeft;
+  const relativeTop = cropBoxTop - imgTop;
+
+  // 确保裁剪框在图片范围内
+  const constrainedLeft = Math.max(0, Math.min(relativeLeft, imgWidth - cropBoxWidth));
+  const constrainedTop = Math.max(0, Math.min(relativeTop, imgHeight - cropBoxHeight));
+
+  // 将画布坐标转换为原始图片坐标（考虑缩放）
+  const cropLeft = constrainedLeft / imgScaleX;
+  const cropTop = constrainedTop / imgScaleY;
+  const cropWidth = cropBoxWidth / imgScaleX;
+  const cropHeight = cropBoxHeight / imgScaleY;
 
   return {
     cropLeft,

@@ -64,141 +64,100 @@ export const createCropBox = (fabric: Fabric, config: CropBoxConfig): FabricObje
   return cropBox as FabricObject;
 };
 
-export const createMask = (fabric: Fabric, canvas: FabricCanvas, cropBox: FabricObject, maskConfig: MaskConfig = { color: 'rgba(0, 0, 0, 0.6)', opacity: 0.6 }): FabricObject | null => {
+export const createMask = (fabric: Fabric, canvas: FabricCanvas, cropBox: FabricObject, maskConfig: MaskConfig = { color: 'rgba(0, 0, 0, 0.7)', opacity: 0.7 }): FabricObject | null => {
   if (!canvas || !cropBox) return null;
 
-  // 获取裁剪框的实际边界（相对于画布的绝对坐标）
-  const bounds = cropBox.getBoundingRect(true);
+  // 直接使用裁剪框的坐标，确保坐标系统统一
+  const cropBoxLeft = cropBox.left || 0;
+  const cropBoxTop = cropBox.top || 0;
+  const cropBoxWidth = cropBox.width || 0;
+  const cropBoxHeight = cropBox.height || 0;
 
-  // 创建四个矩形来模拟洞形遮罩效果
-  const maskGroup = new fabric.Group([], {
-    selectable: false,
-    evented: false,
-    originX: 'left',
-    originY: 'top'
-  });
-
-  // 创建四个遮罩矩形：上、下、左、右
-  const masks = [
-    // 上遮罩
-    new fabric.Rect({
-      left: 0,
-      top: 0,
-      width: canvas.width,
-      height: Math.max(0, bounds.top),
-      fill: maskConfig.color,
-      selectable: false,
-      evented: false,
-      originX: 'left',
-      originY: 'top'
-    }),
-    // 下遮罩
-    new fabric.Rect({
-      left: 0,
-      top: bounds.top + bounds.height,
-      width: canvas.width,
-      height: Math.max(0, canvas.height - (bounds.top + bounds.height)),
-      fill: maskConfig.color,
-      selectable: false,
-      evented: false,
-      originX: 'left',
-      originY: 'top'
-    }),
-    // 左遮罩
-    new fabric.Rect({
-      left: 0,
-      top: bounds.top,
-      width: Math.max(0, bounds.left),
-      height: Math.max(0, bounds.height),
-      fill: maskConfig.color,
-      selectable: false,
-      evented: false,
-      originX: 'left',
-      originY: 'top'
-    }),
-    // 右遮罩
-    new fabric.Rect({
-      left: bounds.left + bounds.width,
-      top: bounds.top,
-      width: Math.max(0, canvas.width - (bounds.left + bounds.width)),
-      height: Math.max(0, bounds.height),
-      fill: maskConfig.color,
-      selectable: false,
-      evented: false,
-      originX: 'left',
-      originY: 'top'
-    })
-  ];
-
-  masks.forEach(maskRect => {
-    maskGroup.add(maskRect);
-    maskRect.setCoords();
-  });
-
-  // 设置 Group 本身的坐标为原点，确保子对象坐标是绝对的
-  maskGroup.set({
+  // 使用推荐的 clipPath + 奇偶填充规则方式
+  // 创建全屏遮罩层，通过 clipPath 实现挖空效果
+  const maskLayer = new fabric.Rect({
     left: 0,
     top: 0,
     width: canvas.width,
-    height: canvas.height
+    height: canvas.height,
+    fill: maskConfig.color,
+    selectable: false,
+    evented: false,
+    // 核心：使用 clipPath + 奇偶填充规则实现挖空效果
+    clipPath: new fabric.Path(getMaskPath(canvas.width, canvas.height, cropBoxLeft, cropBoxTop, cropBoxWidth, cropBoxHeight), { 
+      fillRule: 'evenodd' 
+    })
   });
-  maskGroup.setCoords();
 
-  return maskGroup as FabricObject;
+  return maskLayer as FabricObject;
 };
 
-export const updateMaskClipPath = (canvas: FabricCanvas | null, cropBox: FabricObject | null, maskGroup: FabricObject | null) => {
-  if (!canvas || !cropBox || !maskGroup) return;
+// 生成遮罩路径的工具函数
+const getMaskPath = (canvasWidth: number, canvasHeight: number, cropBoxLeft: number, cropBoxTop: number, cropBoxWidth: number, cropBoxHeight: number): string => {
+  // 严格按照Fabric.js路径格式：外层全屏路径 + 内层裁剪框路径
+  // 外层路径：顺时针，内层路径：逆时针，确保奇偶填充规则正确工作
+  return `M 0 0 L ${canvasWidth} 0 L ${canvasWidth} ${canvasHeight} L 0 ${canvasHeight} L 0 0 z M ${cropBoxLeft} ${cropBoxTop} L ${cropBoxLeft + cropBoxWidth} ${cropBoxTop} L ${cropBoxLeft + cropBoxWidth} ${cropBoxTop + cropBoxHeight} L ${cropBoxLeft} ${cropBoxTop + cropBoxHeight} L ${cropBoxLeft} ${cropBoxTop} z`;
+};
 
-  // 获取裁剪框的实际边界
-  const bounds = cropBox.getBoundingRect(true);
+// 缓存上一次的裁剪框边界，用于增量更新
+let lastBounds: { left: number; top: number; width: number; height: number } | null = null;
 
-  // 更新四个遮罩矩形的位置和尺寸
-  if (maskGroup && (maskGroup as any)._objects && (maskGroup as any)._objects.length === 4) {
-    const [topMask, bottomMask, leftMask, rightMask] = (maskGroup as any)._objects;
+// 重置边界缓存，在创建新遮罩层时调用
+export const resetMaskBoundsCache = () => {
+  lastBounds = null;
+};
 
-    // 计算每个遮罩矩形的绝对坐标
-    // topMask: 从 (0,0) 到 (canvas.width, bounds.top)
-    topMask.set({
-      left: 0,
-      top: 0,
-      width: canvas.width,
-      height: bounds.top
-    });
-    topMask.setCoords();
+export const updateMaskClipPath = (canvas: FabricCanvas | null, cropBox: FabricObject | null, maskLayer: FabricObject | null) => {
+  if (!canvas || !cropBox || !maskLayer) return;
 
-    // bottomMask: 从 (0, bounds.top + bounds.height) 到 (canvas.width, canvas.height)
-    bottomMask.set({
-      left: 0,
-      top: bounds.top + bounds.height,
-      width: canvas.width,
-      height: canvas.height - (bounds.top + bounds.height)
-    });
-    bottomMask.setCoords();
+  // 直接使用裁剪框的坐标，确保坐标系统统一
+  const cropBoxLeft = cropBox.left || 0;
+  const cropBoxTop = cropBox.top || 0;
+  const cropBoxWidth = cropBox.width || 0;
+  const cropBoxHeight = cropBox.height || 0;
 
-    // leftMask: 从 (0, bounds.top) 到 (bounds.left, bounds.top + bounds.height)
-    leftMask.set({
-      left: 0,
-      top: bounds.top,
-      width: bounds.left,
-      height: bounds.height
-    });
-    leftMask.setCoords();
-
-    // rightMask: 从 (bounds.left + bounds.width, bounds.top) 到 (canvas.width, bounds.top + bounds.height)
-    rightMask.set({
-      left: bounds.left + bounds.width,
-      top: bounds.top,
-      width: canvas.width - (bounds.left + bounds.width),
-      height: bounds.height
-    });
-    rightMask.setCoords();
+  // 检查边界是否发生变化，避免不必要的更新
+  if (lastBounds && 
+      Math.abs(lastBounds.left - cropBoxLeft) < 0.5 &&
+      Math.abs(lastBounds.top - cropBoxTop) < 0.5 &&
+      Math.abs(lastBounds.width - cropBoxWidth) < 0.5 &&
+      Math.abs(lastBounds.height - cropBoxHeight) < 0.5) {
+    // 边界变化很小，跳过更新
+    return;
   }
+
+  // 更新缓存
+  lastBounds = { 
+    left: cropBoxLeft, 
+    top: cropBoxTop, 
+    width: cropBoxWidth, 
+    height: cropBoxHeight 
+  };
+
+  // 更新遮罩层的 clipPath 路径
+  if (maskLayer.clipPath) {
+    maskLayer.clipPath.set({
+      path: getMaskPath(canvas.width, canvas.height, cropBoxLeft, cropBoxTop, cropBoxWidth, cropBoxHeight)
+    });
+    maskLayer.clipPath.setCoords();
+  }
+  
+  // 确保遮罩层自身坐标正确
+  maskLayer.setCoords();
+  
+  // 立即重绘整个画布，确保遮罩层与裁剪框同步更新
   canvas.renderAll();
 };
 
 export const destroyCanvas = (canvas: FabricCanvas | null) => {
   if (canvas) {
-    canvas.dispose();
+    try {
+      // 先清除所有对象
+      canvas.clear();
+      // 然后销毁Canvas
+      canvas.dispose();
+    } catch (error) {
+      console.warn('Error while disposing canvas:', error);
+    }
   }
 };

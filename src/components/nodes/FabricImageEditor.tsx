@@ -5,7 +5,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { useFabricCanvas } from '@/hooks/useFabricCanvas';
 import { useImageLoader } from '@/hooks/useImageLoader';
 import { useCropHistory } from '@/hooks/useCropHistory';
-import { createCanvas, createCropBox, createMask, updateMaskClipPath, destroyCanvas } from '@/utils/canvas-utils';
+import { createCanvas, createCropBox, createMask, updateMaskClipPath, destroyCanvas, resetMaskBoundsCache } from '@/utils/canvas-utils';
 import { calculateCropBoxPosition, calculateCropCoordinates, performCrop } from '@/utils/crop-utils';
 import type { FabricImageEditorProps, ImageCropEditorOptions, FabricCanvas, FabricObject } from '@/types/fabric-image-editor';
 import CanvasContainer from './CanvasContainer';
@@ -47,8 +47,8 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
 
     const fabric = fabricRef.current;
     
-    // 创建初始画布
-    const canvas = createCanvas(canvasRef, fabric, 100, 100);
+    // 使用默认配置的尺寸创建初始画布，避免临时尺寸
+    const canvas = createCanvas(canvasRef, fabric, defaultOptions.canvasWidth, defaultOptions.canvasHeight);
     if (!canvas) return;
 
     fabricCanvasRef.current = canvas;
@@ -64,6 +64,31 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     }
   };
 
+  // 清理裁剪框事件监听器
+  const cleanupCropBoxEventListeners = () => {
+    if (cropBoxRef.current) {
+      try {
+        // 移除所有事件监听器
+        cropBoxRef.current.off('moving');
+        cropBoxRef.current.off('scaling');
+        cropBoxRef.current.off('rotating');
+      } catch (error) {
+        console.warn('Error removing crop box event listeners:', error);
+      }
+    }
+  };
+
+  // 注册裁剪框事件监听器
+  const registerCropBoxEventListeners = (cropBox: FabricObject) => {
+    // 先清理旧的事件监听器
+    cleanupCropBoxEventListeners();
+    
+    // 注册新的事件监听器
+    cropBox.on('moving', () => handleCropBoxChange());
+    cropBox.on('scaling', () => handleCropBoxChange());
+    cropBox.on('rotating', () => handleCropBoxChange());
+  };
+
   // 创建裁剪框和遮罩层
   const createCropBoxAndMask = () => {
     if (!fabricCanvasRef.current || !imageRef.current || !fabricRef.current) return;
@@ -72,14 +97,15 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     const canvas = fabricCanvasRef.current;
     const img = imageRef.current;
     
+    // 获取图片在画布上的实际尺寸（考虑缩放）
     const imgWidth = (img.width || 0) * (img.scaleX || 1);
     const imgHeight = (img.height || 0) * (img.scaleY || 1);
     
-    // 计算裁剪框位置和尺寸
+    // 计算裁剪框位置和尺寸（使用图片在画布上的实际尺寸）
     const cropBoxConfig = calculateCropBoxPosition(
-      img.width || 0,
-      img.height || 0,
-      img.scaleX || 1,
+      imgWidth,
+      imgHeight,
+      1, // 缩放因子为1，因为已经考虑了缩放
       defaultOptions.minCropSize || { width: 100, height: 100 }
     );
     
@@ -95,10 +121,8 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       minHeight: defaultOptions.minCropSize?.height || 100
     });
     
-    // 添加裁剪框事件监听
-    cropBox.on('moving', () => handleCropBoxChange());
-    cropBox.on('scaling', () => handleCropBoxChange());
-    cropBox.on('rotating', () => handleCropBoxChange());
+    // 注册裁剪框事件监听器
+    registerCropBoxEventListeners(cropBox);
     
     cropBoxRef.current = cropBox;
     canvas.add(cropBox);
@@ -123,15 +147,18 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       maskRef.current = null;
     }
 
+    // 重置遮罩层边界缓存
+    resetMaskBoundsCache();
+
     // 创建新遮罩层
     const maskGroup = createMask(fabric, canvas, cropBox);
     if (!maskGroup) return;
 
     maskRef.current = maskGroup;
 
-    // 将遮罩层添加到图片之上，裁剪框之下
+    // 将遮罩层添加到画布，置于最底层（图片之下）
     canvas.add(maskGroup);
-    canvas.sendObjectToBack(img);
+    canvas.sendObjectToBack(maskGroup);
     canvas.bringObjectToFront(cropBox);
     canvas.renderAll();
   };
@@ -139,9 +166,20 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
   // 处理裁剪框变化
   const handleCropBoxChange = () => {
     if (fabricCanvasRef.current && cropBoxRef.current && maskRef.current) {
+      // 立即更新遮罩层，确保视觉同步
       updateMaskClipPath(fabricCanvasRef.current, cropBoxRef.current, maskRef.current);
+      
+      // 使用防抖保存历史记录，但提供取消机制
       debouncedSaveHistory();
     }
+  };
+
+  // 立即保存当前状态（用于关键操作）
+  const saveCurrentStateImmediately = () => {
+    // 取消防抖操作，避免状态不一致
+    cancelSaveHistory();
+    // 立即保存状态
+    saveCurrentStateToHistory();
   };
 
   // 保存当前状态到历史记录
@@ -154,27 +192,37 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     saveHistory(cropBox, img);
   };
 
-  // 使用防抖函数
-  const { debouncedCallback: debouncedSaveHistory } = useDebounce(
+  // 使用防抖函数，添加取消机制
+  const { debouncedCallback: debouncedSaveHistory, cancel: cancelSaveHistory } = useDebounce(
     saveCurrentStateToHistory,
     300
   );
 
   // 撤销操作
   const undo = () => {
+    // 取消防抖操作，确保状态一致
+    cancelSaveHistory();
+    
     const previousState = undoHistory();
     if (previousState) {
       restoreFromHistory(previousState, cropBoxRef.current, imageRef.current, fabricCanvasRef.current);
       updateMaskClipPath(fabricCanvasRef.current, cropBoxRef.current, maskRef.current);
+      // 立即保存当前状态
+      saveCurrentStateImmediately();
     }
   };
 
   // 重做操作
   const redo = () => {
+    // 取消防抖操作，确保状态一致
+    cancelSaveHistory();
+    
     const nextState = redoHistory();
     if (nextState) {
       restoreFromHistory(nextState, cropBoxRef.current, imageRef.current, fabricCanvasRef.current);
       updateMaskClipPath(fabricCanvasRef.current, cropBoxRef.current, maskRef.current);
+      // 立即保存当前状态
+      saveCurrentStateImmediately();
     }
   };
 
@@ -210,12 +258,22 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
 
     cropBoxRef.current = null;
     createCropBoxAndMask();
-    saveCurrentStateToHistory();
+    // 立即保存状态，确保同步
+    saveCurrentStateImmediately();
   };
 
   // 销毁编辑器
   const destroyEditor = () => {
+    // 取消防抖操作，确保状态一致
+    cancelSaveHistory();
+    
+    // 清理事件监听器
+    cleanupCropBoxEventListeners();
+    
+    // 销毁Canvas和所有资源
     destroyCanvas(fabricCanvasRef.current);
+    
+    // 清空所有引用
     fabricCanvasRef.current = null;
     imageRef.current = null;
     cropBoxRef.current = null;
@@ -252,6 +310,21 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       destroyEditor();
     };
   }, [fabricLoaded, imageUrl]);
+
+  // 监听组件卸载，确保完全清理
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      destroyEditor();
+    };
+
+    // 监听页面卸载事件
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      destroyEditor();
+    };
+  }, []);
 
   // 显示错误状态
   if (loadingError) {

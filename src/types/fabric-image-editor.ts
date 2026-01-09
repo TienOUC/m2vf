@@ -13,6 +13,11 @@ export interface FabricObject {
   scaleX?: number;
   scaleY?: number;
   on: (event: string, callback: (e: unknown) => void) => void;
+  off: (event: string, callback?: (e: unknown) => void) => void;
+  clipPath?: {
+    set: (options: Record<string, unknown>) => void;
+    setCoords: () => void;
+  };
 }
 
 // Fabric画布接口
@@ -20,10 +25,12 @@ export interface FabricCanvas {
   dispose: () => void;
   add: (object: FabricObject) => void;
   remove: (object: FabricObject) => void;
+  clear: () => void;
   renderAll: () => void;
   setActiveObject: (object: FabricObject) => void;
   sendObjectToBack: (object: FabricObject) => void;
   bringObjectToFront: (object: FabricObject) => void;
+  setDimensions: (dimensions: { width: number; height: number }) => void;
   upperCanvasEl?: HTMLCanvasElement;
   width: number;
   height: number;
