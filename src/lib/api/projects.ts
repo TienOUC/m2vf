@@ -49,7 +49,6 @@ export const createProject = async (projectData: {
     ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/create/`
     : 'http://127.0.0.1:8000/api/projects/create/';
 
-  console.log('正在创建新项目:', createUrl);
 
   // 获取存储的 access_token
   const accessToken = localStorage.getItem('access_token');
@@ -58,10 +57,7 @@ export const createProject = async (projectData: {
     throw new Error('未找到访问令牌');
   }
 
-  console.log('发送的项目数据:', {
-    name: projectData.name,
-    description: projectData.description
-  });
+
 
   const response = await fetch(createUrl, {
     method: 'POST',
@@ -75,23 +71,17 @@ export const createProject = async (projectData: {
     })
   });
 
-  console.log('创建项目响应状态:', response.status);
-  console.log(
-    '创建项目响应头:',
-    Object.fromEntries(response.headers.entries())
-  );
+
 
   // 如果是成功响应，记录响应内容
   if (response.ok) {
     const responseText = await response.text();
-    console.log('创建项目响应内容:', responseText);
 
     // 尝试解析JSON
     try {
       const jsonData = JSON.parse(responseText);
-      console.log('解析后的JSON数据:', jsonData);
     } catch (e) {
-      console.error('响应不是有效的JSON:', e);
+      throw new Error('响应不是有效的JSON', { cause: e });
     }
 
     // 重新创建响应对象，因为我们已经读取了内容
@@ -114,7 +104,6 @@ export const updateProject = async (
     ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${projectId}/`
     : `http://127.0.0.1:8000/api/projects/${projectId}/`;
 
-  console.log('正在更新项目:', updateUrl);
   return apiRequest(updateUrl, {
     method: 'PUT',
     body: JSON.stringify(projectData)
@@ -127,7 +116,6 @@ export const deleteProject = async (projectName: string): Promise<Response> => {
     ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/delete/`
     : 'http://127.0.0.1:8000/api/projects/delete/';
 
-  console.log('正在删除项目:', deleteUrl);
 
   // 获取存储的 access_token
   const accessToken = localStorage.getItem('access_token');
@@ -136,7 +124,6 @@ export const deleteProject = async (projectName: string): Promise<Response> => {
     throw new Error('未找到访问令牌');
   }
 
-  console.log('删除的项目名称:', projectName);
 
   const response = await fetch(deleteUrl, {
     method: 'DELETE',
@@ -149,7 +136,6 @@ export const deleteProject = async (projectName: string): Promise<Response> => {
     })
   });
 
-  console.log('删除项目响应状态:', response.status);
 
   return response;
 };

@@ -85,6 +85,7 @@ function ImageNode({ data, id, selected }: NodeProps) {
               src={nodeData.imageUrl}
               alt="上传的图片"
               fill
+              sizes='100%'
               className="object-contain rounded-md"
             />
           </div>
