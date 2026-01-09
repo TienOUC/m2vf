@@ -145,7 +145,6 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     setTimeout(() => {
       if (imageRef.current) {
         constrainCropBox(cropBox, imageRef.current);
-        constrainCropBoxScaling(cropBox, imageRef.current);
         canvas.renderAll();
       }
     }, 50);
@@ -188,87 +187,53 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     canvas.renderAll();
   };
 
-  // 约束裁剪框在图片区域内
+  // 约束裁剪框在图片区域内（简化版实现）
   const constrainCropBox = (cropBox: FabricObject, img: FabricObject) => {
     if (!cropBox || !img) return;
     
-    // 获取图片的实际边界（考虑缩放）
-    const imgLeft = img.left || 0;
-    const imgTop = img.top || 0;
-    const imgWidth = (img.width || 0) * (img.scaleX || 1);
-    const imgHeight = (img.height || 0) * (img.scaleY || 1);
+    // 获取图片边界
+    const imgBounds = img.getBoundingRect(true);
+    const imgLeft = imgBounds.left;
+    const imgTop = imgBounds.top;
+    const imgRight = imgLeft + imgBounds.width;
+    const imgBottom = imgTop + imgBounds.height;
     
-    // 获取裁剪框的当前状态
-    const cropBoxWidth = cropBox.width || 0;
-    const cropBoxHeight = cropBox.height || 0;
+    // 获取裁剪框当前状态
+    const cropBounds = cropBox.getBoundingRect(true);
+    let newLeft = cropBounds.left;
+    let newTop = cropBounds.top;
+    let newWidth = cropBox.width || 0;
+    let newHeight = cropBox.height || 0;
     
-    // 计算裁剪框的新位置，确保在图片边界内
-    let newLeft = cropBox.left || 0;
-    let newTop = cropBox.top || 0;
+    // 最小尺寸约束
+    const minWidth = 50;
+    const minHeight = 50;
+    newWidth = Math.max(minWidth, newWidth);
+    newHeight = Math.max(minHeight, newHeight);
     
-    // 水平边界约束
-    newLeft = Math.max(imgLeft, Math.min(newLeft, imgLeft + imgWidth - cropBoxWidth));
+    // 最大尺寸约束
+    newWidth = Math.min(newWidth, imgBounds.width);
+    newHeight = Math.min(newHeight, imgBounds.height);
     
-    // 垂直边界约束
-    newTop = Math.max(imgTop, Math.min(newTop, imgTop + imgHeight - cropBoxHeight));
+    // 边界位置约束
+    newLeft = Math.max(imgLeft, Math.min(newLeft, imgRight - newWidth));
+    newTop = Math.max(imgTop, Math.min(newTop, imgBottom - newHeight));
     
-    // 如果位置发生变化，则更新裁剪框
-    if (newLeft !== cropBox.left || newTop !== cropBox.top) {
-      cropBox.set({
-        left: newLeft,
-        top: newTop
-      });
-      cropBox.setCoords();
-    }
-  };
-
-  // 约束裁剪框缩放
-  const constrainCropBoxScaling = (cropBox: FabricObject, img: FabricObject) => {
-    if (!cropBox || !img) return;
-    
-    // 获取图片的实际边界
-    const imgLeft = img.left || 0;
-    const imgTop = img.top || 0;
-    const imgWidth = (img.width || 0) * (img.scaleX || 1);
-    const imgHeight = (img.height || 0) * (img.scaleY || 1);
-    
-    // 获取裁剪框当前位置
-    const cropBoxLeft = cropBox.left || 0;
-    const cropBoxTop = cropBox.top || 0;
-    
-    // 约束裁剪框尺寸不能超过图片尺寸
-    const maxWidth = Math.min(imgWidth, imgLeft + imgWidth - cropBoxLeft);
-    const maxHeight = Math.min(imgHeight, imgTop + imgHeight - cropBoxTop);
-    
-    // 确保裁剪框尺寸在合理范围内
-    const newWidth = Math.max(
-      50, // 最小宽度
-      Math.min(cropBox.width || 0, maxWidth)
-    );
-    
-    const newHeight = Math.max(
-      50, // 最小高度
-      Math.min(cropBox.height || 0, maxHeight)
-    );
-    
-    // 如果尺寸发生变化，则更新裁剪框
-    if (newWidth !== cropBox.width || newHeight !== cropBox.height) {
-      cropBox.set({
-        width: newWidth,
-        height: newHeight
-      });
-      cropBox.setCoords();
-    }
+    // 应用约束
+    cropBox.set({
+      left: newLeft,
+      top: newTop,
+      width: newWidth,
+      height: newHeight
+    });
+    cropBox.setCoords();
   };
 
   // 处理裁剪框变化
   const handleCropBoxChange = () => {
     if (fabricCanvasRef.current && cropBoxRef.current && maskRef.current && imageRef.current) {
-      // 应用移动边界约束
+      // 应用边界约束
       constrainCropBox(cropBoxRef.current, imageRef.current);
-      
-      // 应用缩放边界约束
-      constrainCropBoxScaling(cropBoxRef.current, imageRef.current);
       
       // 立即更新遮罩层，确保视觉同步
       updateMaskClipPath(fabricCanvasRef.current, cropBoxRef.current, maskRef.current);

@@ -104,7 +104,6 @@ export const createMask = (fabric: Fabric, canvas: FabricCanvas, cropBox: Fabric
         top: 0,
         absolutePositioned: true
       });
-      console.log('Created clipPath with path:', path.path);
       return path;
     })()
   });
