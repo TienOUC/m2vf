@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Fabric, EditorState } from '@/types/fabric-image-editor';
+import type { Fabric, EditorState } from '@/types/editor/fabric';
 
 export const useFabricCanvas = () => {
   const fabricRef = useRef<Fabric | null>(null);

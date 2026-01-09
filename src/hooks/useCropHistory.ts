@@ -1,5 +1,5 @@
 import { useHistory } from '@/hooks/useHistory';
-import type { CropHistoryRecord, FabricObject, FabricCanvas } from '@/types/fabric-image-editor';
+import type { CropHistoryRecord, FabricObject, FabricCanvas } from '@/types/editor/fabric';
 
 export const useCropHistory = (maxHistorySteps: number = 5) => {
   const { save, undo, redo, canUndo, canRedo } = useHistory<CropHistoryRecord>(maxHistorySteps);

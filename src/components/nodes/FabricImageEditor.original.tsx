@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import type { ImageCropEditorOptions, CropHistoryRecord } from '@/types/image-editor'; 
+import type { ImageCropEditorOptions, CropHistoryRecord } from '@/types/editor/fabric'; 
 import { useHistory } from '@/hooks/useHistory';
 import { useDebounce } from '@/hooks/useDebounce';
 import { Refresh, Undo, Redo } from '@mui/icons-material';

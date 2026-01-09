@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react';
-import type { FabricObject } from '@/types/fabric-image-editor';
+import type { FabricObject } from '@/types/editor/fabric';
 import type { CropBoxConfig } from '@/types/crop';
 
 /**

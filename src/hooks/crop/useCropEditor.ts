@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useCropStore, useCropHistoryStore } from '@/lib/stores';
-import type { Fabric, FabricCanvas, FabricObject } from '@/types/fabric-image-editor';
+import type { Fabric, FabricCanvas, FabricObject } from '@/types/editor/fabric';
 import type { CropCoordinates, CropResult } from '@/types/crop';
 
 interface UseCropEditorProps {

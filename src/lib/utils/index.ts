@@ -16,5 +16,7 @@ export {
   defaultEditorConfig
 } from './editor';
 
+export * from './fabric';
+
 export * from './text';
 

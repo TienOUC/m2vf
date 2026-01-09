@@ -68,7 +68,12 @@ export interface ImageCropEditorOptions {
     cornerSize: number;
     cornerColor: string;
   };
-  initialRatio?: number;
+  maskStyle?: {
+    color: string;
+    opacity: number;
+  };
+  initialRatio?: number | null;
+  maxHistorySteps?: number;
 }
 
 // 画布引用类型

@@ -1,4 +1,4 @@
-import type { Fabric, FabricCanvas, FabricObject } from '@/types/fabric-image-editor';
+import type { Fabric, FabricCanvas, FabricObject } from '@/types/editor/fabric';
 import type { CropBoxConfig, MaskConfig } from '@/types/crop';
 
 /**

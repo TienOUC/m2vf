@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import type { Fabric, FabricObject, FabricCanvas } from '@/types/fabric-image-editor';
+import type { Fabric, FabricObject, FabricCanvas } from '@/types/editor/fabric';
 
 // 图片尺寸缓存
 const imageSizeCache = new Map<string, { width: number; height: number }>();

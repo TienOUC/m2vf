@@ -1,4 +1,4 @@
-import type { Fabric, CropBoxConfig, MaskConfig, FabricCanvas, FabricObject } from '@/types/fabric-image-editor';
+import type { Fabric, CropBoxConfig, MaskConfig, FabricCanvas, FabricObject } from '@/types/editor/fabric';
 
 export const createCanvas = (canvasRef: React.RefObject<HTMLCanvasElement>, fabric: Fabric, width: number, height: number): FabricCanvas | null => {
   if (!canvasRef.current) return null;

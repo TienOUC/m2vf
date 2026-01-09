@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { useCropEditor } from '@/hooks/crop';
-import type { FabricImageEditorProps } from '@/types/fabric-image-editor';
+import type { FabricImageEditorProps } from '@/types/editor/fabric';
 import { CropCanvas } from './CropCanvas';
 import { CropToolbar } from './CropToolbar';
 import LoadingState from '../nodes/LoadingState';

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import type { Fabric, FabricCanvas, FabricObject } from '@/types/fabric-image-editor';
+import type { Fabric, FabricCanvas, FabricObject } from '@/types/editor/fabric';
 
 /**
  * Fabric Canvas管理hook

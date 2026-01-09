@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useCropStore } from '@/lib/stores';
 import { useCropCanvas, useCropBox, useCropMask } from '@/hooks/crop';
-import type { FabricImageEditorProps } from '@/types/fabric-image-editor';
+import type { FabricImageEditorProps } from '@/types/editor/fabric';
 
 interface CropCanvasProps {
   canvasRef: React.RefObject<HTMLCanvasElement>;

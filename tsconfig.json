@@ -24,6 +24,21 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@/components/*": [
+        "./src/components/*"
+      ],
+      "@/hooks/*": [
+        "./src/hooks/*"
+      ],
+      "@/lib/*": [
+        "./src/lib/*"
+      ],
+      "@/types/*": [
+        "./src/lib/types/*"
+      ],
+      "@/utils/*": [
+        "./src/lib/utils/*"
       ]
     },
     "target": "ES2017"

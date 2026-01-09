@@ -2,7 +2,7 @@
  * 事件处理相关工具函数
  */
 
-import type { FabricObject } from '@/types/fabric-image-editor';
+import type { FabricObject } from '@/types/editor/fabric';
 
 /**
  * 防抖函数
