@@ -119,7 +119,6 @@ export const uploadProjectImage = async (
     ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/images/api/projects/${projectId}/folders/${folderId}/images/upload/`
     : `http://127.0.0.1:8000/api/images/api/projects/${projectId}/folders/${folderId}/images/upload/`;
 
-  console.log('正在上传图片:', uploadUrl);
 
   const formData = new FormData();
   formData.append('image', imageFile);

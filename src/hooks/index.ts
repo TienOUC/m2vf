@@ -8,3 +8,7 @@ export { useProjectEditing } from './useProjectEditing';
 export { useFontStyle } from './useFontStyle';
 export { useTextFormatting } from './useTextFormatting';
 export { useLexicalEditor } from './useLexicalEditor';
+
+// Node-specific hooks
+export { useTextNode } from './nodes/useTextNode';
+export { useTextFormatting as useNodeTextFormatting } from './nodes/useTextFormatting';

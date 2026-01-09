@@ -6,7 +6,7 @@ export { NodeBase } from './NodeBase';
 export { default as FontStyleSelector } from './FontStyleSelector';
 export { default as ToolbarButton } from './ToolbarButton';
 
-export type { TextNodeData } from './TextNode';
+export type { TextNodeData } from '@/types/nodes/text';
 export type { ImageNodeData } from './ImageNode';
 export type { VideoNodeData } from './VideoNode';
 export type { AudioNodeData } from './AudioNode';
