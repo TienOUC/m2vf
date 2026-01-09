@@ -48,17 +48,7 @@ export const createCropBox = (fabric: Fabric, config: CropBoxConfig): FabricObje
     moveCursor: 'move',
     hoverCursor: 'move',
     originX: 'left',
-    originY: 'top',
-    _controlsVisibility: {
-      tl: true,  
-      tr: true,  
-      bl: true,  
-      br: true, 
-      ml: true,  
-      mr: true,  
-      mb: true,  
-      mt: false  
-    }
+    originY: 'top'
   });
 
   return cropBox as FabricObject;
