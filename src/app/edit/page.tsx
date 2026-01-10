@@ -56,6 +56,16 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
   const centerNode = useNodeCentering(reactFlowInstance);
   const [croppingNode, setCroppingNode] = useState<{id: string, imageUrl: string} | null>(null);
 
+  // 处理裁剪开始 - 居中画布
+  const handleEditStart = useCallback((nodeId: string) => {
+    centerNode(nodeId);
+  }, [centerNode]);
+
+  // 处理裁剪开始 - 打开裁剪编辑器
+  const handleCropStart = useCallback((nodeId: string, imageUrl: string) => {
+    setCroppingNode({ id: nodeId, imageUrl });
+  }, []);
+
   const handleReplace = useCallback(
     (nodeId: string) => {
       setNodes((nds) =>
@@ -216,7 +226,9 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
       handleBackgroundColorChange,
       handleImageUpdate,
       handleFontTypeChange,
-      onEditingChange: handleEditingChange
+      onEditingChange: handleEditingChange,
+      onEditStart: handleEditStart,
+      onCropStart: handleCropStart
     });
 
 

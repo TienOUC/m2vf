@@ -87,7 +87,7 @@ export default function RegisterPage() {
           // 3秒后自动跳转到登录页
           setTimeout(() => {
             router.push('/login');
-          }, 3000);
+          }, 1000);
         } else {
           setError(response.message || '注册失败');
         }

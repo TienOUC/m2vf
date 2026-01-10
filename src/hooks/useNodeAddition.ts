@@ -11,6 +11,8 @@ interface UseNodeAdditionProps {
   handleImageUpdate?: (nodeId: string, imageUrl: string) => void;
   handleFontTypeChange?: (nodeId: string, fontType: 'h1' | 'h2' | 'h3' | 'p') => void;
   onEditingChange?: (nodeId: string, editing: boolean) => void;
+  onEditStart?: (nodeId: string) => void;
+  onCropStart?: (nodeId: string, imageUrl: string) => void;
 }
 
 export const useNodeAddition = ({
@@ -23,6 +25,8 @@ export const useNodeAddition = ({
   handleImageUpdate,
   handleFontTypeChange,
   onEditingChange,
+  onEditStart,
+  onCropStart,
 }: UseNodeAdditionProps) => {
   const { screenToFlowPosition } = useReactFlow();
 
@@ -79,13 +83,16 @@ export const useNodeAddition = ({
           onReplace: (id: string) => {
             console.log(`替换节点 ${id} 的文件`);
           },
+          // 添加裁剪功能相关回调
+          ...(onEditStart && { onEditStart }),
+          ...(onCropStart && { onCropStart }),
         },
       };
 
       setNodes((nds) => nds.concat(newNode));
       setNodeId((prevId) => prevId + 1);
     },
-    [nodeId, setNodes, screenToFlowPosition, handleTypeChange, handleDelete, handleImageUpdate, setNodeId]
+    [nodeId, setNodes, screenToFlowPosition, handleTypeChange, handleDelete, handleImageUpdate, onEditStart, onCropStart, setNodeId]
   );
 
   // 添加视频节点函数
