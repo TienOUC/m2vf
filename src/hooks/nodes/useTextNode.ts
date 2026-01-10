@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useClickOutside } from '@/hooks';
-import { TextNodeData } from '@/types/nodes/text';
+import { TextNodeData } from '@/lib/types/editor/text';
 import { useTextFormatting } from './useTextFormatting';
-import { useLexicalEditor } from '@/hooks/useLexicalEditor';
+import { useLexicalEditor } from '@/hooks/utils/useLexicalEditor';
 
 interface UseTextNodeProps {
   data: TextNodeData;

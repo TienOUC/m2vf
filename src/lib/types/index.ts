@@ -4,4 +4,4 @@ export * from './store';
 export * from './editor';
 
 // Node types
-export type { TextNodeData } from '../../types/nodes/text';
+export type { TextNodeData } from './editor/text';

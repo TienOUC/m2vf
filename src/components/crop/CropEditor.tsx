@@ -3,8 +3,7 @@ import { useCropEditor } from '@/hooks/crop';
 import type { FabricImageEditorProps } from '@/types/editor/fabric';
 import { CropCanvas } from './CropCanvas';
 import { CropToolbar } from './CropToolbar';
-import LoadingState from '../nodes/LoadingState';
-import ErrorState from '../nodes/ErrorState';
+import { LoadingState, ErrorState } from '@/components/editor';
 
 /**
  * 裁剪编辑器主组件
