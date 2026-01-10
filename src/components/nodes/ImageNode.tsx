@@ -53,13 +53,13 @@ function ImageNode({ data, id, selected }: NodeProps) {
         nodeData.onEditStart(nodeId);
         
         // 7. 画布居中完成后，通知父组件打开裁剪编辑器
-        // 使用 setTimeout 确保画布移动动画开始后再通知
-        setTimeout(() => {
+        // 使用 requestAnimationFrame 确保在当前帧渲染完成后执行
+        requestAnimationFrame(() => {
           // 通过回调通知父组件打开裁剪编辑器
           if (nodeData?.onCropStart && imageUrl) {
             nodeData.onCropStart(nodeId, imageUrl);
           }
-        }, 100); // 延迟100ms，让画布移动动画开始
+        });
       } else {
         // 如果没有 onEditStart 回调，直接通知父组件打开裁剪编辑器
         if (nodeData?.onCropStart && imageUrl) {

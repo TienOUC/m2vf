@@ -57,10 +57,11 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     const success = await loadImage(imageUrl, canvas, canvasRef);
     if (success) {
       // 确保图片加载完成后立即创建裁剪框和遮罩层
-      setTimeout(() => {
+      // 使用 requestAnimationFrame 确保在下一帧渲染时执行
+      requestAnimationFrame(() => {
         createCropBoxAndMask();
         saveCurrentStateToHistory();
-      }, 100);
+      });
     }
   };
 
@@ -91,10 +92,10 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     
     const throttledHandleCropBoxChange = () => {
       if (throttleTimer) return;
-      throttleTimer = window.setTimeout(() => {
+      throttleTimer = requestAnimationFrame(() => {
         handleCropBoxChange();
         throttleTimer = null;
-      }, 16); // 约60fps
+      });
     };
     
     cropBox.on('moving', throttledHandleCropBoxChange);
@@ -142,12 +143,13 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     canvas.setActiveObject(cropBox);
     
     // 应用初始约束
-    setTimeout(() => {
+    // 使用 requestAnimationFrame 确保在下一帧渲染时应用约束
+    requestAnimationFrame(() => {
       if (imageRef.current) {
         constrainCropBox(cropBox, imageRef.current);
         canvas.renderAll();
       }
-    }, 50);
+    });
     
     // 创建遮罩层
     createMaskLayer();
