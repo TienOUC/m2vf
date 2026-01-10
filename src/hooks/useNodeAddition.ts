@@ -8,7 +8,9 @@ interface UseNodeAdditionProps {
   handleTypeChange: (nodeId: string, newType: 'text' | 'image' | 'video') => void;
   handleDelete: (nodeId: string) => void;
   handleBackgroundColorChange: (nodeId: string, color: string) => void;
+  handleImageUpdate?: (nodeId: string, imageUrl: string) => void;
   handleFontTypeChange?: (nodeId: string, fontType: 'h1' | 'h2' | 'h3' | 'p') => void;
+  onEditingChange?: (nodeId: string, editing: boolean) => void;
 }
 
 export const useNodeAddition = ({
@@ -18,7 +20,9 @@ export const useNodeAddition = ({
   handleTypeChange,
   handleDelete,
   handleBackgroundColorChange,
+  handleImageUpdate,
   handleFontTypeChange,
+  onEditingChange,
 }: UseNodeAdditionProps) => {
   const { screenToFlowPosition } = useReactFlow();
 
@@ -42,6 +46,7 @@ export const useNodeAddition = ({
           onDelete: handleDelete,
           onBackgroundColorChange: handleBackgroundColorChange,
           ...(handleFontTypeChange && { onFontTypeChange: handleFontTypeChange }),
+          ...(onEditingChange && { onEditingChange }),
           content: '',
           editorStateJson: undefined, // 初始化为空
         },
@@ -50,7 +55,7 @@ export const useNodeAddition = ({
       setNodes((nds) => nds.concat(newNode));
       setNodeId((prevId) => prevId + 1);
     },
-    [nodeId, setNodes, screenToFlowPosition, handleTypeChange, handleDelete, handleBackgroundColorChange, handleFontTypeChange, setNodeId]
+    [nodeId, setNodes, screenToFlowPosition, handleTypeChange, handleDelete, handleBackgroundColorChange, handleFontTypeChange, onEditingChange, setNodeId]
   );
 
   // 添加图片节点函数
@@ -70,6 +75,7 @@ export const useNodeAddition = ({
           imageUrl: undefined, // 明确初始化为undefined，确保一致的状态
           onTypeChange: handleTypeChange,
           onDelete: handleDelete,
+          ...(handleImageUpdate && { onImageUpdate: handleImageUpdate }),
           onReplace: (id: string) => {
             console.log(`替换节点 ${id} 的文件`);
           },
@@ -79,7 +85,7 @@ export const useNodeAddition = ({
       setNodes((nds) => nds.concat(newNode));
       setNodeId((prevId) => prevId + 1);
     },
-    [nodeId, setNodes, screenToFlowPosition, handleTypeChange, handleDelete, setNodeId]
+    [nodeId, setNodes, screenToFlowPosition, handleTypeChange, handleDelete, handleImageUpdate, setNodeId]
   );
 
   // 添加视频节点函数

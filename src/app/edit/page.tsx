@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getUserProfile } from '@/lib/api/auth';
-import { isUserLoggedIn } from '@/lib/utils/token';
 import { ROUTES } from '@/lib/config/api.config';
 import Navbar from '@/components/layout/Navbar';
 import LeftSidebar from '@/components/layout/LeftSidebar';
@@ -13,7 +11,8 @@ import { useNodeAddition } from '@/hooks/useNodeAddition';
 import { useNodeCentering } from '@/hooks/useNodeCentering';
 import { 
   useProjectEditingStore,
-  useProjectManagementStore 
+  useProjectManagementStore,
+  useAuthStore
 } from '@/lib/stores';
 import ProjectEditModal from '@/components/common/ProjectEditModal';
 import {
@@ -37,34 +36,28 @@ import {
   SwapHoriz
 } from '@mui/icons-material';
 
-// 初始节点（空数组，画布初始为空）
 const initialNodes: Node[] = [];
-
-// 初始边
 const initialEdges: Edge[] = [];
 
 
 
-// ReactFlow 包装组件
 function FlowCanvas({ projectId }: { projectId: string | null }) {
-  // ReactFlow 状态管理
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [nodeId, setNodeId] = useState(1); // 用于生成唯一节点ID（从1开始）
+  const [nodeId, setNodeId] = useState(1);
   const reactFlowInstance = useReactFlow();
   const { screenToFlowPosition } = reactFlowInstance;
 
-  // 使用自定义 hook 处理节点居中
-  const centerNode = useNodeCentering(reactFlowInstance);
+  const nodesRef = useRef(nodes);
+  useEffect(() => {
+    nodesRef.current = nodes;
+  }, [nodes]);
 
-  // 裁剪编辑器状态管理
+  const centerNode = useNodeCentering(reactFlowInstance);
   const [croppingNode, setCroppingNode] = useState<{id: string, imageUrl: string} | null>(null);
 
-  // 节点文件替换回调
   const handleReplace = useCallback(
     (nodeId: string) => {
-      // 触发文件选择，实际的文件替换逻辑在节点组件中处理
-      // 这里只是标记节点需要更新
       setNodes((nds) =>
         nds.map((node) => {
           if (node.id === nodeId) {
@@ -72,7 +65,6 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
               ...node,
               data: {
                 ...node.data,
-                // 标记节点需要重新上传文件
                 needsUpdate: true
               }
             };
@@ -84,7 +76,6 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
     [setNodes]
   );
 
-  // 图片更新回调 - 保存图片URL到节点数据中
   const handleImageUpdate = useCallback(
     (nodeId: string, imageUrl: string) => {
       setNodes((nds) =>
@@ -105,7 +96,6 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
     [setNodes]
   );
 
-  // 节点删除回调
   const handleDelete = useCallback(
     (nodeId: string) => {
       setNodes((nds) => nds.filter((node) => node.id !== nodeId));
@@ -116,7 +106,6 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
     [setNodes, setEdges]
   );
 
-  // 处理节点背景色更改
   const handleBackgroundColorChange = useCallback((nodeId: string, color: string) => {
     setNodes((nds) =>
       nds.map((node) => {
@@ -134,7 +123,6 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
     );
   }, [setNodes]);
 
-  // 处理节点字体样式更改
   const handleFontTypeChange = useCallback((nodeId: string, fontType: 'h1' | 'h2' | 'h3' | 'p') => {
     setNodes((nds) =>
       nds.map((node) => {
@@ -152,7 +140,6 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
     );
   }, [setNodes]);
 
-  // 节点类型切换回调
   const handleTypeChange = useCallback(
     (nodeId: string, newType: 'text' | 'image' | 'video') => {
       setNodes((nds) =>
@@ -168,13 +155,10 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
                   : '视频节点',
               onTypeChange: handleTypeChange,
               onDelete: handleDelete,
-              // 如果是文本节点转换为其他类型，移除背景色相关属性
               ...(node.type === 'text' && newType !== 'text' && { backgroundColor: undefined, onBackgroundColorChange: undefined }),
-              // 如果是其他类型转换为文本节点，添加背景色相关属性
               ...(node.type !== 'text' && newType === 'text' && { backgroundColor: '#ffffff', onBackgroundColorChange: handleBackgroundColorChange }),
             };
 
-            // 为图片和视频节点添加onReplace回调
             if (
               newType === 'image' ||
               newType === 'video'
@@ -184,12 +168,12 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
                 type: newType,
                 data: {
                   ...baseData,
-                  onReplace: handleReplace
+                  onReplace: handleReplace,
+                  ...(newType === 'image' && { onImageUpdate: handleImageUpdate })
                 }
               };
             }
 
-            // 文本节点不需要onReplace回调
             return {
               ...node,
               type: newType,
@@ -200,22 +184,28 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
         })
       );
     },
-    [setNodes, handleDelete, handleBackgroundColorChange, handleReplace]
+    [setNodes, handleDelete, handleBackgroundColorChange, handleReplace, handleImageUpdate]
   );
 
-  // 节点内容管理
   const nodeContentMap = useRef<Record<string, string>>({});
   const nodeHtmlContentMap = useRef<Record<string, string>>({});
   const editingNodeIds = useRef<Set<string>>(new Set());
   const [isAnyEditing, setIsAnyEditing] = useState(false);
 
-  // 连接节点回调
+  const handleEditingChange = useCallback((nodeId: string, editing: boolean) => {
+    if (editing) {
+      editingNodeIds.current.add(nodeId);
+    } else {
+      editingNodeIds.current.delete(nodeId);
+    }
+    setIsAnyEditing(editingNodeIds.current.size > 0);
+  }, []);
+
   const onConnect: OnConnect = useCallback(
     (params) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
   );
 
-  // 使用节点添加 hooks
   const { addTextNode, addImageNode, addVideoNode } =
     useNodeAddition({
       nodeId,
@@ -224,31 +214,28 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
       handleTypeChange,
       handleDelete,
       handleBackgroundColorChange,
-      handleFontTypeChange
+      handleImageUpdate,
+      handleFontTypeChange,
+      onEditingChange: handleEditingChange
     });
 
 
   const handleUploadImage = useCallback(() => {
     console.log('上传图片功能');
-    // 这里可以添加图片上传逻辑
     alert('上传图片功能即将实现');
   }, []);
 
   const handleUploadVideo = useCallback(() => {
     console.log('上传视频功能');
-    // 这里可以添加视频上传逻辑
     alert('上传视频功能即将实现');
   }, []);
 
 
 
 
-  // 双击画布添加节点（默认添加文本节点）
   const handlePaneClick = useCallback(
     (event: React.MouseEvent) => {
-      // 检查是否是双击事件
       if (event.detail === 2) {
-        // 将屏幕坐标转换为流程图坐标（考虑缩放和平移）
         const position = screenToFlowPosition({
           x: event.clientX,
           y: event.clientY
@@ -256,22 +243,17 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
 
         addTextNode(position);
       }
-      // 单击事件：不需要额外处理，因为 useClickOutside 应该能处理
-      // 但如果 ReactFlow 阻止了事件冒泡，我们需要手动关闭菜单
     },
     [addTextNode, screenToFlowPosition]
   );
 
-  // 自定义节点拖拽处理
   const onNodesChangeWithDragControl = useCallback((changes: any[]) => {
-    // 对于文本节点，如果处于编辑模式，则不允许拖拽
     const filteredChanges = changes.map(change => {
       if (change.type === 'position' && change.dragging) {
         const nodeId = change.id;
         const isCurrentlyEditing = editingNodeIds.current.has(nodeId);
         if (isCurrentlyEditing) {
-          // 如果节点当前正在编辑，则忽略位置变化
-          const node = nodes.find(n => n.id === nodeId);
+          const node = nodesRef.current.find(n => n.id === nodeId);
           return { ...change, type: 'position', position: node ? node.position : change.position };
         }
       }
@@ -279,11 +261,9 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
     });
     
     onNodesChange(filteredChanges);
-  }, [onNodesChange, nodes, editingNodeIds]);
+  }, [onNodesChange]);
 
-  // 裁剪完成回调函数
   const handleCropComplete = useCallback((nodeId: string, croppedImageUrl: string) => {
-    // 更新对应节点的图片URL
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === nodeId) {
@@ -298,18 +278,16 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
         return node;
       })
     );
-    // 关闭裁剪编辑器
     setCroppingNode(null);
   }, [setNodes]);
 
-  // 使用最简单的 nodeTypes 定义 - 直接引用导入的组件
   const nodeTypes = useMemo(
     () => ({
       text: TextNode,
       image: ImageNode,
       video: VideoNode
     }),
-    [] // 空依赖数组，确保 nodeTypes 只在第一次渲染时创建
+    []
   );
 
   return (
@@ -377,11 +355,9 @@ export default function EditPage() {
   const searchParams = useSearchParams();
   const projectId = searchParams.get('projectId');
   
-  const [user, setUser] = useState<{ name: string; email: string } | null>(
-    { name: 'Guest User', email: 'guest@example.com' } // 模拟用户数据
-  );
+  const { user, isAuthenticated } = useAuthStore();
   const [isLoading, setIsLoading] = useState(true);
-  const [authChecked, setAuthChecked] = useState(false); // 新增状态来跟踪认证检查是否完成
+  const [authChecked, setAuthChecked] = useState(false);
   const [projectDetail, setProjectDetail] = useState<any>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   
@@ -398,51 +374,61 @@ export default function EditPage() {
   const { updateProject } = useProjectManagementStore();
   
   useEffect(() => {
-    const checkAuth = async () => {
-      // 先检查本地是否有 token
-      if (!isUserLoggedIn()) {
-        console.warn('未找到 token，跳转到登录页');
-        router.replace(`${ROUTES.LOGIN}?redirect=${window.location.pathname}${window.location.search}`);
-        setAuthChecked(true); // 设置认证检查完成，避免显示页面内容
-        return;
-      }
+    // 如果认证检查已经完成，不再重复执行
+    if (authChecked) return;
+    
+    // 检查全局认证状态
+    if (!isAuthenticated || !user) {
+      console.warn('用户未认证，跳转到登录页');
+      router.replace(`${ROUTES.LOGIN}?redirect=${window.location.pathname}${window.location.search}`);
+      setAuthChecked(true);
+      return;
+    }
 
-      try {
-        const response = await getUserProfile();
-        if (response.ok) {
-          const userData = await response.json();
-          setUser(userData);
-          
-          // 如果有项目ID参数，获取项目详情
-          if (projectId) {
-            const projectData = await fetchProjectDetail(projectId);
-            setProjectDetail(projectData);
-          }
-        } else {
-          throw new Error('未认证');
+    // 如果有项目ID参数，获取项目详情
+    const fetchProjectData = async () => {
+      if (projectId) {
+        try {
+          const projectData = await fetchProjectDetail(projectId);
+          setProjectDetail(projectData);
+        } catch (error) {
+          console.error('获取项目详情失败:', error);
         }
-      } catch (error) {
-        console.log(error);
-        // 如果后端返回未认证，跳转到登录页
-        console.warn('用户未认证，跳转到登录页');
-        router.replace(`${ROUTES.LOGIN}?redirect=${window.location.pathname}${window.location.search}`);
-      } finally {
-        setIsLoading(false);
-        setAuthChecked(true); // 设置认证检查完成
       }
+      setIsLoading(false);
+      setAuthChecked(true);
     };
 
-    checkAuth();
-  }, [router, projectId, fetchProjectDetail]);
+    fetchProjectData();
+  }, [router, projectId, fetchProjectDetail, isAuthenticated, user, authChecked]);
 
-  // 在认证检查完成前不渲染任何内容，让全局loading组件处理
+  // 在认证检查完成前显示加载状态
   if (!authChecked) {
-    return null; // 让Next.js的loading组件处理加载状态
+    return (
+      <div className="h-screen flex items-center justify-center bg-neutral-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-neutral-600">检查用户认证状态...</p>
+        </div>
+      </div>
+    );
   }
 
-  // 如果认证失败，已经重定向，这里也返回null
-  if (!isUserLoggedIn() || !authChecked) {
-    return null;
+  // 如果认证失败，显示错误信息（实际上应该已经重定向）
+  if (!isAuthenticated) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-neutral-50">
+        <div className="text-center">
+          <p className="text-red-600 text-lg mb-4">认证失败，请重新登录</p>
+          <button 
+            onClick={() => router.replace(`${ROUTES.LOGIN}?redirect=${window.location.pathname}${window.location.search}`)}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            前往登录
+          </button>
+        </div>
+      </div>
+    );
   }
   
   // 编辑项目信息的函数
