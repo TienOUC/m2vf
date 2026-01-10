@@ -68,11 +68,33 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const user = localStorage.getItem('user');
     
     if (accessToken) {
+      // 验证 token 是否有效（检查格式和基本结构）
+      const isValidToken = accessToken.length > 10; // 简单的格式检查
+      
+      if (isValidToken) {
+        set({
+          isAuthenticated: true,
+          accessToken: accessToken,
+          refreshToken: refreshToken || null,
+          user: user ? JSON.parse(user) : null
+        });
+      } else {
+        // Token 格式无效，清除认证状态
+        set({
+          isAuthenticated: false,
+          accessToken: null,
+          refreshToken: null,
+          user: null
+        });
+        clearTokens();
+      }
+    } else {
+      // 没有 token，确保认证状态为 false
       set({
-        isAuthenticated: true,
-        accessToken: accessToken,
-        refreshToken: refreshToken || null,
-        user: user ? JSON.parse(user) : null
+        isAuthenticated: false,
+        accessToken: null,
+        refreshToken: null,
+        user: null
       });
     }
   }

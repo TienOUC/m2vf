@@ -132,7 +132,10 @@ export default function LoginPage() {
   useEffect(() => {
     if (isAuthenticated) {
       // 如果已经认证，跳转到目标页面
-      router.replace(redirectTo);
+      // 使用 setTimeout 避免与页面加载时的其他重定向冲突
+      setTimeout(() => {
+        router.replace(redirectTo);
+      }, 100);
     }
   }, [router, redirectTo, isAuthenticated]);
 

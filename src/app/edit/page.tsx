@@ -379,7 +379,10 @@ export default function EditPage() {
     
     // 检查全局认证状态
     if (!isAuthenticated || !user) {
-      console.warn('用户未认证，跳转到登录页');
+      // 只在第一次检查时输出警告，避免重复警告
+      if (!authChecked) {
+        console.warn('用户未认证，跳转到登录页');
+      }
       router.replace(`${ROUTES.LOGIN}?redirect=${window.location.pathname}${window.location.search}`);
       setAuthChecked(true);
       return;
