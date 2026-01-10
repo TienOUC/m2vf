@@ -6,7 +6,7 @@ export interface TextNodeData {
   fontType?: 'h1' | 'h2' | 'h3' | 'p';
   onTypeChange?: (
     nodeId: string,
-    newType: 'text' | 'image' | 'video' | 'audio'
+    newType: 'text' | 'image' | 'video'
   ) => void;
   onDelete?: (nodeId: string) => void;
   onBackgroundColorChange?: (nodeId: string, color: string) => void;

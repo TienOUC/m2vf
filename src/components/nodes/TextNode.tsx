@@ -91,13 +91,11 @@ function TextNode(props: NodeProps) {
           onWheel={(e) => {
             if (isEditing) {
               e.stopPropagation();
-              e.preventDefault();
             }
           }}
           onWheelCapture={(e) => {
             if (isEditing) {
               e.stopPropagation();
-              e.preventDefault();
             }
           }}
           style={{ cursor: isEditing ? 'default' : 'grab' }}

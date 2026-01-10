@@ -1,7 +1,6 @@
-// app/edit/page.tsx
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getUserProfile } from '@/lib/api/auth';
 import { isUserLoggedIn } from '@/lib/utils/token';
@@ -43,6 +42,8 @@ const initialNodes: Node[] = [];
 
 // 初始边
 const initialEdges: Edge[] = [];
+
+
 
 // ReactFlow 包装组件
 function FlowCanvas({ projectId }: { projectId: string | null }) {
@@ -199,7 +200,7 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
         })
       );
     },
-    [setNodes, handleDelete, handleBackgroundColorChange]
+    [setNodes, handleDelete, handleBackgroundColorChange, handleReplace]
   );
 
   // 节点内容管理
@@ -207,75 +208,6 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
   const nodeHtmlContentMap = useRef<Record<string, string>>({});
   const editingNodeIds = useRef<Set<string>>(new Set());
   const [isAnyEditing, setIsAnyEditing] = useState(false);
-  
-  // 注册自定义节点类型
-  const nodeTypes = useMemo(
-    () => ({
-      text: (props: any) => {
-        const nodeId = props.id;
-        const nodeData = props.data;
-        
-        // 创建获取内容的函数
-        const getContent = (id: string) => {
-          return nodeContentMap.current[id] || '';
-        };
-        const getRichContent = (id: string) => {
-          return nodeHtmlContentMap.current[id] || '';
-        };
-        
-        // 更新内容的函数
-        const updateContent = (id: string, content: string) => {
-          nodeContentMap.current[id] = content;
-        };
-        const updateHtmlContent = (id: string, html: string) => {
-          nodeHtmlContentMap.current[id] = html;
-        };
-        const onEditingChange = (id: string, editing: boolean) => {
-          if (editing) {
-            editingNodeIds.current.add(id);
-          } else {
-            editingNodeIds.current.delete(id);
-          }
-          setIsAnyEditing(editingNodeIds.current.size > 0);
-        };
-        
-        return (
-          <TextNode
-            {...props}
-            data={{
-              ...nodeData,
-              fontType: nodeData.fontType,
-              getContent,
-              getRichContent,
-              onContentChange: (content: string) => updateContent(nodeId, content),
-              onRichContentChange: (html: string) => updateHtmlContent(nodeId, html),
-              onEditingChange,
-              onFontTypeChange: handleFontTypeChange
-            }}
-          />
-        );
-      },
-      image: (props: any) => {
-        const nodeData = props.data;
-        
-        return (
-          <ImageNode
-            {...props}
-            data={{
-              ...nodeData,
-              onEditStart: centerNode,
-              onCropStart: (nodeId: string, imageUrl: string) => {
-                setCroppingNode({ id: nodeId, imageUrl });
-              },
-              onImageUpdate: handleImageUpdate
-            }}
-          />
-        );
-      },
-      video: VideoNode
-    }),
-    [handleFontTypeChange, handleImageUpdate, centerNode]
-  );
 
   // 连接节点回调
   const onConnect: OnConnect = useCallback(
@@ -335,17 +267,19 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
     // 对于文本节点，如果处于编辑模式，则不允许拖拽
     const filteredChanges = changes.map(change => {
       if (change.type === 'position' && change.dragging) {
-        const node = nodes.find(n => n.id === change.id);
-        if (node && node.type === 'text' && node.data?.isEditing) {
-          // 如果是文本节点且正在编辑，则忽略位置变化
-          return { ...change, type: 'position', position: node.position };
+        const nodeId = change.id;
+        const isCurrentlyEditing = editingNodeIds.current.has(nodeId);
+        if (isCurrentlyEditing) {
+          // 如果节点当前正在编辑，则忽略位置变化
+          const node = nodes.find(n => n.id === nodeId);
+          return { ...change, type: 'position', position: node ? node.position : change.position };
         }
       }
       return change;
     });
     
     onNodesChange(filteredChanges);
-  }, [onNodesChange, nodes]);
+  }, [onNodesChange, nodes, editingNodeIds]);
 
   // 裁剪完成回调函数
   const handleCropComplete = useCallback((nodeId: string, croppedImageUrl: string) => {
@@ -367,6 +301,16 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
     // 关闭裁剪编辑器
     setCroppingNode(null);
   }, [setNodes]);
+
+  // 使用最简单的 nodeTypes 定义 - 直接引用导入的组件
+  const nodeTypes = useMemo(
+    () => ({
+      text: TextNode,
+      image: ImageNode,
+      video: VideoNode
+    }),
+    [] // 空依赖数组，确保 nodeTypes 只在第一次渲染时创建
+  );
 
   return (
     <>
