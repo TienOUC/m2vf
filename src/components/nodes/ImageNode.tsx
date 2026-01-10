@@ -7,6 +7,7 @@ import { useFileUpload } from '@/hooks/useFileUpload';
 import { NodeBase } from './NodeBase';
 import ResizeIcon from './ResizeIcon';
 import Image from 'next/image';
+import { useState } from 'react';
 
 export interface ImageNodeData {
   label?: string;
@@ -39,33 +40,49 @@ function ImageNode({ data, id, selected }: NodeProps) {
     });
   };
 
-  // 打开裁剪编辑器 - 先居中画布，再通知父组件打开裁剪编辑器
-  const handleEditStart = (nodeId: string) => {
+  // 裁剪状态管理
+  const [isCropping, setIsCropping] = useState(false);
+
+  // 打开裁剪编辑器 - 异步居中画布，再通知父组件打开裁剪编辑器
+  const handleEditStart = async (nodeId: string) => {
     // 1. 检测图片节点是否已包含有效图片资源
     const imageUrl = nodeData?.imageUrl;
     const hasImage = !!imageUrl;
     
-    if (hasImage) {
+    if (!hasImage) {
+      console.warn('图片节点没有有效的图片资源，无法进行裁剪');
+      return;
+    }
+
+    if (isCropping) {
+      console.warn('裁剪操作正在进行中，请等待完成');
+      return;
+    }
+
+    setIsCropping(true);
+    
+    try {
       // 2. 响应裁剪按钮的点击事件 - 先调用画布居中逻辑
       if (nodeData?.onEditStart) {
-        // 3-6. 画布居中逻辑在 page.tsx 的 onEditStart 中实现
-        // 它会计算偏移量、平滑移动画布，确保节点精确居中
+        // 调用 onEditStart 进行画布居中
         nodeData.onEditStart(nodeId);
         
-        // 7. 画布居中完成后，通知父组件打开裁剪编辑器
-        // 使用 requestAnimationFrame 确保在当前帧渲染完成后执行
-        requestAnimationFrame(() => {
-          // 通过回调通知父组件打开裁剪编辑器
-          if (nodeData?.onCropStart && imageUrl) {
-            nodeData.onCropStart(nodeId, imageUrl);
-          }
-        });
-      } else {
-        // 如果没有 onEditStart 回调，直接通知父组件打开裁剪编辑器
-        if (nodeData?.onCropStart && imageUrl) {
-          nodeData.onCropStart(nodeId, imageUrl);
-        }
+        // 等待600ms确保画布居中动画完成
+        await new Promise(resolve => setTimeout(resolve, 600));
       }
+      
+      // 3. 居中完成后，通知父组件打开裁剪编辑器
+      if (nodeData?.onCropStart && imageUrl) {
+        nodeData.onCropStart(nodeId, imageUrl);
+      }
+    } catch (error) {
+      console.error('裁剪流程执行失败:', error);
+      // 即使出错也尝试打开裁剪编辑器
+      if (nodeData?.onCropStart && imageUrl) {
+        nodeData.onCropStart(nodeId, imageUrl);
+      }
+    } finally {
+      setIsCropping(false);
     }
   };
 

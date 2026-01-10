@@ -56,10 +56,42 @@ function FlowCanvas({ projectId }: { projectId: string | null }) {
   const centerNode = useNodeCentering(reactFlowInstance);
   const [croppingNode, setCroppingNode] = useState<{id: string, imageUrl: string} | null>(null);
 
-  // 处理裁剪开始 - 居中画布
-  const handleEditStart = useCallback((nodeId: string) => {
-    centerNode(nodeId);
-  }, [centerNode]);
+  // 裁剪状态管理
+  const [isCropping, setIsCropping] = useState(false);
+  const [croppingError, setCroppingError] = useState<string | null>(null);
+
+  // 处理裁剪开始 - 居中画布（异步版本）
+  const handleEditStart = useCallback(async (nodeId: string) => {
+    if (isCropping) {
+      console.warn('裁剪操作正在进行中，请等待完成');
+      return;
+    }
+
+    setIsCropping(true);
+    setCroppingError(null);
+
+    try {
+      // 异步等待画布居中完成
+      await centerNode(nodeId, {
+        onCenteringComplete: (centeredNodeId) => {
+          console.log(`节点 ${centeredNodeId} 居中完成`);
+        },
+        onCenteringError: (centeredNodeId, error) => {
+          console.error(`节点 ${centeredNodeId} 居中失败:`, error);
+          setCroppingError(`画布居中失败: ${error.message}`);
+        }
+      });
+      
+      return true; // 返回成功状态
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : '居中操作失败';
+      console.error('裁剪流程中的居中操作失败:', error);
+      setCroppingError(errorMsg);
+      return false; // 返回失败状态
+    } finally {
+      setIsCropping(false);
+    }
+  }, [centerNode, isCropping]);
 
   // 处理裁剪开始 - 打开裁剪编辑器
   const handleCropStart = useCallback((nodeId: string, imageUrl: string) => {
