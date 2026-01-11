@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { AuthState } from '@/lib/types/store';
-import { loginUser, registerUser, getUserProfile, logoutUser } from '@/lib/api/auth';
+import { loginUser, registerUser, getUserProfile, logoutUser } from '@/lib/api/client/auth';
 import { saveTokens, clearTokens, getAccessToken, getRefreshToken } from '@/lib/utils/token';
 
 // 用户认证store

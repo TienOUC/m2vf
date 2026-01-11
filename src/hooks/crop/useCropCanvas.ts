@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useRef } from 'react';
-import type { Fabric, FabricCanvas, FabricObject } from '@/types/editor/fabric';
+import { useCallback, useRef } from 'react';
+import type { Fabric, FabricCanvas } from '@/types/editor/fabric';
 
 /**
  * Fabric Canvas管理hook
  */
 export const useCropCanvas = () => {
   const canvasRef = useRef<FabricCanvas | null>(null);
-  const fabricRef = useRef<any>(null);
+  const fabricRef = useRef<Fabric | null>(null);
 
   // 创建Canvas
   const createCanvas = useCallback((

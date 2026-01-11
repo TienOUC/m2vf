@@ -1,6 +1,6 @@
 // Workspace 管理相关 API
 
-import { apiRequest } from './client';
+import { apiRequest } from './index';
 
 // ==================== Workspace API ====================
 

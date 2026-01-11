@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react';
-import type { FabricObject } from '@/types/editor/fabric';
+import type { Fabric, FabricCanvas, FabricObject } from '@/types/editor/fabric';
 import type { CropBoxConfig } from '@/types/crop';
 
 /**
@@ -10,9 +10,9 @@ export const useCropBox = () => {
 
   // 创建裁剪框
   const createCropBox = useCallback((
-    fabric: any,
+    fabric: Fabric,
     config: CropBoxConfig,
-    canvas: any
+    canvas: FabricCanvas
   ): FabricObject | null => {
     if (!fabric || !canvas) return null;
 
@@ -89,7 +89,7 @@ export const useCropBox = () => {
   }, []);
 
   // 移除裁剪框
-  const removeCropBox = useCallback((canvas: any) => {
+  const removeCropBox = useCallback((canvas: FabricCanvas) => {
     if (cropBoxRef.current && canvas) {
       canvas.remove(cropBoxRef.current);
       cropBoxRef.current = null;

@@ -27,7 +27,7 @@ export const API_ENDPOINTS = {
     CREATE: '/api/projects/create/',
     DELETE: '/api/projects/delete/',
     DETAIL: (id: string | number) => `/api/projects/${id}/`,
-    SAVE: '/api/save-project/',
+    SAVE: (id: string | number) => `/api/projects/${id}/workspace`,
   },
   
   // 图片库管理相关

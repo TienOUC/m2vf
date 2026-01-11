@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { uploadProjectImage } from '@/lib/api/images';
+import { uploadProjectImage } from '@/lib/api/client/images';
 
 export function useFileUpload(acceptType: string, initialUrl?: string) {
   const fileInputRef = useRef<HTMLInputElement>(null);

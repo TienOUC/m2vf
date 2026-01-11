@@ -16,7 +16,4 @@ export interface LoginCredentials {
   password: string;
 }
 
-// API 请求选项（扩展 RequestInit 以支持超时）
-export interface ApiRequestOptions extends RequestInit {
-  timeout?: number; // 超时时间（毫秒），默认 15 分钟
-}
+

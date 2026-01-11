@@ -1,7 +1,7 @@
 // AI 模型相关 API
 
-import { apiRequest } from './client';
-import type { AIModelListResponse, AIModelParamsResponse } from '../types/ai';
+import { apiRequest } from './index';
+import type { AIModelListResponse, AIModelParamsResponse } from '@/lib/types/ai';
 
 // 获取AI模型列表
 export const getAIModels = async (): Promise<AIModelListResponse> => {

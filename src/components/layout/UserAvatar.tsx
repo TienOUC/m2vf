@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { logoutUser } from '@/lib/api/auth';
+import { logoutUser } from '@/lib/api/client/auth';
 import { Person, Logout } from '@mui/icons-material';
 
 interface UserAvatarProps {

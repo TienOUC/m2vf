@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Folder as FolderIcon, Close as CloseIcon } from '@mui/icons-material';
-import { getProjectImageTree } from '@/lib/api/images';
+import { getProjectImageTree } from '@/lib/api/client/images';
 
 interface CreateFolderDialogProps {
   onClose: () => void;

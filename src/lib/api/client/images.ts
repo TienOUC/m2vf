@@ -1,6 +1,6 @@
 // 图片库管理相关 API
 
-import { apiRequest } from './client';
+import { apiRequest } from './index';
 
 // ==================== 图片库管理API ====================
 

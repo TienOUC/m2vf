@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Folder as FolderIcon, Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
-import { getProjectImageTree, createFolder, getFolderImages, getFolderVideos } from '@/lib/api/images';
+import { getProjectImageTree, createFolder, getFolderImages, getFolderVideos } from '@/lib/api/client/images';
 import CreateFolderDialog from '@/components/forms/CreateFolderDialog';
 
 interface AssetDrawerProps {

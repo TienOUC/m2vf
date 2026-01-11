@@ -14,7 +14,7 @@ interface UseFormProps<T> {
   onSubmit: (values: T) => void | Promise<void>;
 }
 
-export const useForm = <T extends Record<string, any>>({
+export const useForm = <T extends object>({
   initialValues,
   validate,
   onSubmit
@@ -24,14 +24,14 @@ export const useForm = <T extends Record<string, any>>({
   const [touched, setTouched] = useState<FormTouched<T>>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = useCallback((name: keyof T, value: any) => {
+  const handleChange = useCallback((name: keyof T, value: T[keyof T]) => {
     setValues(prev => ({
       ...prev,
       [name]: value
     }));
 
     // 如果字段已经被触摸过，实时验证
-    if (touched[name as string]) {
+    if (touched[name]) {
       setErrors(prev => {
         const newValues = { ...values, [name]: value };
         return {

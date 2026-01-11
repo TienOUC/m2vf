@@ -114,14 +114,11 @@ export default function EditPage() {
   }
   
   return (
-    <div className="h-screen flex flex-col">
-      <Navbar user={user} />
-
-      <main className="flex-1 bg-neutral-50">
-        <div className="w-full h-full">
-          <FlowCanvas projectId={projectId} />
-        </div>
-      </main>
+    <>
+      {/* 确保FlowCanvas有明确的高度设置 */}
+      <div className="w-full h-full flex-1" style={{ height: '100%', width: '100%', minHeight: '0' }}>
+        <FlowCanvas projectId={projectId} />
+      </div>
       
       <ProjectEditModal
         isOpen={showEditModal}
@@ -135,6 +132,6 @@ export default function EditPage() {
         onProjectNameChange={setProjectName}
         onProjectDescriptionChange={setProjectDescription}
       />
-    </div>
+    </>
   );
 }

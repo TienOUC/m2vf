@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react';
-import type { FabricObject } from '@/types/editor/fabric';
+import type { Fabric, FabricCanvas, FabricObject } from '@/types/editor/fabric';
 
 /**
  * 遮罩层管理hook
@@ -9,8 +9,8 @@ export const useCropMask = () => {
 
   // 创建遮罩层
   const createMask = useCallback((
-    fabric: any,
-    canvas: any,
+    fabric: Fabric,
+    canvas: FabricCanvas,
     width: number,
     height: number,
     opacity: number = 0.7
@@ -59,7 +59,7 @@ export const useCropMask = () => {
   }, []);
 
   // 移除遮罩层
-  const removeMask = useCallback((canvas: any) => {
+  const removeMask = useCallback((canvas: FabricCanvas) => {
     if (maskRef.current && canvas) {
       canvas.remove(maskRef.current);
       maskRef.current = null;
@@ -67,9 +67,7 @@ export const useCropMask = () => {
   }, []);
 
   // 更新遮罩裁剪路径
-  const updateMaskClipPath = useCallback((
-    cropBoxBounds: { left: number; top: number; width: number; height: number }
-  ) => {
+  const updateMaskClipPath = useCallback(() => {
     if (!maskRef.current) return;
 
     // 这里可以实现更复杂的遮罩路径更新逻辑

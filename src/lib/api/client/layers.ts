@@ -1,9 +1,9 @@
 // 图层管理相关 API
 
-import { apiRequest } from './client';
+import { apiRequest } from './index';
 
 // 创建图层
-export const createLayer = async (layerData: any): Promise<Response> => {
+export const createLayer = async (layerData: Record<string, unknown>): Promise<Response> => {
   const createUrl = process.env.NEXT_PUBLIC_API_BASE_URL
     ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/layers/`
     : `http://127.0.0.1:8000/api/layers/`;

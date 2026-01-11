@@ -91,7 +91,9 @@ export const useTextNode = ({ data, id, selected, onEditingChange, onFontTypeCha
       return;
     }
 
-    isEditing && setIsEditing(false);
+    if (isEditing) {
+      setIsEditing(false);
+    }
   });
 
   // 同步编辑状态到父组件，驱动全局缩放策略

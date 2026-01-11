@@ -29,6 +29,20 @@ export interface FlowCanvasProps {
 }
 
 const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
+  // 确保React Flow组件能够正确获取尺寸信息
+  React.useEffect(() => {
+    // 强制重新计算布局
+    const handleResize = () => {
+      window.dispatchEvent(new Event('resize'));
+    };
+    
+    // 初始化时触发一次
+    handleResize();
+    
+    return () => {
+      // 清理事件监听器（如果有的话）
+    };
+  }, []);
   const reactFlowInstance = useReactFlow();
   const { screenToFlowPosition } = reactFlowInstance;
 
@@ -96,42 +110,46 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
 
   return (
     <>
-      <ReactFlow
-        nodes={nodeOperations.nodes}
-        edges={nodeOperations.edges}
-        onNodesChange={paneInteractions.onNodesChangeWithDragControl}
-        onEdgesChange={nodeOperations.onEdgesChange}
-        onConnect={onConnect}
-        onPaneClick={paneInteractions.handlePaneClick}
-        nodeTypes={nodeTypes}
-        fitView
-        zoomOnScroll={!nodeOperations.isAnyEditing}
-        zoomOnPinch={!nodeOperations.isAnyEditing}
-        proOptions={{ hideAttribution: true }}
-      >
-        <Background
-          variant={BackgroundVariant.Dots}
-          gap={12}
-          size={1}
-          color="var(--color-neutral-400)"
-        />
-        <Controls />
-        <MiniMap />
+      {/* 为 ReactFlow 添加明确的高度和宽度设置 - 使用视口高度减去navbar高度（padding + content + border）*/}
+      <div style={{ width: '100%', height: 'calc(100vh - 70px)', position: 'relative', display: 'block' }}>
+        <ReactFlow
+          nodes={nodeOperations.nodes}
+          edges={nodeOperations.edges}
+          onNodesChange={paneInteractions.onNodesChangeWithDragControl}
+          onEdgesChange={nodeOperations.onEdgesChange}
+          onConnect={onConnect}
+          onPaneClick={paneInteractions.handlePaneClick}
+          nodeTypes={nodeTypes}
+          fitView
+          zoomOnScroll={!nodeOperations.isAnyEditing}
+          zoomOnPinch={!nodeOperations.isAnyEditing}
+          proOptions={{ hideAttribution: true }}
+          style={{ width: '100%', height: '100%' }}
+        >
+          <Background
+            variant={BackgroundVariant.Dots}
+            gap={12}
+            size={1}
+            color="var(--color-neutral-400)"
+          />
+          <Controls />
+          <MiniMap />
 
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-background/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-md border border-neutral-200 z-10 flex items-center gap-2">
-          <Add fontSize="small" />
-          <span className="text-sm text-neutral-600">双击画布添加文本节点，点击节点工具栏 <SwapHoriz fontSize="small" /> 按钮切换节点类型</span>
-        </div>
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-background/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-md border border-neutral-200 z-10 flex items-center gap-2">
+            <Add fontSize="small" />
+            <span className="text-sm text-neutral-600">双击画布添加文本节点，点击节点工具栏 <SwapHoriz fontSize="small" /> 按钮切换节点类型</span>
+          </div>
 
-        <LeftSidebar
-          onAddTextNode={addTextNode}
-          onAddImageNode={addImageNode}
-          onAddVideoNode={addVideoNode}
-          onUploadImage={handleUploadImage}
-          onUploadVideo={handleUploadVideo}
-          projectId={projectId ? parseInt(projectId) : undefined}
-        />
-      </ReactFlow>
+          <LeftSidebar
+            onAddTextNode={addTextNode}
+            onAddImageNode={addImageNode}
+            onAddVideoNode={addVideoNode}
+            onUploadImage={handleUploadImage}
+            onUploadVideo={handleUploadVideo}
+            projectId={projectId ? parseInt(projectId) : undefined}
+          />
+        </ReactFlow>
+      </div>
 
       {cropOperations.croppingNode && (
         <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center">

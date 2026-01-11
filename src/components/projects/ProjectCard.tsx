@@ -19,12 +19,11 @@ interface ProjectCardProps {
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) => {
-  const { 
+  const {
     projectName, 
     projectDescription, 
     setProjectName, 
     setProjectDescription, 
-    fetchProjectDetail, 
     updateProjectInfo,
     resetForm
   } = useProjectEditingStore();

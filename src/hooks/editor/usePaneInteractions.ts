@@ -1,16 +1,16 @@
 import { useCallback } from 'react';
-import { useReactFlow } from '@xyflow/react';
+import { useReactFlow, Node, NodeChange } from '@xyflow/react';
 
 export interface PaneInteractions {
   handlePaneClick: (event: React.MouseEvent) => void;
-  onNodesChangeWithDragControl: (changes: any[]) => void;
+  onNodesChangeWithDragControl: (changes: NodeChange[]) => void;
 }
 
 export const usePaneInteractions = (
   addTextNode: (position: { x: number; y: number }) => void,
   editingNodeIds: React.MutableRefObject<Set<string>>,
-  nodesRef: React.MutableRefObject<any[]>,
-  onNodesChange: (changes: any[]) => void
+  nodesRef: React.MutableRefObject<Node[]>,
+  onNodesChange: (changes: NodeChange[]) => void
 ): PaneInteractions => {
   const { screenToFlowPosition } = useReactFlow();
 
@@ -28,14 +28,14 @@ export const usePaneInteractions = (
     [addTextNode, screenToFlowPosition]
   );
 
-  const onNodesChangeWithDragControl = useCallback((changes: any[]) => {
+  const onNodesChangeWithDragControl = useCallback((changes: NodeChange[]) => {
     const filteredChanges = changes.map(change => {
       if (change.type === 'position' && change.dragging) {
         const nodeId = change.id;
         const isCurrentlyEditing = editingNodeIds.current.has(nodeId);
         if (isCurrentlyEditing) {
           const node = nodesRef.current.find(n => n.id === nodeId);
-          return { ...change, type: 'position', position: node ? node.position : change.position };
+          return { ...change, position: node ? node.position : change.position };
         }
       }
       return change;

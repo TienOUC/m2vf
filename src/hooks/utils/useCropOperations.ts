@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useNodeCentering } from './useNodeCentering';
+import { useNodeCentering } from '@/hooks/editor/useNodeCentering';
 
 export interface CropOperations {
   isCropping: boolean;
@@ -51,7 +51,7 @@ export const useCropOperations = (centerNode: ReturnType<typeof useNodeCentering
     setCroppingNode({ id: nodeId, imageUrl });
   }, []);
 
-  const handleCropComplete = useCallback((nodeId: string, croppedImageUrl: string) => {
+  const handleCropComplete = useCallback((_nodeId: string, _croppedImageUrl: string) => {
     setCroppingNode(null);
   }, []);
 

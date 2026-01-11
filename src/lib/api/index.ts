@@ -1,95 +1,19 @@
-// API 统一导出文件
+// API 入口文件，统一导出客户端 API 方法和共享类型
 
-// 核心客户端
+// 客户端 API 请求工具
 export { apiRequest } from './client';
 
-// 认证相关
-export { loginUser, registerUser, getUserProfile, logoutUser } from './auth';
+// 客户端 API 方法
+export * from './client/projects';
+export * from './client/ai';
+export * from './client/auth';
+export * from './client/documents';
+export * from './client/images';
+export * from './client/layers';
+export * from './client/workspace';
 
-// 项目管理
-export {
-  getProjects,
-  getProjectDetail,
-  createProject,
-  updateProject,
-  deleteProject,
-  saveProject
-} from './projects';
+// 共享类型定义
+export * from './shared/types';
 
-// 图片库管理
-export {
-  getProjectImageTree,
-  createFolder,
-  updateFolder,
-  deleteFolder,
-  uploadProjectImage,
-  getFolderImages,
-  getProjectImageDetail,
-  updateProjectImage,
-  deleteProjectImage,
-  uploadProjectVideo,
-  getFolderVideos,
-  updateProjectVideo,
-  deleteProjectVideo
-} from './images';
-
-// 文档管理
-export {
-  uploadProjectDocument,
-  getProjectDocument,
-  updateProjectDocument,
-  deleteProjectDocument,
-  getDocumentTree,
-  createDocument,
-  updateDocument,
-  deleteDocument,
-  getDocumentDetail,
-  getAssetFile,
-  getAssetsBatch,
-  createDocumentFolder,
-  updateDocumentFolder,
-  deleteDocumentFolder,
-  renameDocumentNode,
-  moveDocumentNode
-} from './documents';
-
-// 图层管理
-export {
-  createLayer,
-  updateLayerTempImage,
-  saveLayerProcessedImage
-} from './layers';
-
-// Workspace
-export {
-  getProjectWorkspace,
-  saveProjectWorkspace,
-  getWorkspaceDocuments
-} from './workspace';
-
-// AI 模型
-export { getAIModels, getAIModelParams } from './ai';
-
-// Token 工具
-export {
-  getAccessToken,
-  getRefreshToken,
-  saveTokens,
-  clearTokens,
-  refreshAccessToken,
-  isUserLoggedIn
-} from '@/lib/utils/token';
-
-// 类型定义
-export type {
-  TokenResponse,
-  LoginCredentials,
-  ApiRequestOptions
-} from '@/lib/types/auth';
-
-export type {
-  AIModel,
-  AIModelListResponse,
-  ParameterSchema,
-  AIModelParamsResponse
-} from '@/lib/types/ai';
+// 注意：服务器端 API 工具不在这里导出，需要单独导入
+// import { fetchServerApi } from '@/lib/api/server';

@@ -7,26 +7,48 @@ const { STORAGE_KEYS } = DEFAULT_CONFIG;
 
 // 获取存储的access_token
 export const getAccessToken = (): string | null => {
-  return localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+  // 客户端使用localStorage
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+  }
+  return null;
 };
 
 // 获取存储的refresh_token
 export const getRefreshToken = (): string | null => {
-  return localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+  // 客户端使用localStorage
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+  }
+  return null;
 };
 
 // 保存token到本地存储
 export const saveTokens = (tokens: TokenResponse): void => {
-  localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokens.access_token);
-  localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokens.refresh_token);
-  localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(tokens.user));
+  // 客户端使用localStorage
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokens.access_token);
+    localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokens.refresh_token);
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(tokens.user));
+    
+    // 同时设置到cookies，以便服务器端访问
+    document.cookie = `${STORAGE_KEYS.ACCESS_TOKEN}=${tokens.access_token}; path=/; max-age=3600; secure; samesite=lax`;
+    document.cookie = `${STORAGE_KEYS.REFRESH_TOKEN}=${tokens.refresh_token}; path=/; max-age=604800; secure; samesite=lax`;
+  }
 };
 
 // 清除所有token和用户信息
 export const clearTokens = (): void => {
-  localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-  localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-  localStorage.removeItem(STORAGE_KEYS.USER);
+  // 客户端使用localStorage
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.USER);
+    
+    // 同时清除cookies
+    document.cookie = `${STORAGE_KEYS.ACCESS_TOKEN}=; path=/; max-age=0`;
+    document.cookie = `${STORAGE_KEYS.REFRESH_TOKEN}=; path=/; max-age=0`;
+  }
 };
 
 // 刷新token

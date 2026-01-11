@@ -1,6 +1,6 @@
 import { useCallback, useState, useRef } from 'react';
 import { Node, Edge, useNodesState, useEdgesState } from '@xyflow/react';
-import { NodeOperations, NodeType, FontType } from './types/nodeOperations';
+import { NodeOperations, NodeType, FontType } from '@/lib/types/editor/nodeOperations';
 
 export const useNodeOperations = (): NodeOperations => {
   // 使用类型断言来解决 React Flow 的类型推断问题

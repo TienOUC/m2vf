@@ -5,8 +5,10 @@ import {
   createProject as createProjectAPI, 
   deleteProject as deleteProjectAPI,
   getProjectDetail as getProjectDetailAPI,
-  updateProject as updateProjectAPI
-} from '@/lib/api/projects';
+  updateProject as updateProjectAPI,
+  type Project, 
+  type ProjectListResponse
+} from '@/lib/api';
 
 // 项目管理store
 export const useProjectManagementStore = create<ProjectManagementState>((set, get) => ({
@@ -28,10 +30,10 @@ export const useProjectManagementStore = create<ProjectManagementState>((set, ge
       const response = await getProjectsAPI({ page, pageSize });
       
       if (response.ok) {
-        const data: any = await response.json();
+        const data = await response.json();
         
-        // 如果返回的是分页格式
-        if (data.hasOwnProperty('results')) {
+        // 检查是否为 API 返回的格式（count、next、previous、results）
+        if (data.hasOwnProperty('count') && data.hasOwnProperty('results')) {
           set({
             projects: data.results,
             pagination: {
@@ -43,18 +45,39 @@ export const useProjectManagementStore = create<ProjectManagementState>((set, ge
             isLoading: false
           });
           return data;
+        } 
+        // 检查是否为标准化的成功响应
+        else if (data.success === true && data.data) {
+          const apiData: any = data.data;
+          
+          // 如果返回的是分页格式
+          if (apiData.hasOwnProperty('projects') && apiData.hasOwnProperty('pagination')) {
+            set({
+              projects: apiData.projects,
+              pagination: {
+                page,
+                pageSize,
+                total: apiData.pagination.total,
+                totalPages: apiData.pagination.totalPages,
+              },
+              isLoading: false
+            });
+            return apiData;
+          } else {
+            // 如果返回的是简单数组格式
+            set(state => ({
+              projects: Array.isArray(apiData) ? apiData : [],
+              pagination: {
+                ...state.pagination,
+                total: Array.isArray(apiData) ? apiData.length : 0,
+                totalPages: 1,
+              },
+              isLoading: false
+            }));
+            return apiData;
+          }
         } else {
-          // 如果返回的是简单数组格式
-          set(state => ({
-            projects: Array.isArray(data) ? data : [],
-            pagination: {
-              ...state.pagination,
-              total: Array.isArray(data) ? data.length : 0,
-              totalPages: 1,
-            },
-            isLoading: false
-          }));
-          return data;
+          throw new Error(data.error?.message || '获取项目列表失败：响应格式错误');
         }
       } else {
         const errorData = await response.json().catch(() => ({}));
@@ -76,12 +99,18 @@ export const useProjectManagementStore = create<ProjectManagementState>((set, ge
       const response = await createProjectAPI(projectData);
       
       if (response.ok) {
-        const result = await response.json().catch(() => ({}));
-        // 重新获取项目列表以包含新创建的项目
-        const { page, pageSize } = get().pagination;
-        await get().fetchProjects(page, pageSize);
-        set({ success: '项目创建成功！' });
-        return result;
+        const apiResponse = await response.json();
+        
+        // 检查是否为标准化的成功响应
+        if (apiResponse.success === true) {
+          // 重新获取项目列表以包含新创建的项目
+          const { page, pageSize } = get().pagination;
+          await get().fetchProjects(page, pageSize);
+          set({ success: '项目创建成功！' });
+          return apiResponse.data;
+        } else {
+          throw new Error(apiResponse.error?.message || '创建项目失败：响应格式错误');
+        }
       } else {
         const errorData = await response.json().catch(() => ({}));
         const error = new Error(errorData.message || `创建项目失败: ${response.status}`);
@@ -102,11 +131,18 @@ export const useProjectManagementStore = create<ProjectManagementState>((set, ge
       const response = await deleteProjectAPI(projectName);
       
       if (response.ok) {
-        // 重新获取项目列表以移除已删除的项目
-        const { page, pageSize } = get().pagination;
-        await get().fetchProjects(page, pageSize);
-        set({ success: '项目删除成功！' });
-        return true;
+        const apiResponse = await response.json();
+        
+        // 检查是否为标准化的成功响应
+        if (apiResponse.success === true) {
+          // 重新获取项目列表以移除已删除的项目
+          const { page, pageSize } = get().pagination;
+          await get().fetchProjects(page, pageSize);
+          set({ success: '项目删除成功！' });
+          return true;
+        } else {
+          throw new Error(apiResponse.error?.message || '删除项目失败：响应格式错误');
+        }
       } else {
         const errorData = await response.json().catch(() => ({}));
         const error = new Error(errorData.message || `删除项目失败: ${response.status}`);
@@ -127,9 +163,15 @@ export const useProjectManagementStore = create<ProjectManagementState>((set, ge
       const response = await getProjectDetailAPI(projectId);
       
       if (response.ok) {
-        const projectDetail = await response.json();
-        set({ isLoading: false });
-        return projectDetail;
+        const apiResponse = await response.json();
+        
+        // 检查是否为标准化的成功响应
+        if (apiResponse.success === true) {
+          set({ isLoading: false });
+          return apiResponse.data;
+        } else {
+          throw new Error(apiResponse.error?.message || '获取项目详情失败：响应格式错误');
+        }
       } else {
         const errorData = await response.json().catch(() => ({}));
         const error = new Error(errorData.message || `获取项目详情失败: ${response.status}`);
@@ -150,12 +192,18 @@ export const useProjectManagementStore = create<ProjectManagementState>((set, ge
       const response = await updateProjectAPI(projectId.toString(), projectData);
       
       if (response.ok) {
-        const result = await response.json().catch(() => ({}));
-        // 重新获取项目列表以包含更新的项目
-        const { page, pageSize } = get().pagination;
-        await get().fetchProjects(page, pageSize);
-        set({ success: '项目更新成功！' });
-        return result;
+        const apiResponse = await response.json();
+        
+        // 检查是否为标准化的成功响应
+        if (apiResponse.success === true) {
+          // 重新获取项目列表以包含更新的项目
+          const { page, pageSize } = get().pagination;
+          await get().fetchProjects(page, pageSize);
+          set({ success: '项目更新成功！' });
+          return apiResponse.data;
+        } else {
+          throw new Error(apiResponse.error?.message || '更新项目失败：响应格式错误');
+        }
       } else {
         const errorData = await response.json().catch(() => ({}));
         const error = new Error(errorData.message || `更新项目失败: ${response.status}`);

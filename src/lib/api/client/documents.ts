@@ -1,6 +1,6 @@
 // 文档管理相关 API
 
-import { apiRequest } from './client';
+import { apiRequest } from './index';
 import { getAccessToken } from '@/lib/utils/token';
 
 // ==================== 文档管理API ====================

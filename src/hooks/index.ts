@@ -21,7 +21,6 @@ export {
   useFileUpload, 
   useImageLoader, 
   useFontStyle, 
-  useTextFormatting, 
   useLexicalEditor, 
   useFabricCanvas, 
   useCropHistory, 

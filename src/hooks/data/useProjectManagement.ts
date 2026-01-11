@@ -1,29 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { 
   getProjects as getProjectsAPI, 
   createProject as createProjectAPI, 
   deleteProject as deleteProjectAPI,
   getProjectDetail as getProjectDetailAPI,
-  updateProject as updateProjectAPI
-} from '@/lib/api/projects';
-
-interface Project {
-  id: number;
-  name: string;
-  description: string;
-  created_at: string;
-  updated_at: string;
-}
+  updateProject as updateProjectAPI,
+  type Project, 
+  type ProjectListResponse
+} from '@/lib/api';
 
 interface UseProjectManagementProps {
   initialProjects?: Project[];
-}
-
-interface ProjectListResponse {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: Project[];
 }
 
 export const useProjectManagement = ({ initialProjects = [] }: UseProjectManagementProps = {}) => {
@@ -47,34 +34,42 @@ export const useProjectManagement = ({ initialProjects = [] }: UseProjectManagem
       const response = await getProjectsAPI({ page, pageSize });
       
       if (response.ok) {
-        const data: ProjectListResponse = await response.json();
+        const apiResponse = await response.json();
         
-        // 如果返回的是分页格式
-        if (data.hasOwnProperty('results')) {
-          setProjects(data.results);
-          setPagination({
-            page,
-            pageSize,
-            total: data.count,
-            totalPages: Math.ceil(data.count / pageSize),
-          });
-          return data;
+        // 检查是否为标准化的成功响应
+        if (apiResponse.success === true && apiResponse.data) {
+          const data: ProjectListResponse = apiResponse.data;
+          
+          // 如果返回的是分页格式
+          if (data.hasOwnProperty('projects') && data.hasOwnProperty('pagination')) {
+            setProjects(data.projects);
+            setPagination({
+              page,
+              pageSize,
+              total: data.pagination.total,
+              totalPages: data.pagination.totalPages,
+            });
+            return data;
+          } else {
+            // 如果返回的是简单数组格式
+            setProjects(Array.isArray(data) ? data : []);
+            setPagination(prev => ({
+              ...prev,
+              total: Array.isArray(data) ? data.length : 0,
+              totalPages: 1,
+            }));
+            return data;
+          }
         } else {
-          // 如果返回的是简单数组格式
-          setProjects(Array.isArray(data) ? data : []);
-          setPagination(prev => ({
-            ...prev,
-            total: Array.isArray(data) ? data.length : 0,
-            totalPages: 1,
-          }));
-          return data;
+          // 如果响应格式不符合预期
+          throw new Error(apiResponse.error?.message || '获取项目列表失败：响应格式错误');
         }
       } else {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `获取项目列表失败: ${response.status}`);
       }
-    } catch (err: any) {
-      setError(err.message || '获取项目列表时发生错误');
+    } catch (err) {
+      setError((err as Error).message || '获取项目列表时发生错误');
       console.error('获取项目列表错误:', err);
       throw err;
     } finally {
@@ -91,25 +86,31 @@ export const useProjectManagement = ({ initialProjects = [] }: UseProjectManagem
       const response = await createProjectAPI(projectData);
       
       if (response.ok) {
-        const result = await response.json().catch(() => ({}));
-        setSuccess('项目创建成功！');
+        const apiResponse = await response.json();
         
-        // 重新获取项目列表以包含新创建的项目，使用当前分页设置
-        await fetchProjects(pagination.page, pagination.pageSize);
-        
-        return result;
+        // 检查是否为标准化的成功响应
+        if (apiResponse.success === true) {
+          setSuccess('项目创建成功！');
+          
+          // 重新获取项目列表以包含新创建的项目，使用当前分页设置
+          await fetchProjects(pagination.page, pagination.pageSize);
+          
+          return apiResponse.data;
+        } else {
+          throw new Error(apiResponse.error?.message || '创建项目失败：响应格式错误');
+        }
       } else {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `创建项目失败: ${response.status}`);
       }
-    } catch (err: any) {
-      setError(err.message || '创建项目时发生错误');
+    } catch (err) {
+      setError((err as Error).message || '创建项目时发生错误');
       console.error('创建项目错误:', err);
       throw err;
     } finally {
       setIsLoading(false);
     }
-  }, [fetchProjects]);
+  }, [fetchProjects, pagination.page, pagination.pageSize]);
 
   // 删除项目
   const deleteProject = useCallback(async (projectName: string) => {
@@ -120,24 +121,31 @@ export const useProjectManagement = ({ initialProjects = [] }: UseProjectManagem
       const response = await deleteProjectAPI(projectName);
       
       if (response.ok) {
-        setSuccess('项目删除成功！');
+        const apiResponse = await response.json();
         
-        // 重新获取项目列表以移除已删除的项目
-        await fetchProjects(pagination.page, pagination.pageSize);
-        
-        return true;
+        // 检查是否为标准化的成功响应
+        if (apiResponse.success === true) {
+          setSuccess('项目删除成功！');
+          
+          // 重新获取项目列表以移除已删除的项目
+          await fetchProjects(pagination.page, pagination.pageSize);
+          
+          return true;
+        } else {
+          throw new Error(apiResponse.error?.message || '删除项目失败：响应格式错误');
+        }
       } else {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `删除项目失败: ${response.status}`);
       }
-    } catch (err: any) {
-      setError(err.message || '删除项目时发生错误');
+    } catch (err) {
+      setError((err as Error).message || '删除项目时发生错误');
       console.error('删除项目错误:', err);
       throw err;
     } finally {
       setIsLoading(false);
     }
-  }, [fetchProjects, pagination]);
+  }, [fetchProjects, pagination.page, pagination.pageSize]);
 
   // 获取单个项目详情
   const getProjectDetail = useCallback(async (projectId: string | number) => {
@@ -148,14 +156,20 @@ export const useProjectManagement = ({ initialProjects = [] }: UseProjectManagem
       const response = await getProjectDetailAPI(projectId);
       
       if (response.ok) {
-        const projectDetail = await response.json();
-        return projectDetail;
+        const apiResponse = await response.json();
+        
+        // 检查是否为标准化的成功响应
+        if (apiResponse.success === true) {
+          return apiResponse.data;
+        } else {
+          throw new Error(apiResponse.error?.message || '获取项目详情失败：响应格式错误');
+        }
       } else {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `获取项目详情失败: ${response.status}`);
       }
-    } catch (err: any) {
-      setError(err.message || '获取项目详情时发生错误');
+    } catch (err) {
+      setError((err as Error).message || '获取项目详情时发生错误');
       console.error('获取项目详情错误:', err);
       throw err;
     } finally {
@@ -172,25 +186,31 @@ export const useProjectManagement = ({ initialProjects = [] }: UseProjectManagem
       const response = await updateProjectAPI(projectId.toString(), projectData);
       
       if (response.ok) {
-        const result = await response.json().catch(() => ({}));
-        setSuccess('项目更新成功！');
+        const apiResponse = await response.json();
         
-        // 重新获取项目列表以包含更新的项目，使用当前分页设置
-        await fetchProjects(pagination.page, pagination.pageSize);
-        
-        return result;
+        // 检查是否为标准化的成功响应
+        if (apiResponse.success === true) {
+          setSuccess('项目更新成功！');
+          
+          // 重新获取项目列表以包含更新的项目，使用当前分页设置
+          await fetchProjects(pagination.page, pagination.pageSize);
+          
+          return apiResponse.data;
+        } else {
+          throw new Error(apiResponse.error?.message || '更新项目失败：响应格式错误');
+        }
       } else {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `更新项目失败: ${response.status}`);
       }
-    } catch (err: any) {
-      setError(err.message || '更新项目时发生错误');
+    } catch (err) {
+      setError((err as Error).message || '更新项目时发生错误');
       console.error('更新项目错误:', err);
       throw err;
     } finally {
       setIsLoading(false);
     }
-  }, [fetchProjects, pagination]);
+  }, [fetchProjects, pagination.page, pagination.pageSize]);
   
   // 重置错误和成功消息
   const resetMessages = useCallback(() => {

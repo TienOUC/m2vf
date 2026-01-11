@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import type { NodeProps } from '@xyflow/react';
 
 export interface NodeData {
   label?: string;

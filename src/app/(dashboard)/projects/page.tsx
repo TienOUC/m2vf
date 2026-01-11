@@ -3,15 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/lib/config/api.config';
-import { Navbar } from '@/components/layout';
-import { 
+import {
   useProjectManagementStore,
-  useUIStore 
+  useUIStore
 } from '@/lib/stores';
-import { 
-  isUserLoggedIn,
-  getAccessToken 
-} from '@/lib/utils/token';
 import Paginator from '@/components/ui/Paginator';
 import CreateProjectModal from '@/components/projects/CreateProjectModal';
 import ProjectCard from '@/components/projects/ProjectCard';
@@ -28,8 +23,6 @@ interface Project {
 
 export default function ProjectsPage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-  const [authChecked, setAuthChecked] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectDescription, setNewProjectDescription] = useState('');
@@ -55,36 +48,14 @@ export default function ProjectsPage() {
     setPageSize,
   } = useProjectManagementStore();
 
-  // 检查用户认证状态
+  // 获取项目列表，默认获取第一页，每页20个项目
   useEffect(() => {
-    const checkAuth = async () => {
-      if (!isUserLoggedIn()) {
-        router.replace(`${ROUTES.LOGIN}?redirect=${ROUTES.PROJECTS}`);
-        setAuthChecked(true);
-        return;
-      }
-
-      try {
-        // 获取用户信息
-        const token = getAccessToken();
-        if (token) {
-          // 这里应该调用获取用户信息的API
-          // 暂时使用模拟数据，实际应用中需要调用API
-          setUser({ name: '用户', email: 'user@example.com' });
-        }
-
-        // 获取项目列表，默认获取第一页，每页20个项目
-        await fetchProjects(1, 20);
-      } catch (error) {
-        console.error('认证检查失败:', error);
-        router.replace(`${ROUTES.LOGIN}?redirect=${ROUTES.PROJECTS}`);
-      } finally {
-        setAuthChecked(true);
-      }
+    const loadProjects = async () => {
+      await fetchProjects(1, 20);
     };
 
-    checkAuth();
-  }, [router]); // 移除了 fetchProjects 依赖，因为现在它被正确缓存了
+    loadProjects();
+  }, []);
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -182,24 +153,14 @@ export default function ProjectsPage() {
     }
   };
 
-  if (!authChecked) {
-    return null; // 等待认证检查完成
-  }
 
-  if (!isUserLoggedIn()) {
-    return null; // 已重定向到登录页
-  }
 
 
   
   return (
-    <div className="min-h-screen bg-neutral-50 pb-16">
-      {/* 顶部导航栏 */}
-      <Navbar user={user} />
-
+    <>
       {/* 主内容区域 */}
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-foreground">项目管理</h1>
             <p className="text-neutral-600 mt-2">管理您的所有项目</p>
@@ -271,7 +232,6 @@ export default function ProjectsPage() {
           goToPrevPage={goToPrevPage}
           setPageSize={setPageSize}
         />
-      </main>
 
       {/* 创建项目模态框 */}
       <CreateProjectModal
@@ -307,6 +267,6 @@ export default function ProjectsPage() {
           onClose={() => setToast(null)}
         />
       )}
-    </div>
+    </>
   );
 }

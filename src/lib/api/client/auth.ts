@@ -2,7 +2,7 @@
 
 import type { TokenResponse, LoginCredentials } from '@/lib/types/auth';
 import { saveTokens, clearTokens } from '@/lib/utils/token';
-import { apiRequest } from './client';
+import { apiRequest } from './index';
 import { buildApiUrl, API_ENDPOINTS, ROUTES } from '@/lib/config/api.config';
 
 // 专门用于登录的 API 请求（不需要 token）
@@ -23,7 +23,7 @@ export const loginUser = async (
   // 检查是否为手机号格式
   const phoneRegex = /^1[3-9]\d{9}$/;
   
-  let loginData: any;
+  let loginData: Record<string, string>;
   if (emailRegex.test(credentials.credential)) {
     // 如果是邮箱格式，使用email参数名
     loginData = {
@@ -87,12 +87,12 @@ export const registerUser = async (userData: {
   };
 
   try {
-    const response = await fetch(registerUrl, {
+    const response = await apiRequest(registerUrl, {
       method: 'POST',
+      body: JSON.stringify(requestData),
       headers: {
         'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestData)
+      }
     });
 
     if (response.ok) {
@@ -109,7 +109,7 @@ export const registerUser = async (userData: {
     console.error('注册请求失败:', error);
     return { success: false, message: '网络请求失败，请稍后重试' };
   }
-}
+};
 
 // 获取用户信息
 export const getUserProfile = async (): Promise<Response> => {

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useCropStore, useCropHistoryStore } from '@/lib/stores';
 import type { Fabric, FabricCanvas, FabricObject } from '@/types/editor/fabric';
-import type { CropCoordinates, CropResult } from '@/types/crop';
+import type { CropCoordinates, CropState } from '@/types/crop';
 
 interface UseCropEditorProps {
   imageUrl: string;
@@ -26,22 +26,12 @@ export const useCropEditor = ({ imageUrl, onCropComplete, onCancel }: UseCropEdi
     cropBox,
     cropBoxConfig,
     maskOpacity,
-    showMask,
-    selection,
     setImageUrl,
     setFabricLoaded,
     setLoadingError,
     setIsProcessing,
     setImageInfo,
-    setMode,
-    setIsActive,
-    setIsDragging,
     setCropBox,
-    updateCropBoxConfig,
-    setMaskOpacity,
-    setShowMask,
-    updateSelection,
-    resetCropState,
     resetAll
   } = useCropStore();
 
@@ -160,6 +150,85 @@ export const useCropEditor = ({ imageUrl, onCropComplete, onCancel }: UseCropEdi
     }
   }, [setIsProcessing, setLoadingError, setImageInfo]);
 
+  // 更新遮罩路径
+  const updateMaskClipPath = useCallback(() => {
+    if (!canvasRef.current || !cropBox || !maskRef.current) return;
+
+    const canvas = canvasRef.current;
+    
+    // 这里可以实现更复杂的遮罩逻辑
+    canvas.renderAll();
+  }, [cropBox]);
+
+  // 获取当前状态
+  const getCurrentState = useCallback((): CropState => {
+    // 返回当前完整的裁剪状态
+    return {
+      imageUrl,
+      fabricLoaded,
+      loadingError,
+      isProcessing,
+      imageInfo,
+      mode,
+      isActive,
+      isDragging,
+      cropBox,
+      cropBoxConfig,
+      maskOpacity,
+      showMask: true, // Default value
+      selection: { isSelected: false, isResizing: false, isMoving: false } // Default value
+    };
+  }, [imageUrl, fabricLoaded, loadingError, isProcessing, imageInfo, mode, isActive, isDragging, cropBox, cropBoxConfig, maskOpacity]);
+
+  // 创建遮罩层
+  const createMaskLayer = useCallback(() => {
+    if (!canvasRef.current || !fabricRef.current || !cropBox || !imageInfo) return;
+
+    const fabric = fabricRef.current;
+    const canvas = canvasRef.current;
+
+    // 移除现有遮罩
+    if (maskRef.current) {
+      canvas.remove(maskRef.current);
+    }
+
+    // 创建遮罩层
+    const maskLayer = new fabric.Rect({
+      left: 0,
+      top: 0,
+      width: imageInfo.scaledWidth,
+      height: imageInfo.scaledHeight,
+      fill: 'rgba(0, 0, 0, 0.7)',
+      opacity: maskOpacity,
+      selectable: false,
+      evented: false,
+      originX: 'left',
+      originY: 'top'
+    });
+
+    maskRef.current = maskLayer;
+    canvas.add(maskLayer);
+    canvas.sendObjectToBack(maskLayer);
+    canvas.bringObjectToFront(cropBox);
+    canvas.renderAll();
+  }, [cropBox, imageInfo, maskOpacity]);
+
+  // 注册裁剪框事件
+  const registerCropBoxEvents = useCallback((cropBoxObj: FabricObject) => {
+    const handleChange = () => {
+      if (canvasRef.current && cropBoxObj && maskRef.current) {
+        updateMaskClipPath();
+        // 添加到历史记录
+        const currentState = getCurrentState();
+        addToHistory(currentState);
+      }
+    };
+
+    cropBoxObj.on('moving', handleChange);
+    cropBoxObj.on('scaling', handleChange);
+    cropBoxObj.on('rotating', handleChange);
+  }, [addToHistory, updateMaskClipPath, getCurrentState]);
+
   // 创建裁剪框
   const createCropBox = useCallback(() => {
     if (!canvasRef.current || !fabricRef.current || !imageInfo) return;
@@ -233,75 +302,7 @@ export const useCropEditor = ({ imageUrl, onCropComplete, onCancel }: UseCropEdi
 
     // 创建遮罩层
     createMaskLayer();
-  }, [cropBox, cropBoxConfig, imageInfo, setCropBox]);
-
-  // 注册裁剪框事件
-  const registerCropBoxEvents = useCallback((cropBoxObj: FabricObject) => {
-    const handleChange = () => {
-      if (canvasRef.current && cropBoxObj && maskRef.current) {
-        updateMaskClipPath();
-        // 添加到历史记录
-        const currentState = getCurrentState();
-        addToHistory(currentState);
-      }
-    };
-
-    cropBoxObj.on('moving', handleChange);
-    cropBoxObj.on('scaling', handleChange);
-    cropBoxObj.on('rotating', handleChange);
-  }, [addToHistory]);
-
-  // 创建遮罩层
-  const createMaskLayer = useCallback(() => {
-    if (!canvasRef.current || !fabricRef.current || !cropBox || !imageInfo) return;
-
-    const fabric = fabricRef.current;
-    const canvas = canvasRef.current;
-
-    // 移除现有遮罩
-    if (maskRef.current) {
-      canvas.remove(maskRef.current);
-    }
-
-    // 创建遮罩层
-    const maskLayer = new fabric.Rect({
-      left: 0,
-      top: 0,
-      width: imageInfo.scaledWidth,
-      height: imageInfo.scaledHeight,
-      fill: 'rgba(0, 0, 0, 0.7)',
-      opacity: maskOpacity,
-      selectable: false,
-      evented: false,
-      originX: 'left',
-      originY: 'top'
-    });
-
-    maskRef.current = maskLayer;
-    canvas.add(maskLayer);
-    canvas.sendObjectToBack(maskLayer);
-    canvas.bringObjectToFront(cropBox);
-    canvas.renderAll();
-  }, [cropBox, imageInfo, maskOpacity]);
-
-  // 更新遮罩路径
-  const updateMaskClipPath = useCallback(() => {
-    if (!canvasRef.current || !cropBox || !maskRef.current) return;
-
-    const canvas = canvasRef.current;
-    const boundingRect = cropBox.getBoundingRect(true);
-    
-    // 这里可以实现更复杂的遮罩逻辑
-    canvas.renderAll();
-  }, [cropBox]);
-
-  // 获取当前状态
-  const getCurrentState = useCallback((): any => {
-    // 返回当前完整的裁剪状态
-    return {
-      // 这里应该返回完整的状态对象
-    };
-  }, []);
+  }, [cropBox, cropBoxConfig, imageInfo, setCropBox, registerCropBoxEvents, createMaskLayer]);
 
   // 执行裁剪
   const handleCrop = useCallback(async () => {
@@ -352,8 +353,9 @@ export const useCropEditor = ({ imageUrl, onCropComplete, onCancel }: UseCropEdi
   }, [redoHistory]);
 
   // 恢复状态
-  const restoreState = useCallback((state: any) => {
+  const restoreState = useCallback((_state: CropState) => {
     // 实现状态恢复逻辑
+    // 参数前缀下划线表示该参数当前未使用但保留用于未来实现
   }, []);
 
   // 重置裁剪框

@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
 import { useProjectManagement } from './useProjectManagement';
+import type { Project } from '@/lib/types/store';
 
 interface UseProjectEditingProps {
-  onProjectUpdate?: (updatedProject: any) => void;
+  onProjectUpdate?: (updatedProject: Project) => void;
 }
 
 export const useProjectEditing = ({ onProjectUpdate }: UseProjectEditingProps = {}) => {
@@ -23,8 +24,8 @@ export const useProjectEditing = ({ onProjectUpdate }: UseProjectEditingProps = 
       setProjectName(projectData.name);
       setProjectDescription(projectData.description);
       return projectData;
-    } catch (err: any) {
-      setError(err.message || '获取项目详情失败');
+    } catch (err) {
+      setError((err as Error).message || '获取项目详情失败');
       throw err;
     } finally {
       setIsLoading(false);
@@ -52,8 +53,8 @@ export const useProjectEditing = ({ onProjectUpdate }: UseProjectEditingProps = 
       }
       
       return updatedProject;
-    } catch (err: any) {
-      setError(err.message || '更新项目信息失败');
+    } catch (err) {
+      setError((err as Error).message || '更新项目信息失败');
       throw err;
     } finally {
       setIsLoading(false);
