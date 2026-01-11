@@ -233,18 +233,20 @@ const NodeToolbar = ({
           title={type === 'image' && !hasImage ? "请先上传图片" : "更换文件"} 
           placement="top"
         >
-          <button
-            onClick={handleReplace}
-            className={`w-8 h-8 p-1 rounded-md transition-colors ${
-              type === 'image' && !hasImage 
-                ? 'text-gray-300 cursor-not-allowed' 
-                : 'text-gray-500 hover:text-blue-500 hover:bg-blue-50'
-            }`}
-            aria-label="更换文件"
-            disabled={type === 'image' && !hasImage}
-          >
-            {type === 'image' ? <ImageIcon fontSize="small" /> : <VideoFile fontSize="small" />}
-          </button>
+          <span>
+            <button
+              onClick={handleReplace}
+              className={`w-8 h-8 p-1 rounded-md transition-colors ${
+                type === 'image' && !hasImage 
+                  ? 'text-gray-300 cursor-not-allowed' 
+                  : 'text-gray-500 hover:text-blue-500 hover:bg-blue-50'
+              }`}
+              aria-label="更换文件"
+              disabled={type === 'image' && !hasImage}
+            >
+              {type === 'image' ? <ImageIcon fontSize="small" /> : <VideoFile fontSize="small" />}
+            </button>
+          </span>
         </Tooltip>
       )}
       
@@ -254,18 +256,20 @@ const NodeToolbar = ({
           title={!hasImage ? "请先上传图片" : "裁剪图片"} 
           placement="top"
         >
-          <button
-            onClick={() => hasImage && onEditStart?.(nodeId)}
-            className={`w-8 h-8 p-1 rounded-md transition-colors ${
-              !hasImage 
-                ? 'text-gray-300 cursor-not-allowed' 
-                : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
-            }`}
-            aria-label="裁剪图片"
-            disabled={!hasImage}
-          >
-            <Crop fontSize="small" />
-          </button>
+          <span>
+            <button
+              onClick={() => hasImage && onEditStart?.(nodeId)}
+              className={`w-8 h-8 p-1 rounded-md transition-colors ${
+                !hasImage 
+                  ? 'text-gray-300 cursor-not-allowed' 
+                  : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
+              }`}
+              aria-label="裁剪图片"
+              disabled={!hasImage}
+            >
+              <Crop fontSize="small" />
+            </button>
+          </span>
         </Tooltip>
       )}
       

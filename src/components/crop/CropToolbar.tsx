@@ -38,33 +38,37 @@ export const CropToolbar: React.FC<CropToolbarProps> = ({
       
       <div className="flex gap-2">
         <Tooltip title="撤销操作" placement="top">
-          <button
-            onClick={onUndo}
-            disabled={!canUndo}
-            className={`flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg ${
-              canUndo 
-                ? 'bg-gray-700 hover:bg-gray-600 text-white' 
-                : 'bg-gray-800 text-gray-500 cursor-not-allowed'
-            }`}
-            aria-label="撤销"
-          >
-            <Undo fontSize="small" />
-          </button>
+          <span>
+            <button
+              onClick={onUndo}
+              disabled={!canUndo}
+              className={`flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg ${
+                canUndo 
+                  ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                  : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+              }`}
+              aria-label="撤销"
+            >
+              <Undo fontSize="small" />
+            </button>
+          </span>
         </Tooltip>
         
         <Tooltip title="重做操作" placement="top">
-          <button
-            onClick={onRedo}
-            disabled={!canRedo}
-            className={`flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg ${
-              canRedo 
-                ? 'bg-gray-700 hover:bg-gray-600 text-white' 
-                : 'bg-gray-800 text-gray-500 cursor-not-allowed'
-            }`}
-            aria-label="重做"
-          >
-            <Redo fontSize="small" />
-          </button>
+          <span>
+            <button
+              onClick={onRedo}
+              disabled={!canRedo}
+              className={`flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg ${
+                canRedo 
+                  ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                  : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+              }`}
+              aria-label="重做"
+            >
+              <Redo fontSize="small" />
+            </button>
+          </span>
         </Tooltip>
       </div>
       
