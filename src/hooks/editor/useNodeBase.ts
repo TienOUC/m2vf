@@ -7,6 +7,7 @@ export interface NodeData {
   onDelete?: (nodeId: string) => void;
   onBackgroundColorChange?: (nodeId: string, color: string) => void;
   getContent?: (nodeId: string) => string;
+  onDownload?: (nodeId: string) => void;
 }
 
 export interface NodeType {

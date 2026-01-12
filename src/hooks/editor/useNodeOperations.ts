@@ -1,6 +1,7 @@
 import { useCallback, useState, useRef } from 'react';
 import { Node, Edge, useNodesState, useEdgesState } from '@xyflow/react';
 import { NodeOperations, NodeType, FontType } from '@/lib/types/editor/nodeOperations';
+import { downloadImage } from '@/lib/utils/image';
 
 export const useNodeOperations = (): NodeOperations => {
   // 使用类型断言来解决 React Flow 的类型推断问题
@@ -152,6 +153,18 @@ export const useNodeOperations = (): NodeOperations => {
     );
   }, [setNodes]);
 
+  // 新增：图片下载功能
+  const handleDownload = useCallback((nodeId: string) => {
+    setNodes((nds) => {
+      const targetNode = nds.find((node) => node.id === nodeId);
+      if (targetNode && targetNode.data.imageUrl) {
+        // 触发下载
+        downloadImage(targetNode.data.imageUrl as string);
+      }
+      return nds;
+    });
+  }, [setNodes]);
+
   return {
     nodes,
     edges,
@@ -167,6 +180,7 @@ export const useNodeOperations = (): NodeOperations => {
     handleTypeChange,
     handleEditingChange,
     handleCropComplete,
+    handleDownload,
     isAnyEditing,
     editingNodeIds
   };

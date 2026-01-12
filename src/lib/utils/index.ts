@@ -20,3 +20,5 @@ export * from './fabric';
 
 export * from './text';
 
+export * from './image';
+

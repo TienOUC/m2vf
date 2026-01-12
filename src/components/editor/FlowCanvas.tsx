@@ -69,7 +69,8 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
     handleFontTypeChange: nodeOperations.handleFontTypeChange,
     onEditingChange: nodeOperations.handleEditingChange,
     onEditStart: cropOperations.handleEditStart,
-    onCropStart: cropOperations.handleCropStart
+    onCropStart: cropOperations.handleCropStart,
+    handleDownload: nodeOperations.handleDownload
   });
 
   const paneInteractions = usePaneInteractions(

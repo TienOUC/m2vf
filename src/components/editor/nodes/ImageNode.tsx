@@ -18,6 +18,7 @@ export interface ImageNodeData {
   onEditStart?: (nodeId: string) => void;
   onCropStart?: (nodeId: string, imageUrl: string) => void;
   onImageUpdate?: (nodeId: string, imageUrl: string) => void;
+  onDownload?: (nodeId: string) => void;
 }
 
 function ImageNode({ data, id, selected }: NodeProps) {

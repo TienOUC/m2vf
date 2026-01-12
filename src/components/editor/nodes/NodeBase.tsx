@@ -25,6 +25,8 @@ export interface BaseNodeProps extends Pick<NodeProps, 'id' | 'data' | 'selected
   onEditStart?: (nodeId: string) => void;
   // 新增：图片擦除功能
   onEraseStart?: (nodeId: string) => void;
+  // 新增：图片下载功能
+  onDownload?: (nodeId: string) => void;
   // 新增：图片节点状态控制
   hasImage?: boolean;
 }
@@ -49,6 +51,7 @@ export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
   onToggleFullscreen,
   onEditStart,
   onEraseStart,
+  onDownload,
   hasImage = false
 }, ref) => {
   const nodeData = data as NodeData;
@@ -92,6 +95,7 @@ export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
         onToggleFullscreen={onToggleFullscreen}
         onEditStart={onEditStart}
         onEraseStart={onEraseStart}
+        onDownload={nodeData?.onDownload}
         hasImage={hasImage}
       />
 

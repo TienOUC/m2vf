@@ -1,5 +1,5 @@
 import { NodeToolbar as ReactFlowNodeToolbar, Position } from '@xyflow/react';
-import { SwapHoriz, TextFields, Image as ImageIcon, VideoFile, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, HorizontalRule, Fullscreen, DeleteOutline, Crop, Brush } from '@mui/icons-material';
+import { SwapHoriz, TextFields, Image as ImageIcon, VideoFile, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, HorizontalRule, Fullscreen, DeleteOutline, Crop, Brush, Download } from '@mui/icons-material';
 import { Tooltip } from '@mui/material';
 import { memo, useState, useRef } from 'react';
 import { useClickOutside } from '@/hooks';
@@ -29,6 +29,8 @@ export interface NodeToolbarProps {
   onEditStart?: (nodeId: string) => void;
   // 新增：图片擦除功能
   onEraseStart?: (nodeId: string) => void;
+  // 新增：图片下载功能
+  onDownload?: (nodeId: string) => void;
   // 新增：图片节点状态控制
   hasImage?: boolean;
 }
@@ -48,6 +50,7 @@ const NodeToolbar = ({
   onToggleFullscreen,
   onEditStart,
   onEraseStart,
+  onDownload,
   selected = false, 
   type = 'text',
   fontType,
@@ -299,7 +302,28 @@ const NodeToolbar = ({
         </Tooltip>
       )}
       
-
+      {/* 下载按钮 - 仅对图片节点显示 */}
+      {type === 'image' && (
+        <Tooltip 
+          title={!hasImage ? "请先上传图片" : "下载图片"} 
+          placement="top"
+        >
+          <span>
+            <button
+              onClick={() => hasImage && onDownload?.(nodeId)}
+              className={`w-8 h-8 p-1 rounded-md transition-colors ${
+                !hasImage 
+                  ? 'text-gray-300 cursor-not-allowed' 
+                  : 'text-gray-500 hover:text-green-600 hover:bg-green-50'
+              }`}
+              aria-label="下载图片"
+              disabled={!hasImage}
+            >
+              <Download fontSize="small" />
+            </button>
+          </span>
+        </Tooltip>
+      )}
       
       {/* 背景色选择按钮 - 仅对文本节点显示 */}
       {type === 'text' && (

@@ -25,6 +25,7 @@ export interface NodeOperationHandlers {
   handleTypeChange: (nodeId: string, newType: NodeType) => void;
   handleEditingChange: (nodeId: string, editing: boolean) => void;
   handleCropComplete: (nodeId: string, croppedImageUrl: string) => void;
+  handleDownload: (nodeId: string) => void;
 }
 
 export interface NodeState {

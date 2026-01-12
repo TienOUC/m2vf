@@ -27,7 +27,8 @@ export const useNodeAddition = ({
   onEditingChange,
   onEditStart,
   onCropStart,
-}: UseNodeAdditionProps) => {
+  handleDownload,
+}: UseNodeAdditionProps & { handleDownload?: (nodeId: string) => void }) => {
   const { screenToFlowPosition } = useReactFlow();
 
   // 添加文本节点函数
@@ -80,6 +81,7 @@ export const useNodeAddition = ({
           onTypeChange: handleTypeChange,
           onDelete: handleDelete,
           ...(handleImageUpdate && { onImageUpdate: handleImageUpdate }),
+          ...(handleDownload && { onDownload: handleDownload }),
           onReplace: (id: string) => {
             console.log(`替换节点 ${id} 的文件`);
           },
@@ -92,7 +94,7 @@ export const useNodeAddition = ({
       setNodes((nds) => nds.concat(newNode));
       setNodeId((prevId) => prevId + 1);
     },
-    [nodeId, setNodes, screenToFlowPosition, handleTypeChange, handleDelete, handleImageUpdate, onEditStart, onCropStart, setNodeId]
+    [nodeId, setNodes, screenToFlowPosition, handleTypeChange, handleDelete, handleImageUpdate, onEditStart, onCropStart, handleDownload, setNodeId]
   );
 
   // 添加视频节点函数
