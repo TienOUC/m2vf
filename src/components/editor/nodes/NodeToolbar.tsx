@@ -1,5 +1,5 @@
 import { NodeToolbar as ReactFlowNodeToolbar, Position } from '@xyflow/react';
-import { SwapHoriz, TextFields, Image as ImageIcon, VideoFile, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, HorizontalRule, Fullscreen, DeleteOutline, Crop } from '@mui/icons-material';
+import { SwapHoriz, TextFields, Image as ImageIcon, VideoFile, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, HorizontalRule, Fullscreen, DeleteOutline, Crop, Brush } from '@mui/icons-material';
 import { Tooltip } from '@mui/material';
 import { memo, useState, useRef } from 'react';
 import { useClickOutside } from '@/hooks';
@@ -27,6 +27,8 @@ export interface NodeToolbarProps {
   onToggleFullscreen?: (nodeId: string) => void;
   // 新增：图片裁剪功能 - 修复：添加nodeId参数，与NodeBase类型匹配
   onEditStart?: (nodeId: string) => void;
+  // 新增：图片擦除功能
+  onEraseStart?: (nodeId: string) => void;
   // 新增：图片节点状态控制
   hasImage?: boolean;
 }
@@ -45,6 +47,7 @@ const NodeToolbar = ({
   onHorizontalRuleInsert,
   onToggleFullscreen,
   onEditStart,
+  onEraseStart,
   selected = false, 
   type = 'text',
   fontType,
@@ -202,14 +205,14 @@ const NodeToolbar = ({
       
       {/* 类型切换按钮 */}
       <div className="relative group">
-        <Tooltip title="切换节点类型" placement="top">
+        {/* <Tooltip title="切换节点类型" placement="top">
           <button
             className="w-8 h-8 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
             aria-label="切换节点类型"
           >
             <SwapHoriz fontSize="small" />
           </button>
-        </Tooltip>
+        </Tooltip> */}
             
         
         {/* 类型选择菜单 - 作为下拉菜单实现 */}
@@ -268,6 +271,29 @@ const NodeToolbar = ({
               disabled={!hasImage}
             >
               <Crop fontSize="small" />
+            </button>
+          </span>
+        </Tooltip>
+      )}
+      
+      {/* 擦除按钮 - 仅对图片节点显示 */}
+      {type === 'image' && (
+        <Tooltip 
+          title={!hasImage ? "请先上传图片" : "擦除"} 
+          placement="top"
+        >
+          <span>
+            <button
+              onClick={() => hasImage && onEraseStart?.(nodeId)}
+              className={`w-8 h-8 p-1 rounded-md transition-colors ${
+                !hasImage 
+                  ? 'text-gray-300 cursor-not-allowed' 
+                  : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
+              }`}
+              aria-label="擦除"
+              disabled={!hasImage}
+            >
+              <Brush fontSize="small" />
             </button>
           </span>
         </Tooltip>

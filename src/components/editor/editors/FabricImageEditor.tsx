@@ -1,11 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useDebounce } from '@/hooks/ui/useDebounce';
 import { useFabricCanvas } from '@/hooks/utils/useFabricCanvas';
 import { useImageLoader } from '@/hooks/utils/useImageLoader';
 import { useEnhancedCropHistory } from '@/hooks/utils/useEnhancedCropHistory';
-import { createCanvas, createCropBox, createMask, updateMaskClipPath, destroyCanvas, resetMaskBoundsCache, restoreFromHistory } from '@/lib/utils/fabric';
+import { createCanvas, createCropBox, createMask, updateMaskClipPath, destroyCanvas, resetMaskBoundsCache } from '@/lib/utils/fabric';
 import { calculateCropBoxPosition, calculateCropCoordinates, performCrop } from '@/lib/utils/fabric/crop';
 import type { FabricImageEditorProps, ImageCropEditorOptions, FabricCanvas, FabricObject } from '@/lib/types/editor/fabric';
 import { EditorContainer, NodeOperationsToolbar, LoadingState, ErrorState } from '@/components/editor';
