@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { useCropStore, useCropHistoryStore } from '@/lib/stores';
-import type { Fabric, FabricCanvas, FabricObject } from '@/types/editor/fabric';
-import type { CropCoordinates, CropState } from '@/types/crop';
+import { useCropStore } from '@/lib/stores';
+import { useEnhancedCropHistory } from '@/hooks/utils/useEnhancedCropHistory';
+import type { Fabric, FabricCanvas, FabricObject } from '@/lib/types/editor/fabric';
+import type { CropCoordinates } from '@/lib/types/crop';
 
 interface UseCropEditorProps {
   imageUrl: string;
@@ -26,23 +27,33 @@ export const useCropEditor = ({ imageUrl, onCropComplete, onCancel }: UseCropEdi
     cropBox,
     cropBoxConfig,
     maskOpacity,
+    currentAspectRatio,
+    isOriginalRatio,
     setImageUrl,
     setFabricLoaded,
     setLoadingError,
     setIsProcessing,
     setImageInfo,
     setCropBox,
+    updateAspectRatio,
     resetAll
   } = useCropStore();
 
+  // 使用增强的历史记录管理
   const {
-    canUndo,
-    canRedo,
-    addToHistory,
+    saveHistory: saveCropHistory,
     undo: undoHistory,
     redo: redoHistory,
-    clearHistory
-  } = useCropHistoryStore();
+    clear: clearHistory,
+    setInitialState: setHistoryInitialState,
+    applyHistoryRecord,
+    canUndo,
+    canRedo
+  } = useEnhancedCropHistory({
+    maxHistorySteps: 20,
+    autoSave: true,
+    saveDelay: 300
+  });
 
   // 引用管理
   const fabricRef = useRef<Fabric | null>(null);
@@ -160,25 +171,7 @@ export const useCropEditor = ({ imageUrl, onCropComplete, onCancel }: UseCropEdi
     canvas.renderAll();
   }, [cropBox]);
 
-  // 获取当前状态
-  const getCurrentState = useCallback((): CropState => {
-    // 返回当前完整的裁剪状态
-    return {
-      imageUrl,
-      fabricLoaded,
-      loadingError,
-      isProcessing,
-      imageInfo,
-      mode,
-      isActive,
-      isDragging,
-      cropBox,
-      cropBoxConfig,
-      maskOpacity,
-      showMask: true, // Default value
-      selection: { isSelected: false, isResizing: false, isMoving: false } // Default value
-    };
-  }, [imageUrl, fabricLoaded, loadingError, isProcessing, imageInfo, mode, isActive, isDragging, cropBox, cropBoxConfig, maskOpacity]);
+
 
   // 创建遮罩层
   const createMaskLayer = useCallback(() => {
@@ -213,21 +206,127 @@ export const useCropEditor = ({ imageUrl, onCropComplete, onCancel }: UseCropEdi
     canvas.renderAll();
   }, [cropBox, imageInfo, maskOpacity]);
 
+  // 应用宽高比约束到裁剪框
+  const applyAspectRatioConstraint = useCallback((cropBoxObj: FabricObject, aspectRatio: number | null) => {
+    if (!cropBoxObj) return;
+
+    // 移除之前的宽高比约束
+    cropBoxObj.off('scaling', handleAspectRatioScale);
+
+    if (aspectRatio !== null) {
+      // 添加宽高比约束
+      cropBoxObj.on('scaling', handleAspectRatioScale);
+    } else {
+      // 允许自由缩放
+      cropBoxObj.set({ 'lockUniScaling': false });
+    }
+
+    function handleAspectRatioScale(e: unknown) {
+      // 将事件对象转换为具有scaleX和scaleY属性的对象
+      const options = e as { scaleX?: number; scaleY?: number };
+      const scaleX = options.scaleX || 1;
+      const scaleY = options.scaleY || 1;
+
+      if (aspectRatio !== null) {
+        // 保持宽高比
+        if (Math.abs(scaleX - 1) > Math.abs(scaleY - 1)) {
+          // 主要在水平方向缩放
+          const width = cropBoxObj.get<number>('width') || 0;
+          cropBoxObj.set({ 'scaleY': scaleX, 'height': width / aspectRatio });
+        } else {
+          // 主要在垂直方向缩放
+          const height = cropBoxObj.get<number>('height') || 0;
+          cropBoxObj.set({ 'scaleX': scaleY, 'width': height * aspectRatio });
+        }
+      }
+    }
+  }, []);
+
+  // 更新裁剪框尺寸以匹配宽高比
+  const updateCropBoxForAspectRatio = useCallback((aspectRatio: number | null) => {
+    if (!cropBox || !canvasRef.current || !imageInfo) return;
+
+    const currentWidth = cropBox.get('width') || 0;
+    const currentHeight = cropBox.get('height') || 0;
+    const currentLeft = cropBox.get('left') || 0;
+    const currentTop = cropBox.get('top') || 0;
+
+    let newWidth = currentWidth;
+    let newHeight = currentHeight;
+
+    if (aspectRatio !== null) {
+      // 基于当前宽度计算新高度（保持宽度不变）
+      newHeight = newWidth / aspectRatio;
+      
+      // 确保新高度不超过图片高度
+      if (newHeight > imageInfo.scaledHeight) {
+        newHeight = imageInfo.scaledHeight;
+        newWidth = newHeight * aspectRatio;
+      }
+      
+      // 确保不小于最小尺寸
+      if (newWidth < cropBoxConfig.minWidth) {
+        newWidth = cropBoxConfig.minWidth;
+        newHeight = newWidth / aspectRatio;
+      }
+      
+      if (newHeight < cropBoxConfig.minHeight) {
+        newHeight = cropBoxConfig.minHeight;
+        newWidth = newHeight * aspectRatio;
+      }
+      
+      // 保持裁剪框中心位置不变
+      const newLeft = currentLeft + (currentWidth - newWidth) / 2;
+      const newTop = currentTop + (currentHeight - newHeight) / 2;
+      
+      // 确保裁剪框在图片范围内
+      const clampedLeft = Math.max(0, Math.min(newLeft, imageInfo.scaledWidth - newWidth));
+      const clampedTop = Math.max(0, Math.min(newTop, imageInfo.scaledHeight - newHeight));
+      
+      // 应用新的尺寸和位置
+      const fabric = fabricRef.current;
+      cropBox.animate({
+        width: newWidth,
+        height: newHeight,
+        left: clampedLeft,
+        top: clampedTop
+      }, {
+        duration: 200,
+        onChange: () => canvasRef.current?.renderAll(),
+        easing: fabric ? fabric.util.ease.easeOutQuad : undefined
+      });
+      
+      // 应用宽高比约束
+      applyAspectRatioConstraint(cropBox, aspectRatio);
+    } else {
+      // 恢复自由缩放
+      applyAspectRatioConstraint(cropBox, null);
+    }
+  }, [cropBox, canvasRef, imageInfo, cropBoxConfig, applyAspectRatioConstraint]);
+
+  // 处理宽高比选择
+  const handleAspectRatioChange = useCallback((aspectRatio: number | null) => {
+    updateAspectRatio(aspectRatio, aspectRatio === null);
+    updateCropBoxForAspectRatio(aspectRatio);
+  }, [updateAspectRatio, updateCropBoxForAspectRatio]);
+
   // 注册裁剪框事件
   const registerCropBoxEvents = useCallback((cropBoxObj: FabricObject) => {
     const handleChange = () => {
-      if (canvasRef.current && cropBoxObj && maskRef.current) {
+      if (canvasRef.current && cropBoxObj && maskRef.current && imageObjRef.current) {
         updateMaskClipPath();
         // 添加到历史记录
-        const currentState = getCurrentState();
-        addToHistory(currentState);
+        saveCropHistory(cropBoxObj, imageObjRef.current);
       }
     };
 
     cropBoxObj.on('moving', handleChange);
     cropBoxObj.on('scaling', handleChange);
     cropBoxObj.on('rotating', handleChange);
-  }, [addToHistory, updateMaskClipPath, getCurrentState]);
+    
+    // 应用当前宽高比约束
+    applyAspectRatioConstraint(cropBoxObj, currentAspectRatio);
+  }, [saveCropHistory, updateMaskClipPath, currentAspectRatio, applyAspectRatioConstraint]);
 
   // 创建裁剪框
   const createCropBox = useCallback(() => {
@@ -338,32 +437,29 @@ export const useCropEditor = ({ imageUrl, onCropComplete, onCancel }: UseCropEdi
 
   // 撤销操作
   const undo = useCallback(() => {
-    const prevState = undoHistory();
-    if (prevState) {
-      restoreState(prevState);
+    const prevRecord = undoHistory();
+    if (prevRecord && cropBox && imageObjRef.current && canvasRef.current) {
+      applyHistoryRecord(prevRecord, cropBox, imageObjRef.current, canvasRef.current);
+      // 重建遮罩以反映新的裁剪区域
+      updateMaskClipPath();
     }
-  }, [undoHistory]);
+  }, [undoHistory, applyHistoryRecord, cropBox, updateMaskClipPath]);
 
   // 重做操作
   const redo = useCallback(() => {
-    const nextState = redoHistory();
-    if (nextState) {
-      restoreState(nextState);
+    const nextRecord = redoHistory();
+    if (nextRecord && cropBox && imageObjRef.current && canvasRef.current) {
+      applyHistoryRecord(nextRecord, cropBox, imageObjRef.current, canvasRef.current);
+      // 重建遮罩以反映新的裁剪区域
+      updateMaskClipPath();
     }
-  }, [redoHistory]);
-
-  // 恢复状态
-  const restoreState = useCallback((_state: CropState) => {
-    // 实现状态恢复逻辑
-    // 参数前缀下划线表示该参数当前未使用但保留用于未来实现
-  }, []);
+  }, [redoHistory, applyHistoryRecord, cropBox, updateMaskClipPath]);
 
   // 重置裁剪框
   const resetCropBox = useCallback(() => {
     createCropBox();
-    const currentState = getCurrentState();
-    addToHistory(currentState);
-  }, [createCropBox, getCurrentState, addToHistory]);
+    // createCropBox会更新cropBox状态，使用useEffect监听状态变化来保存历史记录
+  }, [createCropBox]);
 
   // 销毁编辑器
   const destroyEditor = useCallback(() => {
@@ -386,12 +482,16 @@ export const useCropEditor = ({ imageUrl, onCropComplete, onCancel }: UseCropEdi
       loadImage(imageUrl).then(success => {
         if (success) {
           createCropBox();
-          const initialState = getCurrentState();
-          addToHistory(initialState);
+          // 等待下一个渲染周期，确保cropBox和imageObjRef已更新
+          setTimeout(() => {
+            if (cropBox && imageObjRef.current) {
+              setHistoryInitialState(cropBox, imageObjRef.current);
+            }
+          }, 0);
         }
       });
     }
-  }, [fabricLoaded, imageUrl, loadImage, createCropBox, getCurrentState, addToHistory]);
+  }, [fabricLoaded, imageUrl, loadImage, createCropBox, setHistoryInitialState, cropBox]);
 
   // 清理
   useEffect(() => {
@@ -410,6 +510,8 @@ export const useCropEditor = ({ imageUrl, onCropComplete, onCancel }: UseCropEdi
     isDragging,
     canUndo,
     canRedo,
+    currentAspectRatio,
+    isOriginalRatio,
     
     // 引用
     fabricRef,
@@ -422,6 +524,7 @@ export const useCropEditor = ({ imageUrl, onCropComplete, onCancel }: UseCropEdi
     undo,
     redo,
     resetCropBox,
+    handleAspectRatioChange,
     onCancel,
     destroyEditor
   };

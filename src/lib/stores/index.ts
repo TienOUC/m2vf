@@ -4,7 +4,7 @@ export { useProjectManagementStore } from './projectManagementStore';
 export { useProjectEditingStore } from './projectEditingStore';
 export { useAuthStore } from './authStore';
 export { useUIStore } from './uiStore';
-export { useCropStore, useCropHistoryStore } from './cropStore';
+export { useCropStore } from './cropStore';
 
 // 组合所有store的类型定义
 export type { 

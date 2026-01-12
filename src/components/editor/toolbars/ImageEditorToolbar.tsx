@@ -1,5 +1,7 @@
 import { Refresh, Undo, Redo } from '@mui/icons-material';
-import { Tooltip } from '@mui/material';
+import { Tooltip, Menu, MenuItem, Button } from '@mui/material';
+import { useState } from 'react';
+import { ASPECT_RATIOS, type AspectRatioOption } from '@/lib/types/crop';
 
 interface ToolbarProps {
   onReset: () => void;
@@ -9,6 +11,8 @@ interface ToolbarProps {
   onCrop: () => void;
   canUndo: boolean;
   canRedo: boolean;
+  currentAspectRatio: number | null;
+  onAspectRatioChange: (aspectRatio: number | null) => void;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
@@ -18,8 +22,32 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onCancel,
   onCrop,
   canUndo,
-  canRedo
+  canRedo,
+  currentAspectRatio,
+  onAspectRatioChange
 }) => {
+  // 宽高比下拉菜单状态
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+  
+  // 处理菜单打开
+  const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  
+  // 处理菜单关闭
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+  
+  // 处理宽高比选择
+  const handleAspectRatioSelect = (aspectRatio: AspectRatioOption) => {
+    onAspectRatioChange(aspectRatio.value);
+    handleMenuClose();
+  };
+  
+  // 获取当前选中的宽高比
+  const currentRatioOption = ASPECT_RATIOS.find(option => option.value === currentAspectRatio) || ASPECT_RATIOS[0];
   return (
     <div className="mt-2 flex justify-center items-center text-white gap-4">
       <Tooltip title="重置" placement="top">
@@ -30,6 +58,48 @@ const Toolbar: React.FC<ToolbarProps> = ({
         >
           <Refresh fontSize="small" />
         </button>
+      </Tooltip>
+      
+      {/* 宽高比选择下拉菜单 */}
+      <Tooltip title="宽高比" placement="top">
+        <div className="relative">
+          <Button
+            id="aspect-ratio-button"
+            aria-controls={open ? 'aspect-ratio-menu' : undefined}
+            aria-haspopup="true"
+            aria-expanded={open ? 'true' : undefined}
+            onClick={handleMenuOpen}
+            variant="text"
+            className="text-white bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
+            sx={{
+              minWidth: '100px',
+              fontSize: '0.75rem',
+              padding: '6px 12px',
+            }}
+          >
+            {currentRatioOption.label}
+          </Button>
+          <Menu
+            id="aspect-ratio-menu"
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleMenuClose}
+            MenuListProps={{
+              'aria-labelledby': 'aspect-ratio-button',
+            }}
+          >
+            {ASPECT_RATIOS.map((ratio) => (
+              <MenuItem
+                key={ratio.label}
+                onClick={() => handleAspectRatioSelect(ratio)}
+                selected={ratio.value === currentAspectRatio}
+                className="text-xs"
+              >
+                {ratio.label}
+              </MenuItem>
+            ))}
+          </Menu>
+        </div>
       </Tooltip>
       <Tooltip title="撤销" placement="top">
         <span>

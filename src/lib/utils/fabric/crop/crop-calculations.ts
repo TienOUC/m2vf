@@ -1,4 +1,4 @@
-import type { ImageInfo, CropCoordinates } from '@/types/crop';
+import type { ImageInfo } from '@/types/crop';
 import type { FabricObject } from '@/types/editor/fabric';
 
 /**
@@ -88,64 +88,7 @@ export const calculateCropBoxPosition = (
 /**
  * 计算裁剪坐标
  */
-export const calculateCropCoordinates = (
-  image: FabricObject | null,
-  cropBox: FabricObject | null
-): CropCoordinates => {
-  if (!image || !cropBox) {
-    return {
-      cropLeft: 0,
-      cropTop: 0,
-      cropWidth: 0,
-      cropHeight: 0,
-      imgLeft: 0,
-      imgTop: 0,
-      imgScaleX: 1,
-      imgScaleY: 1
-    };
-  }
 
-  // 获取图片的变换信息
-  const imgLeft = image.left || 0;
-  const imgTop = image.top || 0;
-  const imgScaleX = image.scaleX || 1;
-  const imgScaleY = image.scaleY || 1;
-  const imgWidth = (image.width || 0) * imgScaleX;
-  const imgHeight = (image.height || 0) * imgScaleY;
-
-  // 获取裁剪框的变换信息
-  const cropBoxLeft = cropBox.left || 0;
-  const cropBoxTop = cropBox.top || 0;
-  // 裁剪框的缩放只是UI效果，不影响实际裁剪尺寸
-  const cropBoxWidth = cropBox.width || 0;
-  const cropBoxHeight = cropBox.height || 0;
-
-  // 计算裁剪框相对于图片左上角的坐标（考虑图片的缩放和位置）
-  // 裁剪框在画布坐标系中的坐标需要转换为相对于图片的坐标
-  const relativeLeft = cropBoxLeft - imgLeft;
-  const relativeTop = cropBoxTop - imgTop;
-
-  // 确保裁剪框在图片范围内
-  const constrainedLeft = Math.max(0, Math.min(relativeLeft, imgWidth - cropBoxWidth));
-  const constrainedTop = Math.max(0, Math.min(relativeTop, imgHeight - cropBoxHeight));
-
-  // 将画布坐标转换为原始图片坐标（考虑缩放）
-  const cropLeft = constrainedLeft / imgScaleX;
-  const cropTop = constrainedTop / imgScaleY;
-  const cropWidth = cropBoxWidth / imgScaleX;
-  const cropHeight = cropBoxHeight / imgScaleY;
-
-  return {
-    cropLeft,
-    cropTop,
-    cropWidth,
-    cropHeight,
-    imgLeft,
-    imgTop,
-    imgScaleX,
-    imgScaleY
-  };
-};
 
 /**
  * 约束裁剪框在图片区域内

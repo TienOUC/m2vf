@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { ROUTES } from '@/lib/config/api.config';
-import Navbar from '@/components/layout/Navbar';
 import FlowCanvas from '@/components/editor/FlowCanvas';
 import ProjectEditModal from '@/components/projects/ProjectEditModal';
 import { 

@@ -1,9 +1,13 @@
 // Fabric图片编辑器类型定义
+import type { CropCoordinates as CropCoordinatesType } from '@/lib/types/crop';
+// 重新导出CropCoordinates类型
+export type { CropCoordinatesType as CropCoordinates };
 export type Fabric = any;
 
 // Fabric对象接口
 export interface FabricObject {
   set: (options: Record<string, unknown>) => void;
+  get: <T = unknown>(key: string) => T | undefined;
   getBoundingRect: (absolute?: boolean) => { left: number; top: number; width: number; height: number };
   setCoords: () => void;
   left?: number;
@@ -43,8 +47,8 @@ export interface FabricImageEditorProps {
   onCancel: () => void;
 }
 
-// 裁剪历史记录
-export interface CropHistoryRecord {
+// Fabric裁剪历史记录
+export interface FabricCropHistoryRecord {
   cropBox: {
     left: number;
     top: number;
@@ -71,7 +75,7 @@ export type HistoryActionType = 'save' | 'undo' | 'redo' | 'reset' | 'clear';
 export interface HistoryEvent {
   type: HistoryActionType;
   timestamp: number;
-  record?: CropHistoryRecord;
+  record?: FabricCropHistoryRecord;
 }
 
 // 编辑器配置选项
@@ -142,14 +146,4 @@ export interface MaskConfig {
   opacity: number;
 }
 
-// 裁剪坐标计算
-export interface CropCoordinates {
-  cropLeft: number;
-  cropTop: number;
-  cropWidth: number;
-  cropHeight: number;
-  imgLeft: number;
-  imgTop: number;
-  imgScaleX: number;
-  imgScaleY: number;
-}
+// 裁剪坐标使用 @/lib/types/crop 中的定义

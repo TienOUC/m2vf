@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { useDebounce } from '@/hooks/ui/useDebounce';
-import type { CropHistoryRecord, FabricObject, FabricCanvas, HistoryManagerConfig, HistoryEvent } from '@/lib/types/editor/fabric';
+import type { FabricCropHistoryRecord, FabricObject, FabricCanvas, HistoryManagerConfig, HistoryEvent } from '@/lib/types/editor/fabric';
 import { createHistoryConfig, createHistoryRecord, areHistoryRecordsEqual, restoreFromHistory, createHistoryEvent } from '@/lib/utils/fabric/history';
 
 interface UseEnhancedCropHistoryProps {
@@ -24,11 +24,11 @@ export const useEnhancedCropHistory = ({
   }));
 
   // 历史记录数组
-  const historyRef = useRef<CropHistoryRecord[]>([]);
+  const historyRef = useRef<FabricCropHistoryRecord[]>([]);
   // 当前历史记录索引
   const historyIndexRef = useRef<number>(-1);
   // 初始状态引用
-  const initialStateRef = useRef<CropHistoryRecord | null>(null);
+  const initialStateRef = useRef<FabricCropHistoryRecord | null>(null);
 
   // 状态用于触发组件重渲染
   const [, setHistoryUpdate] = useState<number>(0);
@@ -44,7 +44,7 @@ export const useEnhancedCropHistory = ({
   /**
    * 获取当前状态
    */
-  const getCurrentState = useCallback((): CropHistoryRecord | null => {
+  const getCurrentState = useCallback((): FabricCropHistoryRecord | null => {
     const index = historyIndexRef.current;
     if (index < 0 || index >= historyRef.current.length) {
       return null;
@@ -228,7 +228,7 @@ export const useEnhancedCropHistory = ({
   /**
    * 应用历史记录并更新UI
    */
-  const applyHistoryRecord = useCallback((record: CropHistoryRecord | null, cropBox: FabricObject | null, image: FabricObject | null, canvas: FabricCanvas | null) => {
+  const applyHistoryRecord = useCallback((record: FabricCropHistoryRecord | null, cropBox: FabricObject | null, image: FabricObject | null, canvas: FabricCanvas | null) => {
     if (!record || !cropBox || !image || !canvas) return false;
 
     return restoreFromHistory(record, cropBox, image, canvas);

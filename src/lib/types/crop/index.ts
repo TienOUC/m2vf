@@ -4,6 +4,24 @@
 export type EditorMode = 'select' | 'crop' | 'move' | 'resize';
 export type CropAction = 'idle' | 'dragging' | 'resizing' | 'rotating';
 
+// 宽高比选项
+export type AspectRatioOption = {
+  label: string;
+  value: number | null;
+  width: number;
+  height: number;
+};
+
+// 预设宽高比
+export const ASPECT_RATIOS: AspectRatioOption[] = [
+  { label: '原图比例', value: null, width: 0, height: 0 },
+  { label: '1:1', value: 1, width: 1, height: 1 },
+  { label: '4:3', value: 4/3, width: 4, height: 3 },
+  { label: '3:4', value: 3/4, width: 3, height: 4 },
+  { label: '16:9', value: 16/9, width: 16, height: 9 },
+  { label: '9:16', value: 9/16, width: 9, height: 16 }
+];
+
 // 图片信息
 export interface ImageInfo {
   url: string;
@@ -59,6 +77,10 @@ export interface CropState {
   cropBox: any | null; // Fabric对象，暂时使用any
   cropBoxConfig: CropBoxConfig;
   
+  // 宽高比设置
+  currentAspectRatio: number | null;
+  isOriginalRatio: boolean;
+  
   // 遮罩层状态
   maskOpacity: number;
   showMask: boolean;
@@ -84,6 +106,10 @@ export interface CropActions {
   updateSelection: (selection: Partial<SelectionState>) => void;
   resetCropState: () => void;
   resetAll: () => void;
+  // 宽高比相关
+  setCurrentAspectRatio: (aspectRatio: number | null) => void;
+  setIsOriginalRatio: (isOriginal: boolean) => void;
+  updateAspectRatio: (aspectRatio: number | null, isOriginal: boolean) => void;
 }
 
 // 裁剪历史记录

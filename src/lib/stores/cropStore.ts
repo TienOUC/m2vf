@@ -49,6 +49,10 @@ export const useCropStore = create<CropState & CropActions>()(
       maskOpacity: 0.7,
       showMask: true,
       
+      // 宽高比设置
+      currentAspectRatio: null,
+      isOriginalRatio: true,
+      
       // 选择状态
       selection: {
         isSelected: false,
@@ -111,12 +115,22 @@ export const useCropStore = create<CropState & CropActions>()(
         cropBox: null,
         maskOpacity: 0.7,
         showMask: true,
+        currentAspectRatio: null,
+        isOriginalRatio: true,
         selection: {
           isSelected: false,
           isResizing: false,
           isMoving: false
         }
-      })
+      }),
+      
+      // 宽高比相关Actions
+      setCurrentAspectRatio: (aspectRatio: number | null) => set({ currentAspectRatio: aspectRatio }),
+      
+      setIsOriginalRatio: (isOriginal: boolean) => set({ isOriginalRatio: isOriginal }),
+      
+      updateAspectRatio: (aspectRatio: number | null, isOriginal: boolean) => 
+        set({ currentAspectRatio: aspectRatio, isOriginalRatio: isOriginal })
     }),
     {
       name: 'crop-store'
@@ -124,95 +138,3 @@ export const useCropStore = create<CropState & CropActions>()(
   )
 );
 
-/**
- * 裁剪历史状态管理
- */
-export const useCropHistoryStore = create<{
-  history: CropState[];
-  currentIndex: number;
-  maxHistorySteps: number;
-  canUndo: boolean;
-  canRedo: boolean;
-  addToHistory: (state: CropState) => void;
-  undo: () => CropState | null;
-  redo: () => CropState | null;
-  clearHistory: () => void;
-}>()(
-  devtools(
-    (set, get) => ({
-      history: [],
-      currentIndex: -1,
-      maxHistorySteps: 10,
-      canUndo: false,
-      canRedo: false,
-      
-      addToHistory: (state: CropState) => set((storeState) => {
-        const { history, currentIndex, maxHistorySteps } = storeState;
-        
-        // 删除当前位置之后的历史记录
-        const newHistory = history.slice(0, currentIndex + 1);
-        
-        // 添加新状态
-        newHistory.push(state);
-        
-        // 限制历史记录数量
-        if (newHistory.length > maxHistorySteps) {
-          newHistory.shift();
-        }
-        
-        const newIndex = newHistory.length - 1;
-        
-        return {
-          history: newHistory,
-          currentIndex: newIndex,
-          canUndo: newIndex > 0,
-          canRedo: false
-        };
-      }),
-      
-      undo: () => {
-        const { history, currentIndex } = get();
-        
-        if (currentIndex <= 0) return null;
-        
-        const newIndex = currentIndex - 1;
-        const previousState = history[newIndex];
-        
-        set({
-          currentIndex: newIndex,
-          canUndo: newIndex > 0,
-          canRedo: true
-        });
-        
-        return previousState;
-      },
-      
-      redo: () => {
-        const { history, currentIndex } = get();
-        const newIndex = currentIndex + 1;
-        
-        if (newIndex >= history.length) return null;
-        
-        const nextState = history[newIndex];
-        
-        set({
-          currentIndex: newIndex,
-          canUndo: true,
-          canRedo: newIndex < history.length - 1
-        });
-        
-        return nextState;
-      },
-      
-      clearHistory: () => set({
-        history: [],
-        currentIndex: -1,
-        canUndo: false,
-        canRedo: false
-      })
-    }),
-    {
-      name: 'crop-history-store'
-    }
-  )
-);

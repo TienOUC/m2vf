@@ -1,4 +1,4 @@
-import type { CropHistoryRecord, FabricObject, FabricCanvas, HistoryManagerConfig, HistoryEvent } from '@/lib/types/editor/fabric';
+import type { FabricCropHistoryRecord, FabricObject, FabricCanvas, HistoryManagerConfig, HistoryEvent } from '@/lib/types/editor/fabric';
 
 /**
  * 创建历史记录管理器配置
@@ -14,7 +14,7 @@ export const createHistoryConfig = (options?: Partial<HistoryManagerConfig>): Hi
 /**
  * 从Fabric对象创建历史记录
  */
-export const createHistoryRecord = (cropBox: FabricObject, image: FabricObject): CropHistoryRecord => {
+export const createHistoryRecord = (cropBox: FabricObject, image: FabricObject): FabricCropHistoryRecord => {
   return {
     cropBox: {
       left: cropBox.left || 0,
@@ -32,7 +32,7 @@ export const createHistoryRecord = (cropBox: FabricObject, image: FabricObject):
 /**
  * 检查两个历史记录是否相同
  */
-export const areHistoryRecordsEqual = (record1: CropHistoryRecord, record2: CropHistoryRecord): boolean => {
+export const areHistoryRecordsEqual = (record1: FabricCropHistoryRecord, record2: FabricCropHistoryRecord): boolean => {
   if (!record1 || !record2) return false;
   
   return (
@@ -50,7 +50,7 @@ export const areHistoryRecordsEqual = (record1: CropHistoryRecord, record2: Crop
  * 从历史记录恢复状态
  */
 export const restoreFromHistory = (
-  record: CropHistoryRecord,
+  record: FabricCropHistoryRecord,
   cropBox: FabricObject | null,
   image: FabricObject | null,
   canvas: FabricCanvas | null
@@ -88,7 +88,7 @@ export const restoreFromHistory = (
 /**
  * 序列化历史记录
  */
-export const serializeHistory = (records: CropHistoryRecord[]): string => {
+export const serializeHistory = (records: FabricCropHistoryRecord[]): string => {
   try {
     return JSON.stringify(records);
   } catch (error) {
@@ -100,7 +100,7 @@ export const serializeHistory = (records: CropHistoryRecord[]): string => {
 /**
  * 反序列化历史记录
  */
-export const deserializeHistory = (serialized: string): CropHistoryRecord[] => {
+export const deserializeHistory = (serialized: string): FabricCropHistoryRecord[] => {
   try {
     return JSON.parse(serialized);
   } catch (error) {
@@ -112,7 +112,7 @@ export const deserializeHistory = (serialized: string): CropHistoryRecord[] => {
 /**
  * 创建历史记录事件
  */
-export const createHistoryEvent = (type: HistoryEvent['type'], record?: CropHistoryRecord): HistoryEvent => {
+export const createHistoryEvent = (type: HistoryEvent['type'], record?: FabricCropHistoryRecord): HistoryEvent => {
   return {
     type,
     timestamp: Date.now(),
@@ -123,7 +123,7 @@ export const createHistoryEvent = (type: HistoryEvent['type'], record?: CropHist
 /**
  * 清理历史记录
  */
-export const cleanupHistory = (records: CropHistoryRecord[], currentIndex: number, maxSteps: number): { cleanedRecords: CropHistoryRecord[], newIndex: number } => {
+export const cleanupHistory = (records: FabricCropHistoryRecord[], currentIndex: number, maxSteps: number): { cleanedRecords: FabricCropHistoryRecord[], newIndex: number } => {
   if (records.length <= maxSteps) {
     return { cleanedRecords: records, newIndex: currentIndex };
   }

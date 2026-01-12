@@ -21,6 +21,118 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
   const cropBoxRef = useRef<FabricObject | null>(null);
   const maskRef = useRef<FabricObject | null>(null);
   
+  // 宽高比状态管理
+  const [currentAspectRatio, setCurrentAspectRatio] = useState<number | null>(null);
+  
+  // 处理宽高比变化
+  const handleAspectRatioChange = (aspectRatio: number | null) => {
+    setCurrentAspectRatio(aspectRatio);
+    updateCropBoxForAspectRatio(aspectRatio);
+  };
+  
+  // 根据宽高比更新裁剪框尺寸
+  const updateCropBoxForAspectRatio = (aspectRatio: number | null) => {
+    if (!cropBoxRef.current || !imageRef.current) return;
+    
+    const cropBox = cropBoxRef.current;
+    const img = imageRef.current;
+    
+    // 获取当前裁剪框的位置和尺寸
+    const left = cropBox.left || 0;
+    const top = cropBox.top || 0;
+    const width = cropBox.width || 0;
+    const height = cropBox.height || 0;
+    
+    if (aspectRatio !== null) {
+      // 根据宽高比调整裁剪框尺寸
+      let newWidth = width;
+      let newHeight = height;
+      
+      // 保持中心位置不变
+      const centerX = left + width / 2;
+      const centerY = top + height / 2;
+      
+      // 根据宽高比重新计算尺寸
+      if (aspectRatio > 1) {
+        // 宽屏比例，以宽度为基准
+        newWidth = width;
+        newHeight = width / aspectRatio;
+      } else {
+        // 竖屏比例，以高度为基准
+        newHeight = height;
+        newWidth = height * aspectRatio;
+      }
+      
+      // 计算新的位置
+      let newLeft = centerX - newWidth / 2;
+      let newTop = centerY - newHeight / 2;
+      
+      // 获取图片的实际尺寸（考虑缩放）
+      const imgWidth = img.width! * img.scaleX!;
+      const imgHeight = img.height! * img.scaleY!;
+      
+      // 确保裁剪框在图片范围内
+      newLeft = Math.max(0, Math.min(newLeft, imgWidth - newWidth));
+      newTop = Math.max(0, Math.min(newTop, imgHeight - newHeight));
+      
+      // 更新裁剪框
+      cropBox.set({ 
+        left: newLeft, 
+        top: newTop,
+        width: newWidth,
+        height: newHeight,
+        scaleX: 1,
+        scaleY: 1
+      });
+      
+      // 应用宽高比约束
+      applyAspectRatioConstraint(cropBox, aspectRatio);
+    } else {
+      // 移除宽高比约束
+      applyAspectRatioConstraint(cropBox, null);
+    }
+    
+    // 更新遮罩层
+    createMaskLayer();
+    
+    // 保存到历史记录
+    if (imageRef.current) {
+      saveCropHistory(cropBoxRef.current, imageRef.current);
+    }
+  };
+  
+  // 应用宽高比约束
+  const applyAspectRatioConstraint = (cropBoxObj: FabricObject, aspectRatio: number | null) => {
+    if (!cropBoxObj) return;
+    
+    // 移除旧的事件监听器
+    cropBoxObj.off('scaling');
+    
+    if (aspectRatio !== null) {
+      // 添加宽高比约束
+      cropBoxObj.on('scaling', (e: unknown) => {
+        // 将事件对象转换为具有scaleX和scaleY属性的对象
+        const options = e as { scaleX?: number; scaleY?: number };
+        const scaleX = options.scaleX || 1;
+        const scaleY = options.scaleY || 1;
+        
+        // 保持宽高比
+        if (Math.abs(scaleX - 1) > Math.abs(scaleY - 1)) {
+          // 主要在水平方向缩放
+          const width = cropBoxObj.get<number>('width') || 0;
+          cropBoxObj.set({ 'scaleY': scaleX, 'height': width / aspectRatio });
+        } else {
+          // 主要在垂直方向缩放
+          const height = cropBoxObj.get<number>('height') || 0;
+          cropBoxObj.set({ 'scaleX': scaleY, 'width': height * aspectRatio });
+        }
+      });
+    } else {
+      // 允许自由缩放
+      cropBoxObj.set({ 'lockUniScaling': false });
+    }
+  };
+  
   // 使用增强的历史记录管理
   const {
     saveHistory: saveCropHistory,
@@ -438,6 +550,8 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
         onCrop={handleCrop}
         canUndo={canUndo}
         canRedo={canRedo}
+        currentAspectRatio={currentAspectRatio}
+        onAspectRatioChange={handleAspectRatioChange}
       />
     </div>
   );

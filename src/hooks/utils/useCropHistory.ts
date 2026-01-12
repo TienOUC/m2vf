@@ -1,5 +1,5 @@
 import { useEnhancedCropHistory } from './useEnhancedCropHistory';
-import type { CropHistoryRecord, FabricObject, FabricCanvas } from '@/lib/types/editor/fabric';
+import type { FabricCropHistoryRecord, FabricObject, FabricCanvas } from '@/lib/types/editor/fabric';
 
 export const useCropHistory = (maxHistorySteps: number = 20) => {
   const {
@@ -21,7 +21,7 @@ export const useCropHistory = (maxHistorySteps: number = 20) => {
     saveHistory(cropBox, image);
   };
 
-  const restoreFromHistory = (record: CropHistoryRecord, cropBox: FabricObject | null, image: FabricObject | null, canvas: FabricCanvas | null) => {
+  const restoreFromHistory = (record: FabricCropHistoryRecord, cropBox: FabricObject | null, image: FabricObject | null, canvas: FabricCanvas | null) => {
     if (!cropBox || !image || !canvas) return;
     applyHistoryRecord(record, cropBox, image, canvas);
   };
