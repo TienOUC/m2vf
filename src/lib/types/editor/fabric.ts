@@ -4,6 +4,11 @@ import type { CropCoordinates as CropCoordinatesType } from '@/lib/types/crop';
 export type { CropCoordinatesType as CropCoordinates };
 export type Fabric = any;
 
+// Fabric事件类型
+export interface FabricEvent {
+  target?: FabricObject;
+}
+
 // Fabric对象接口
 export interface FabricObject {
   set: (options: Record<string, unknown>) => void;
@@ -16,8 +21,8 @@ export interface FabricObject {
   height?: number;
   scaleX?: number;
   scaleY?: number;
-  on: (event: string, callback: (e: unknown) => void) => void;
-  off: (event: string, callback?: (e: unknown) => void) => void;
+  on: (event: string, callback: (e: FabricEvent) => void) => void;
+  off: (event: string, callback?: (e: FabricEvent) => void) => void;
   clipPath?: {
     set: (options: Record<string, unknown>) => void;
     setCoords: () => void;

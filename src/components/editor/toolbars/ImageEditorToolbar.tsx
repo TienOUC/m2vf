@@ -1,5 +1,5 @@
-import { Refresh, Undo, Redo } from '@mui/icons-material';
-import { Tooltip, Menu, MenuItem, Button } from '@mui/material';
+import { DeleteOutline } from '@mui/icons-material';
+import { Tooltip, Menu, MenuItem, Button} from '@mui/material';
 import { useState } from 'react';
 import { ASPECT_RATIOS, type AspectRatioOption } from '@/lib/types/crop';
 
@@ -50,15 +50,12 @@ const Toolbar: React.FC<ToolbarProps> = ({
   const currentRatioOption = ASPECT_RATIOS.find(option => option.value === currentAspectRatio) || ASPECT_RATIOS[0];
   return (
     <div className="mt-2 flex justify-center items-center text-white gap-4">
-      <Tooltip title="重置" placement="top">
-        <button
-          onClick={onReset}
-          className="text-xs flex items-center justify-center px-2 py-2 hover:bg-gray-600 rounded-md transition-colors"
-          aria-label="重置"
-        >
-          <Refresh fontSize="small" />
-        </button>
-      </Tooltip>
+      <button
+        onClick={onCancel}
+        className="text-xs flex items-center justify-center px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
+      >
+        <DeleteOutline fontSize="small" />
+      </button>
       
       {/* 宽高比选择下拉菜单 */}
       <Tooltip title="宽高比" placement="top">
@@ -101,41 +98,12 @@ const Toolbar: React.FC<ToolbarProps> = ({
           </Menu>
         </div>
       </Tooltip>
-      <Tooltip title="撤销" placement="top">
-        <span>
-          <button
-            onClick={onUndo}
-            disabled={!canUndo}
-            className="text-xs flex items-center justify-center px-2 py-2 hover:bg-gray-600 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label="撤销"
-          >
-            <Undo fontSize="small" />
-          </button>
-        </span>
-      </Tooltip>
-      <Tooltip title="重做" placement="top">
-        <span>
-          <button
-            onClick={onRedo}
-            disabled={!canRedo}
-            className="text-xs flex items-center justify-center px-2 py-2 hover:bg-gray-600 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label="重做"
-          >
-            <Redo fontSize="small" />
-          </button>
-        </span>
-      </Tooltip>
-      <button
-        onClick={onCancel}
-        className="text-xs flex items-center justify-center px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
-      >
-        取消
-      </button>
+  
       <button
         onClick={onCrop}
         className="text-xs flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-md transition-colors font-medium"
       >
-        确认
+        确认裁剪
       </button>
     </div>
   );

@@ -2,14 +2,8 @@
 export interface ImageCropEditorInstance {
   // 执行裁剪操作
   crop: () => Promise<string>;
-  // 撤销操作
-  undo: () => void;
-  // 重做操作
-  redo: () => void;
   // 销毁编辑器实例
   destroy: () => void;
-  // 重置裁剪框
-  resetCropBox: () => void;
 }
 
 // 裁剪历史记录类型

@@ -133,17 +133,10 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     }
   };
   
-  // 使用增强的历史记录管理
+  // 使用增强的历史记录管理（仅用于保存状态）
   const {
     saveHistory: saveCropHistory,
-    undo,
-    redo,
-    reset,
-    canUndo,
-    canRedo,
-    setInitialState,
-    applyHistoryRecord,
-    cancelAutoSave
+    setInitialState
   } = useEnhancedCropHistory({
     maxHistorySteps: 20,
     autoSave: true,
@@ -372,41 +365,6 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     }
   };
 
-  // 立即保存当前状态（用于关键操作）
-  const saveCurrentStateImmediately = () => {
-    if (!fabricCanvasRef.current || !cropBoxRef.current || !imageRef.current) return;
-    
-    // 取消自动保存，避免冲突
-    cancelAutoSave();
-    
-    // 立即保存当前状态
-    saveCropHistory(cropBoxRef.current, imageRef.current);
-  };
-
-  // 撤销操作
-  const handleUndo = () => {
-    // 取消自动保存，确保状态一致
-    cancelAutoSave();
-    
-    const previousState = undo();
-    if (previousState) {
-      applyHistoryRecord(previousState, cropBoxRef.current, imageRef.current, fabricCanvasRef.current);
-      updateMaskClipPath(fabricCanvasRef.current, cropBoxRef.current, maskRef.current);
-    }
-  };
-
-  // 重做操作
-  const handleRedo = () => {
-    // 取消自动保存，确保状态一致
-    cancelAutoSave();
-    
-    const nextState = redo();
-    if (nextState) {
-      applyHistoryRecord(nextState, cropBoxRef.current, imageRef.current, fabricCanvasRef.current);
-      updateMaskClipPath(fabricCanvasRef.current, cropBoxRef.current, maskRef.current);
-    }
-  };
-
   // 执行裁剪
   const handleCrop = async () => {
     if (!fabricCanvasRef.current || !imageRef.current || !cropBoxRef.current) return;
@@ -425,51 +383,8 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     }
   };
 
-  // 重置编辑状态
-  const resetEditor = () => {
-    if (!fabricCanvasRef.current || !imageRef.current || !cropBoxRef.current) return;
-
-    // 取消自动保存
-    cancelAutoSave();
-    
-    // 重置历史记录并恢复初始状态
-    const success = reset();
-    
-    if (success) {
-      // 获取初始状态
-      const initialState = undo();
-      if (initialState) {
-        // 应用初始状态
-        applyHistoryRecord(initialState, cropBoxRef.current, imageRef.current, fabricCanvasRef.current);
-        
-        // 更新遮罩层
-        updateMaskClipPath(fabricCanvasRef.current, cropBoxRef.current, maskRef.current);
-      } else {
-        // 如果没有初始状态，重新创建裁剪框
-        const canvas = fabricCanvasRef.current;
-        canvas.remove(cropBoxRef.current);
-        
-        if (maskRef.current) {
-          canvas.remove(maskRef.current);
-          maskRef.current = null;
-        }
-
-        cropBoxRef.current = null;
-        createCropBoxAndMask();
-        
-        // 重新设置初始状态
-        if (imageRef.current && cropBoxRef.current) {
-          setInitialState(cropBoxRef.current, imageRef.current);
-        }
-      }
-    }
-  };
-
   // 销毁编辑器
   const destroyEditor = () => {
-    // 取消自动保存，确保状态一致
-    cancelAutoSave();
-    
     // 清理事件监听器
     cleanupCropBoxEventListeners();
     
@@ -483,25 +398,7 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     maskRef.current = null;
   };
 
-  // 键盘快捷键
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
-        e.preventDefault();
-        handleUndo();
-      }
-      else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
-        e.preventDefault();
-        handleRedo();
-      }
-    };
 
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [handleUndo, handleRedo]);
 
   // 初始化画布
   useEffect(() => {
@@ -543,13 +440,8 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     <div className="w-full h-full flex flex-col items-center justify-center bg-transparent">
       <EditorContainer canvasRef={canvasRef} />
       <NodeOperationsToolbar
-        onReset={resetEditor}
-        onUndo={handleUndo}
-        onRedo={handleRedo}
         onCancel={onCancel}
         onCrop={handleCrop}
-        canUndo={canUndo}
-        canRedo={canRedo}
         currentAspectRatio={currentAspectRatio}
         onAspectRatioChange={handleAspectRatioChange}
       />

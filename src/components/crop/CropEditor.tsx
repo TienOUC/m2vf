@@ -21,16 +21,11 @@ export const CropEditor: React.FC<FabricImageEditorProps> = ({
     fabricLoaded,
     loadingError,
     isProcessing,
-    canUndo,
-    canRedo,
     currentAspectRatio,
     isOriginalRatio,
     
     // 方法
     handleCrop,
-    undo,
-    redo,
-    resetCropBox,
     handleAspectRatioChange,
     destroyEditor
   } = useCropEditor({
@@ -78,13 +73,8 @@ export const CropEditor: React.FC<FabricImageEditorProps> = ({
       {/* 工具栏 */}
       <div className="p-4">
         <CropToolbar
-          onReset={resetCropBox}
-          onUndo={undo}
-          onRedo={redo}
           onCancel={onCancel}
           onCrop={handleCrop}
-          canUndo={canUndo}
-          canRedo={canRedo}
           currentAspectRatio={currentAspectRatio}
           onAspectRatioChange={handleAspectRatioChange}
         />

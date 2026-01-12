@@ -1,16 +1,10 @@
-import { Refresh, Undo, Redo } from '@mui/icons-material';
 import { Tooltip, Menu, MenuItem, Button } from '@mui/material';
 import { useState } from 'react';
 import { ASPECT_RATIOS, type AspectRatioOption } from '@/lib/types/crop';
 
 interface CropToolbarProps {
-  onReset: () => void;
-  onUndo: () => void;
-  onRedo: () => void;
   onCancel: () => void;
   onCrop: () => void;
-  canUndo: boolean;
-  canRedo: boolean;
   currentAspectRatio: number | null;
   onAspectRatioChange: (aspectRatio: number | null) => void;
 }
@@ -20,13 +14,8 @@ interface CropToolbarProps {
  * 提供裁剪操作的各种控制按钮
  */
 export const CropToolbar: React.FC<CropToolbarProps> = ({
-  onReset,
-  onUndo,
-  onRedo,
   onCancel,
   onCrop,
-  canUndo,
-  canRedo,
   currentAspectRatio,
   onAspectRatioChange
 }) => {
@@ -54,16 +43,6 @@ export const CropToolbar: React.FC<CropToolbarProps> = ({
   const currentRatioOption = ASPECT_RATIOS.find(option => option.value === currentAspectRatio) || ASPECT_RATIOS[0];
   return (
     <div className="flex justify-center items-center gap-4 bg-gray-800/80 backdrop-blur-sm rounded-xl p-4">
-      <Tooltip title="重置裁剪框" placement="top">
-        <button
-          onClick={onReset}
-          className="flex items-center justify-center w-10 h-10 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
-          aria-label="重置"
-        >
-          <Refresh className="text-white" fontSize="small" />
-        </button>
-      </Tooltip>
-      
       {/* 宽高比选择下拉菜单 */}
       <Tooltip title="宽高比" placement="top">
         <div className="relative">
@@ -113,42 +92,6 @@ export const CropToolbar: React.FC<CropToolbarProps> = ({
           </Menu>
         </div>
       </Tooltip>
-      
-      <div className="flex gap-2">
-        <Tooltip title="撤销操作" placement="top">
-          <span>
-            <button
-              onClick={onUndo}
-              disabled={!canUndo}
-              className={`flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg ${
-                canUndo 
-                  ? 'bg-gray-700 hover:bg-gray-600 text-white' 
-                  : 'bg-gray-800 text-gray-500 cursor-not-allowed'
-              }`}
-              aria-label="撤销"
-            >
-              <Undo fontSize="small" />
-            </button>
-          </span>
-        </Tooltip>
-        
-        <Tooltip title="重做操作" placement="top">
-          <span>
-            <button
-              onClick={onRedo}
-              disabled={!canRedo}
-              className={`flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg ${
-                canRedo 
-                  ? 'bg-gray-700 hover:bg-gray-600 text-white' 
-                  : 'bg-gray-800 text-gray-500 cursor-not-allowed'
-              }`}
-              aria-label="重做"
-            >
-              <Redo fontSize="small" />
-            </button>
-          </span>
-        </Tooltip>
-      </div>
       
       <div className="h-6 w-px bg-gray-600 mx-2"></div>
       
