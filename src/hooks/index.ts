@@ -30,8 +30,6 @@ export {
 // 裁剪相关hooks
 export { 
   useCropBox,
-  useCropCanvas,
-  useCropEditor,
   useCropMask
 } from './crop';
 
