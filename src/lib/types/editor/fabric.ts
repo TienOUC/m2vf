@@ -53,6 +53,25 @@ export interface CropHistoryRecord {
   };
   scaleX: number;
   scaleY: number;
+  rotation?: number;
+  timestamp: number;
+}
+
+// 历史记录管理配置
+export interface HistoryManagerConfig {
+  maxSteps: number;
+  autoSave: boolean;
+  saveDelay: number;
+}
+
+// 历史记录操作类型
+export type HistoryActionType = 'save' | 'undo' | 'redo' | 'reset' | 'clear';
+
+// 历史记录事件类型
+export interface HistoryEvent {
+  type: HistoryActionType;
+  timestamp: number;
+  record?: CropHistoryRecord;
 }
 
 // 编辑器配置选项

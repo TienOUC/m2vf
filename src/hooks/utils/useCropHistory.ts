@@ -1,42 +1,29 @@
-import { useHistory } from '@/hooks/data/useHistory';
-import type { CropHistoryRecord, FabricObject, FabricCanvas } from '@/types/editor/fabric';
+import { useEnhancedCropHistory } from './useEnhancedCropHistory';
+import type { CropHistoryRecord, FabricObject, FabricCanvas } from '@/lib/types/editor/fabric';
 
-export const useCropHistory = (maxHistorySteps: number = 5) => {
-  const { save, undo, redo, canUndo, canRedo } = useHistory<CropHistoryRecord>(maxHistorySteps);
+export const useCropHistory = (maxHistorySteps: number = 20) => {
+  const {
+    saveHistory,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    applyHistoryRecord,
+    setInitialState
+  } = useEnhancedCropHistory({
+    maxHistorySteps,
+    autoSave: true,
+    saveDelay: 300
+  });
 
   const saveCurrentState = (cropBox: FabricObject | null, image: FabricObject | null) => {
     if (!cropBox || !image) return;
-
-    const record: CropHistoryRecord = {
-      cropBox: {
-        left: cropBox.left || 0,
-        top: cropBox.top || 0,
-        width: cropBox.width || 0,
-        height: cropBox.height || 0
-      },
-      scaleX: image.scaleX || 1,
-      scaleY: image.scaleY || 1
-    };
-
-    save(record);
+    saveHistory(cropBox, image);
   };
 
   const restoreFromHistory = (record: CropHistoryRecord, cropBox: FabricObject | null, image: FabricObject | null, canvas: FabricCanvas | null) => {
     if (!cropBox || !image || !canvas) return;
-
-    cropBox.set({
-      left: record.cropBox.left,
-      top: record.cropBox.top,
-      width: record.cropBox.width,
-      height: record.cropBox.height
-    });
-
-    image.set({
-      scaleX: record.scaleX,
-      scaleY: record.scaleY
-    });
-
-    canvas.renderAll();
+    applyHistoryRecord(record, cropBox, image, canvas);
   };
 
   return {
@@ -45,6 +32,7 @@ export const useCropHistory = (maxHistorySteps: number = 5) => {
     redoHistory: redo,
     canUndo,
     canRedo,
-    restoreFromHistory
+    restoreFromHistory,
+    setInitialState
   };
 };

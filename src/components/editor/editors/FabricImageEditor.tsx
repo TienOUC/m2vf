@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useDebounce } from '@/hooks/ui/useDebounce';
 import { useFabricCanvas } from '@/hooks/utils/useFabricCanvas';
 import { useImageLoader } from '@/hooks/utils/useImageLoader';
-import { useCropHistory } from '@/hooks/utils/useCropHistory';
-import { createCanvas, createCropBox, createMask, updateMaskClipPath, destroyCanvas, resetMaskBoundsCache } from '@/utils/fabric/fabric';
-import { calculateCropBoxPosition, calculateCropCoordinates, performCrop } from '@/utils/fabric/crop';
-import type { FabricImageEditorProps, ImageCropEditorOptions, FabricCanvas, FabricObject } from '@/types/editor/fabric';
+import { useEnhancedCropHistory } from '@/hooks/utils/useEnhancedCropHistory';
+import { createCanvas, createCropBox, createMask, updateMaskClipPath, destroyCanvas, resetMaskBoundsCache, restoreFromHistory } from '@/lib/utils/fabric';
+import { calculateCropBoxPosition, calculateCropCoordinates, performCrop } from '@/lib/utils/fabric/crop';
+import type { FabricImageEditorProps, ImageCropEditorOptions, FabricCanvas, FabricObject } from '@/lib/types/editor/fabric';
 import { EditorContainer, NodeOperationsToolbar, LoadingState, ErrorState } from '@/components/editor';
 
 const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropComplete, onCancel }) => {
@@ -17,10 +17,26 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
   // 使用自定义hooks
   const { fabricRef, fabricLoaded, loadingError } = useFabricCanvas();
   const { imageRef, loadImage } = useImageLoader(fabricRef);
-  const { saveHistory, undoHistory, redoHistory, canUndo, canRedo, restoreFromHistory } = useCropHistory(5);
   
   const cropBoxRef = useRef<FabricObject | null>(null);
   const maskRef = useRef<FabricObject | null>(null);
+  
+  // 使用增强的历史记录管理
+  const {
+    saveHistory: saveCropHistory,
+    undo,
+    redo,
+    reset,
+    canUndo,
+    canRedo,
+    setInitialState,
+    applyHistoryRecord,
+    cancelAutoSave
+  } = useEnhancedCropHistory({
+    maxHistorySteps: 20,
+    autoSave: true,
+    saveDelay: 300
+  });
   
   // 默认配置
   const defaultOptions: ImageCropEditorOptions = {
@@ -57,7 +73,10 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       // 使用 requestAnimationFrame 确保在下一帧渲染时执行
       requestAnimationFrame(() => {
         createCropBoxAndMask();
-        saveCurrentStateToHistory();
+        // 设置初始状态
+        if (imageRef.current && cropBoxRef.current) {
+          setInitialState(cropBoxRef.current, imageRef.current);
+        }
       });
     }
   };
@@ -197,10 +216,9 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     const imgRight = imgLeft + imgBounds.width;
     const imgBottom = imgTop + imgBounds.height;
     
-    // 获取裁剪框当前状态
-    const cropBounds = cropBox.getBoundingRect(true);
-    let newLeft = cropBounds.left;
-    let newTop = cropBounds.top;
+    // 获取裁剪框当前状态 - 使用原始属性而不是屏幕显示边界
+    let newLeft = cropBox.left || 0;
+    let newTop = cropBox.top || 0;
     let newWidth = cropBox.width || 0;
     let newHeight = cropBox.height || 0;
     
@@ -237,60 +255,43 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       // 立即更新遮罩层，确保视觉同步
       updateMaskClipPath(fabricCanvasRef.current, cropBoxRef.current, maskRef.current);
       
-      // 使用防抖保存历史记录，但提供取消机制
-      debouncedSaveHistory();
+      // 自动保存历史记录
+      saveCropHistory(cropBoxRef.current, imageRef.current);
     }
   };
 
   // 立即保存当前状态（用于关键操作）
   const saveCurrentStateImmediately = () => {
-    // 取消防抖操作，避免状态不一致
-    cancelSaveHistory();
-    // 立即保存状态
-    saveCurrentStateToHistory();
-  };
-
-  // 保存当前状态到历史记录
-  const saveCurrentStateToHistory = () => {
     if (!fabricCanvasRef.current || !cropBoxRef.current || !imageRef.current) return;
-
-    const cropBox = cropBoxRef.current;
-    const img = imageRef.current;
-
-    saveHistory(cropBox, img);
+    
+    // 取消自动保存，避免冲突
+    cancelAutoSave();
+    
+    // 立即保存当前状态
+    saveCropHistory(cropBoxRef.current, imageRef.current);
   };
-
-  // 使用防抖函数，添加取消机制
-  const { debouncedCallback: debouncedSaveHistory, cancel: cancelSaveHistory } = useDebounce(
-    saveCurrentStateToHistory,
-    300
-  );
 
   // 撤销操作
-  const undo = () => {
-    // 取消防抖操作，确保状态一致
-    cancelSaveHistory();
+  const handleUndo = () => {
+    // 取消自动保存，确保状态一致
+    cancelAutoSave();
     
-    const previousState = undoHistory();
+    const previousState = undo();
     if (previousState) {
-      restoreFromHistory(previousState, cropBoxRef.current, imageRef.current, fabricCanvasRef.current);
+      applyHistoryRecord(previousState, cropBoxRef.current, imageRef.current, fabricCanvasRef.current);
       updateMaskClipPath(fabricCanvasRef.current, cropBoxRef.current, maskRef.current);
-      // 立即保存当前状态
-      saveCurrentStateImmediately();
     }
   };
 
   // 重做操作
-  const redo = () => {
-    // 取消防抖操作，确保状态一致
-    cancelSaveHistory();
+  const handleRedo = () => {
+    // 取消自动保存，确保状态一致
+    cancelAutoSave();
     
-    const nextState = redoHistory();
+    const nextState = redo();
     if (nextState) {
-      restoreFromHistory(nextState, cropBoxRef.current, imageRef.current, fabricCanvasRef.current);
+      applyHistoryRecord(nextState, cropBoxRef.current, imageRef.current, fabricCanvasRef.current);
       updateMaskClipPath(fabricCanvasRef.current, cropBoxRef.current, maskRef.current);
-      // 立即保存当前状态
-      saveCurrentStateImmediately();
     }
   };
 
@@ -312,28 +313,50 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     }
   };
 
-  // 重置裁剪框
-  const resetCropBox = () => {
-    if (!fabricCanvasRef.current || !cropBoxRef.current) return;
+  // 重置编辑状态
+  const resetEditor = () => {
+    if (!fabricCanvasRef.current || !imageRef.current || !cropBoxRef.current) return;
 
-    const canvas = fabricCanvasRef.current;
-    canvas.remove(cropBoxRef.current);
+    // 取消自动保存
+    cancelAutoSave();
     
-    if (maskRef.current) {
-      canvas.remove(maskRef.current);
-      maskRef.current = null;
-    }
+    // 重置历史记录并恢复初始状态
+    const success = reset();
+    
+    if (success) {
+      // 获取初始状态
+      const initialState = undo();
+      if (initialState) {
+        // 应用初始状态
+        applyHistoryRecord(initialState, cropBoxRef.current, imageRef.current, fabricCanvasRef.current);
+        
+        // 更新遮罩层
+        updateMaskClipPath(fabricCanvasRef.current, cropBoxRef.current, maskRef.current);
+      } else {
+        // 如果没有初始状态，重新创建裁剪框
+        const canvas = fabricCanvasRef.current;
+        canvas.remove(cropBoxRef.current);
+        
+        if (maskRef.current) {
+          canvas.remove(maskRef.current);
+          maskRef.current = null;
+        }
 
-    cropBoxRef.current = null;
-    createCropBoxAndMask();
-    // 立即保存状态，确保同步
-    saveCurrentStateImmediately();
+        cropBoxRef.current = null;
+        createCropBoxAndMask();
+        
+        // 重新设置初始状态
+        if (imageRef.current && cropBoxRef.current) {
+          setInitialState(cropBoxRef.current, imageRef.current);
+        }
+      }
+    }
   };
 
   // 销毁编辑器
   const destroyEditor = () => {
-    // 取消防抖操作，确保状态一致
-    cancelSaveHistory();
+    // 取消自动保存，确保状态一致
+    cancelAutoSave();
     
     // 清理事件监听器
     cleanupCropBoxEventListeners();
@@ -353,11 +376,11 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
         e.preventDefault();
-        undo();
+        handleUndo();
       }
       else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
         e.preventDefault();
-        redo();
+        handleRedo();
       }
     };
 
@@ -366,7 +389,7 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [undo, redo]);
+  }, [handleUndo, handleRedo]);
 
   // 初始化画布
   useEffect(() => {
@@ -408,9 +431,9 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     <div className="w-full h-full flex flex-col items-center justify-center bg-transparent">
       <EditorContainer canvasRef={canvasRef} />
       <NodeOperationsToolbar
-        onReset={resetCropBox}
-        onUndo={undo}
-        onRedo={redo}
+        onReset={resetEditor}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
         onCancel={onCancel}
         onCrop={handleCrop}
         canUndo={canUndo}

@@ -18,4 +18,16 @@ export {
   performCrop
 } from './crop';
 
+export {
+  // history functions
+  createHistoryConfig,
+  createHistoryRecord,
+  areHistoryRecordsEqual,
+  restoreFromHistory,
+  serializeHistory,
+  deserializeHistory,
+  createHistoryEvent,
+  cleanupHistory
+} from './history';
+
 export * from './crop/index';
