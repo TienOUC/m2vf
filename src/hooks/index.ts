@@ -9,7 +9,6 @@ export {
   useNodeBase, 
   useFileNodeBase, 
   useNodeOperations, 
-  useNodeToolbar, 
   usePaneInteractions, 
   useNodeAddition, 
   useNodeCentering 
