@@ -24,6 +24,7 @@ export interface ImageNodeData {
   isProcessing?: boolean; // 新增：标记为处理中状态
   processingProgress?: number; // 新增：处理进度
   error?: string;
+  [key: string]: any; // 新增索引签名，解决类型约束问题
 }
 
 function ImageNode({ data, id, selected }: NodeProps) {
@@ -114,6 +115,12 @@ function ImageNode({ data, id, selected }: NodeProps) {
               className="h-full w-full"
             />
           </div>
+        ) : nodeData?.isLoading ? (
+          <div className="h-full w-full relative flex items-center justify-center">
+            {/* 加载状态指示器 */}
+            <div className="w-12 h-12 border-4 border-gray-800 border-t-transparent rounded-full animate-spin"></div>
+            <div className="absolute inset-0 bg-white bg-opacity-70 rounded-md"></div>
+          </div>
         ) : nodeData?.imageUrl ? (
           <div className="h-full w-full relative">
             <Image
@@ -123,13 +130,6 @@ function ImageNode({ data, id, selected }: NodeProps) {
               sizes='100%'
               className="object-contain rounded-md"
             />
-            
-            {/* 加载状态指示器 */}
-            {nodeData?.isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-md">
-                <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            )}
             
             {/* 错误信息显示 */}
             {nodeData?.error && (

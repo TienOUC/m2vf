@@ -23,6 +23,7 @@ import { useCropOperations } from '@/hooks/utils/useCropOperations';
 import { usePaneInteractions } from '@/hooks/editor/usePaneInteractions';
 import { useNodeAddition } from '@/hooks/editor/useNodeAddition';
 import { useNodeCentering } from '@/hooks/editor/useNodeCentering';
+import { useBackgroundRemoval } from '@/hooks/editor/useBackgroundRemoval'; // 新增：导入背景移除hook
 
 export interface FlowCanvasProps {
   projectId: string | null;
@@ -58,12 +59,19 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
 
   const [nodeId, setNodeId] = useState(1);
   
-  // 处理抠图功能
-  const handleBackgroundRemove = useCallback((nodeId: string) => {
-    console.log('开始抠图处理，节点ID:', nodeId);
-    // 这里需要实现抠图逻辑
-    alert('抠图功能即将实现');
-  }, []);
+  // 使用背景移除hook
+  const { handleBackgroundRemove } = useBackgroundRemoval({
+    currentNodes: nodeOperations.nodes,
+    setNodes: nodeOperations.setNodes,
+    setEdges: nodeOperations.setEdges,
+    handleDelete: nodeOperations.handleDelete,
+    handleImageUpdate: nodeOperations.handleImageUpdate,
+    handleDownload: nodeOperations.handleDownload,
+    handleEditStart: cropOperations.handleEditStart,
+    handleCropStart: cropOperations.handleCropStart,
+    setNodeIdCounter: setNodeId,
+    simulateBackendRequest: true // 启用模拟后端请求
+  });
 
   const { addTextNode, addImageNode, addVideoNode } = useNodeAddition({
     nodeId,
