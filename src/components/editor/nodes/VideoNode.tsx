@@ -11,7 +11,6 @@ import { ResizeIcon } from '@/components/editor';
 export interface VideoNodeData {
   label?: string;
   videoUrl?: string;
-  onTypeChange?: (nodeId: string, newType: 'text' | 'image' | 'video') => void;
   onDelete?: (nodeId: string) => void;
   onReplace?: (nodeId: string) => void;
 }

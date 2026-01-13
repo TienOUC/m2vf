@@ -12,13 +12,15 @@ import { useState } from 'react';
 export interface ImageNodeData {
   label?: string;
   imageUrl?: string;
-  onTypeChange?: (nodeId: string, newType: 'text' | 'image' | 'video') => void;
   onDelete?: (nodeId: string) => void;
   onReplace?: (nodeId: string) => void;
   onEditStart?: (nodeId: string) => void;
   onCropStart?: (nodeId: string, imageUrl: string) => void;
   onImageUpdate?: (nodeId: string, imageUrl: string) => void;
   onDownload?: (nodeId: string) => void;
+  onBackgroundRemove?: (nodeId: string) => void;
+  isLoading?: boolean;
+  error?: string;
 }
 
 function ImageNode({ data, id, selected }: NodeProps) {
@@ -95,6 +97,8 @@ function ImageNode({ data, id, selected }: NodeProps) {
       nodeType="image"
       onReplace={handleButtonClick}
       onEditStart={handleEditStart}
+      onDownload={nodeData?.onDownload}
+      onBackgroundRemove={nodeData?.onBackgroundRemove}
       hasImage={!!nodeData?.imageUrl}
     >
       <div className="absolute inset-0 p-2">
@@ -107,6 +111,20 @@ function ImageNode({ data, id, selected }: NodeProps) {
               sizes='100%'
               className="object-contain rounded-md"
             />
+            
+            {/* 加载状态指示器 */}
+            {nodeData?.isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-md">
+                <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            )}
+            
+            {/* 错误信息显示 */}
+            {nodeData?.error && (
+              <div className="absolute inset-0 bg-red-100 bg-opacity-80 rounded-md flex items-center justify-center p-4">
+                <p className="text-red-800 text-sm text-center">{nodeData.error}</p>
+              </div>
+            )}
           </div>
         ) : (
           <button

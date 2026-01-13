@@ -3,6 +3,7 @@
 import { handleImageUploadMock } from './image';
 import { handleVideoUploadMock } from './video';
 import { handleProjectsMock } from './projects';
+import { handleBackgroundRemovalMock } from './background-removal';
 
 // Mock 处理器类型定义
 export type MockHandler = (url: string, options: RequestInit) => Promise<Response> | null;
@@ -12,6 +13,7 @@ export const mockHandlers: MockHandler[] = [
   handleImageUploadMock,
   handleVideoUploadMock,
   handleProjectsMock,
+  handleBackgroundRemovalMock,
 ];
 
 // 检查是否应该使用 mock 数据

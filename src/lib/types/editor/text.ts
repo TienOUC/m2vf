@@ -4,10 +4,7 @@ export interface TextNodeData {
   editorStateJson?: string; // 保存序列化后的编辑器状态
   backgroundColor?: string;
   fontType?: 'h1' | 'h2' | 'h3' | 'p';
-  onTypeChange?: (
-    nodeId: string,
-    newType: 'text' | 'image' | 'video'
-  ) => void;
+
   onDelete?: (nodeId: string) => void;
   onBackgroundColorChange?: (nodeId: string, color: string) => void;
   getContent?: (nodeId: string) => string;

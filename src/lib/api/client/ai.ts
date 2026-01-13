@@ -46,3 +46,26 @@ export const getAIModelParams = async (
   const data: AIModelParamsResponse = await response.json();
   return data;
 };
+
+// 去除图片背景
+// Remove background from image
+export const removeImageBackground = async (imageUrl: string): Promise<string> => {
+  const removeBgUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/ai/remove-background/`
+    : 'http://127.0.0.1:8000/api/ai/remove-background/';
+
+  const response = await apiRequest(removeBgUrl, {
+    method: 'POST',
+    body: JSON.stringify({
+      image_url: imageUrl,
+      prompt: '去除图片背景'
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`去除背景失败: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.processed_image_url;
+};

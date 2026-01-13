@@ -14,7 +14,7 @@ import {
   ReactFlowProvider
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Add, SwapHoriz } from '@mui/icons-material';
+import { Add } from '@mui/icons-material';
 
 import { TextNode, ImageNode, VideoNode, FabricImageEditor } from '@/components/editor';
 import LeftSidebar from '@/components/layout/LeftSidebar';
@@ -62,7 +62,6 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
     nodeId,
     setNodeId,
     setNodes: nodeOperations.setNodes,
-    handleTypeChange: nodeOperations.handleTypeChange,
     handleDelete: nodeOperations.handleDelete,
     handleBackgroundColorChange: nodeOperations.handleBackgroundColorChange,
     handleImageUpdate: nodeOperations.handleImageUpdate,

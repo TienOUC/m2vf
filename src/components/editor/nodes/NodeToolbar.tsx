@@ -1,5 +1,5 @@
 import { NodeToolbar as ReactFlowNodeToolbar, Position } from '@xyflow/react';
-import { SwapHoriz, TextFields, Image as ImageIcon, VideoFile, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, HorizontalRule, Fullscreen, DeleteOutline, Crop, Brush, Download } from '@mui/icons-material';
+import { Image as ImageIcon, VideoFile, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, HorizontalRule, Fullscreen, DeleteOutline, Crop, Brush, Download, AutoFixHigh } from '@mui/icons-material';
 import { Tooltip } from '@mui/material';
 import { memo, useState, useRef } from 'react';
 import { useClickOutside } from '@/hooks';
@@ -7,7 +7,6 @@ import { copyToClipboard, copyRichTextToClipboard } from '@/lib/utils';
 
 export interface NodeToolbarProps {
   nodeId: string;
-  onTypeChange?: (nodeId: string, newType: 'text' | 'image' | 'video') => void;
   onDelete?: (nodeId: string) => void;
   onReplace?: (nodeId: string) => void;
   onBackgroundColorChange?: (nodeId: string, color: string) => void;
@@ -33,11 +32,12 @@ export interface NodeToolbarProps {
   onDownload?: (nodeId: string) => void;
   // 新增：图片节点状态控制
   hasImage?: boolean;
+  // 新增：图片背景去除功能
+  onBackgroundRemove?: (nodeId: string) => void;
 }
 
 const NodeToolbar = ({ 
   nodeId, 
-  onTypeChange, 
   onDelete, 
   onReplace,
   onBackgroundColorChange,
@@ -51,6 +51,7 @@ const NodeToolbar = ({
   onEditStart,
   onEraseStart,
   onDownload,
+  onBackgroundRemove,
   selected = false, 
   type = 'text',
   fontType,
@@ -68,10 +69,6 @@ const NodeToolbar = ({
       setColorPickerOpen(false);
     }
   });
-
-  const handleTypeChange = (newType: 'text' | 'image' | 'video') => {
-    onTypeChange && onTypeChange(nodeId, newType);
-  };
 
   const handleDelete = () => {
     onDelete && onDelete(nodeId);
@@ -144,28 +141,7 @@ const NodeToolbar = ({
     { value: '#763886', label: '深紫色', cssVar: 'var(--node-bg-color7)' },
   ];
 
-  // 根据当前节点类型确定可切换的类型
-  const getAvailableTypes = () => {
-    switch (type) {
-      case 'text':
-        return [
-          { type: 'image' as const, label: '图片', icon: <ImageIcon fontSize="small" /> },
-          { type: 'video' as const, label: '视频', icon: <VideoFile fontSize="small" /> },
-        ];
-      case 'image':
-        return [
-          { type: 'text' as const, label: '文本', icon: <TextFields fontSize="small" /> },
-          { type: 'video' as const, label: '视频', icon: <VideoFile fontSize="small" /> },
-        ];
-      case 'video':
-        return [
-          { type: 'text' as const, label: '文本', icon: <TextFields fontSize="small" /> },
-          { type: 'image' as const, label: '图片', icon: <ImageIcon fontSize="small" /> },
-        ];
-      default:
-        return [];
-    }
-  };
+
 
   // 颜色选择器弹窗
   const ColorPickerPopover = () => (
@@ -206,32 +182,7 @@ const NodeToolbar = ({
         </button>
       </Tooltip>
       
-      {/* 类型切换按钮 */}
-      <div className="relative group">
-        {/* <Tooltip title="切换节点类型" placement="top">
-          <button
-            className="w-8 h-8 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
-            aria-label="切换节点类型"
-          >
-            <SwapHoriz fontSize="small" />
-          </button>
-        </Tooltip> */}
-            
-        
-        {/* 类型选择菜单 - 作为下拉菜单实现 */}
-        <div className="absolute left-0 top-9 bg-white rounded-md shadow-sm border border-gray-200 py-1 z-20 min-w-[120px] w-32 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
-          {getAvailableTypes().map(({ type: newType, label, icon }) => (
-            <button
-              key={newType}
-              onClick={() => handleTypeChange(newType)}
-              className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
-            >
-              {icon}
-              <span>{label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+
       
       {/* 更换文件按钮 - 仅对图片和视频节点显示 */}
       {(type === 'image' || type === 'video') && (
@@ -320,6 +271,35 @@ const NodeToolbar = ({
               disabled={!hasImage}
             >
               <Download fontSize="small" />
+            </button>
+          </span>
+        </Tooltip>
+      )}
+      
+      {/* 背景去除按钮 - 仅对图片节点显示 */}
+      {type === 'image' && (
+        <Tooltip 
+          title={!hasImage ? "请先上传图片" : "抠图"} 
+          placement="top"
+        >
+          <span>
+            <button
+              onClick={() => {
+                console.log('抠图按钮点击 - hasImage:', hasImage, 'onBackgroundRemove:', !!onBackgroundRemove);
+                if (hasImage) {
+                  console.log('调用onBackgroundRemove回调，节点ID:', nodeId);
+                  onBackgroundRemove?.(nodeId);
+                }
+              }}
+              className={`w-8 h-8 p-1 rounded-md transition-colors ${
+                !hasImage 
+                  ? 'text-gray-300 cursor-not-allowed' 
+                  : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
+              }`}
+              aria-label="抠图"
+              disabled={!hasImage}
+            >
+              <AutoFixHigh fontSize="small" />
             </button>
           </span>
         </Tooltip>

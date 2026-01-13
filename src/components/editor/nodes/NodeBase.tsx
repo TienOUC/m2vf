@@ -27,6 +27,8 @@ export interface BaseNodeProps extends Pick<NodeProps, 'id' | 'data' | 'selected
   onEraseStart?: (nodeId: string) => void;
   // 新增：图片下载功能
   onDownload?: (nodeId: string) => void;
+  // 新增：图片背景去除功能
+  onBackgroundRemove?: (nodeId: string) => void;
   // 新增：图片节点状态控制
   hasImage?: boolean;
 }
@@ -52,6 +54,7 @@ export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
   onEditStart,
   onEraseStart,
   onDownload,
+  onBackgroundRemove,
   hasImage = false
 }, ref) => {
   const nodeData = data as NodeData;
@@ -76,7 +79,6 @@ export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
       {/* 节点工具栏 */}
       <NodeToolbar
         nodeId={id}
-        onTypeChange={nodeData?.onTypeChange}
         onDelete={nodeData?.onDelete}
         onReplace={onReplace}
         onBackgroundColorChange={onBackgroundColorChange}
@@ -96,6 +98,7 @@ export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
         onEditStart={onEditStart}
         onEraseStart={onEraseStart}
         onDownload={nodeData?.onDownload}
+        onBackgroundRemove={nodeData?.onBackgroundRemove}
         hasImage={hasImage}
       />
 

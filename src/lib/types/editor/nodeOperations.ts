@@ -9,11 +9,15 @@ export interface NodeData {
   backgroundColor?: string;
   fontType?: FontType;
   needsUpdate?: boolean;
-  onTypeChange?: (nodeId: string, newType: NodeType) => void;
+  isLoading?: boolean;
+  error?: string;
   onDelete?: (nodeId: string) => void;
   onBackgroundColorChange?: (nodeId: string, color: string) => void;
   onReplace?: (nodeId: string) => void;
   onImageUpdate?: (nodeId: string, imageUrl: string) => void;
+  onDownload?: (nodeId: string) => void;
+  onBackgroundRemove?: (nodeId: string) => void;
+  getContent?: (nodeId: string) => string;
 }
 
 export interface NodeOperationHandlers {
@@ -22,10 +26,10 @@ export interface NodeOperationHandlers {
   handleDelete: (nodeId: string) => void;
   handleBackgroundColorChange: (nodeId: string, color: string) => void;
   handleFontTypeChange: (nodeId: string, fontType: FontType) => void;
-  handleTypeChange: (nodeId: string, newType: NodeType) => void;
   handleEditingChange: (nodeId: string, editing: boolean) => void;
   handleCropComplete: (nodeId: string, croppedImageUrl: string) => void;
   handleDownload: (nodeId: string) => void;
+  handleBackgroundRemove: (nodeId: string) => void;
 }
 
 export interface NodeState {

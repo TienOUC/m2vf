@@ -5,11 +5,12 @@ interface UseNodeAdditionProps {
   nodeId: number;
   setNodeId: React.Dispatch<React.SetStateAction<number>>;
   setNodes: (nodes: Node[] | ((prevNodes: Node[]) => Node[])) => void;
-  handleTypeChange: (nodeId: string, newType: 'text' | 'image' | 'video') => void;
   handleDelete: (nodeId: string) => void;
   handleBackgroundColorChange: (nodeId: string, color: string) => void;
   handleImageUpdate?: (nodeId: string, imageUrl: string) => void;
   handleFontTypeChange?: (nodeId: string, fontType: 'h1' | 'h2' | 'h3' | 'p') => void;
+  handleDownload?: (nodeId: string) => void;
+  handleBackgroundRemove?: (nodeId: string) => void;
   onEditingChange?: (nodeId: string, editing: boolean) => void;
   onEditStart?: (nodeId: string) => void;
   onCropStart?: (nodeId: string, imageUrl: string) => void;
@@ -19,7 +20,6 @@ export const useNodeAddition = ({
   nodeId,
   setNodeId,
   setNodes,
-  handleTypeChange,
   handleDelete,
   handleBackgroundColorChange,
   handleImageUpdate,
@@ -47,7 +47,6 @@ export const useNodeAddition = ({
           label: '文本节点',
           backgroundColor: '#ffffff',
           fontType: 'p', // 默认为正文样式
-          onTypeChange: handleTypeChange,
           onDelete: handleDelete,
           onBackgroundColorChange: handleBackgroundColorChange,
           ...(handleFontTypeChange && { onFontTypeChange: handleFontTypeChange }),
@@ -60,7 +59,7 @@ export const useNodeAddition = ({
       setNodes((nds) => nds.concat(newNode));
       setNodeId((prevId) => prevId + 1);
     },
-    [nodeId, setNodes, screenToFlowPosition, handleTypeChange, handleDelete, handleBackgroundColorChange, handleFontTypeChange, onEditingChange, setNodeId]
+    [nodeId, setNodes, screenToFlowPosition, handleDelete, handleBackgroundColorChange, handleFontTypeChange, onEditingChange, setNodeId]
   );
 
   // 添加图片节点函数
@@ -78,7 +77,6 @@ export const useNodeAddition = ({
         data: { 
           label: '图片节点',
           imageUrl: undefined, // 明确初始化为undefined，确保一致的状态
-          onTypeChange: handleTypeChange,
           onDelete: handleDelete,
           ...(handleImageUpdate && { onImageUpdate: handleImageUpdate }),
           ...(handleDownload && { onDownload: handleDownload }),
@@ -94,7 +92,7 @@ export const useNodeAddition = ({
       setNodes((nds) => nds.concat(newNode));
       setNodeId((prevId) => prevId + 1);
     },
-    [nodeId, setNodes, screenToFlowPosition, handleTypeChange, handleDelete, handleImageUpdate, onEditStart, onCropStart, handleDownload, setNodeId]
+    [nodeId, setNodes, screenToFlowPosition, handleDelete, handleImageUpdate, onEditStart, onCropStart, handleDownload, setNodeId]
   );
 
   // 添加视频节点函数
@@ -111,7 +109,6 @@ export const useNodeAddition = ({
         position: pos,
         data: { 
           label: '视频节点',
-          onTypeChange: handleTypeChange,
           onDelete: handleDelete,
           onReplace: (id: string) => {
             console.log(`替换节点 ${id} 的文件`);
@@ -122,7 +119,7 @@ export const useNodeAddition = ({
       setNodes((nds) => nds.concat(newNode));
       setNodeId((prevId) => prevId + 1);
     },
-    [nodeId, setNodes, screenToFlowPosition, handleTypeChange, handleDelete, setNodeId]
+    [nodeId, setNodes, screenToFlowPosition, handleDelete, setNodeId]
   );
 
   return {

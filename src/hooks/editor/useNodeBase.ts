@@ -3,11 +3,11 @@ import { useCallback } from 'react';
 export interface NodeData {
   label?: string;
   backgroundColor?: string;
-  onTypeChange?: (nodeId: string, newType: 'text' | 'image' | 'video') => void;
   onDelete?: (nodeId: string) => void;
   onBackgroundColorChange?: (nodeId: string, color: string) => void;
   getContent?: (nodeId: string) => string;
   onDownload?: (nodeId: string) => void;
+  onBackgroundRemove?: (nodeId: string) => void;
 }
 
 export interface NodeType {
@@ -17,11 +17,7 @@ export interface NodeType {
 export function useNodeBase<T extends NodeData>(data: T, id: string) {
   const nodeData = data as NodeData;
 
-  const handleTypeChange = useCallback((newType: 'text' | 'image' | 'video') => {
-    if (nodeData?.onTypeChange && id) {
-      nodeData.onTypeChange(id, newType);
-    }
-  }, [nodeData, id]);
+
 
   const handleDelete = useCallback(() => {
     if (nodeData?.onDelete && id) {
@@ -30,17 +26,15 @@ export function useNodeBase<T extends NodeData>(data: T, id: string) {
   }, [nodeData, id]);
 
   return {
-    handleTypeChange,
     handleDelete,
     nodeData
   };
 }
 
 export function useFileNodeBase<T extends NodeData>(data: T, id: string) {
-  const { handleTypeChange, handleDelete, nodeData } = useNodeBase(data, id);
+  const { handleDelete, nodeData } = useNodeBase(data, id);
   
   return {
-    handleTypeChange,
     handleDelete,
     nodeData
   };
