@@ -1,6 +1,6 @@
 import { useCallback, useState, useRef } from 'react';
 import { Node, Edge, useNodesState, useEdgesState } from '@xyflow/react';
-import { NodeOperations, NodeType, FontType } from '@/lib/types/editor/nodeOperations';
+import { NodeOperations, FontType } from '@/lib/types/editor/nodeOperations';
 import { downloadImage } from '@/lib/utils/image';
 import { removeImageBackground } from '@/lib/api/client/ai';
 

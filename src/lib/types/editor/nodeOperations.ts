@@ -1,6 +1,6 @@
 import { Node, Edge, NodeChange, EdgeChange } from '@xyflow/react';
 
-export type NodeType = 'text' | 'image' | 'video';
+
 export type FontType = 'h1' | 'h2' | 'h3' | 'p';
 
 export interface NodeData {

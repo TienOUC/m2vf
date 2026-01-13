@@ -131,14 +131,14 @@ const NodeToolbar = ({
   };
 
   const colorOptions = [
-    { value: '#ffffff', label: '白色背景', cssVar: 'var(--node-bg-white)' },
-    { value: '#964243', label: '暗红色', cssVar: 'var(--node-bg-color1)' },
-    { value: '#834815', label: '咖啡色', cssVar: 'var(--node-bg-color2)' },
-    { value: '#8f8030', label: '橄榄色', cssVar: 'var(--node-bg-color3)' },
-    { value: '#3d7344', label: '深绿色', cssVar: 'var(--node-bg-color4)' },
-    { value: '#337282', label: '青蓝色', cssVar: 'var(--node-bg-color5)' },
-    { value: '#2b5284', label: '深蓝色', cssVar: 'var(--node-bg-color6)' },
-    { value: '#763886', label: '深紫色', cssVar: 'var(--node-bg-color7)' },
+    { value: '#ffffff', label: '纯白色', cssVar: 'var(--node-bg-white)' },
+    { value: 'rgba(150, 90, 91, 0.95)', label: '暗砖红', cssVar: 'var(--node-bg-color1)' },
+    { value: 'rgba(131, 90, 60, 0.95)', label: '浅咖色', cssVar: 'var(--node-bg-color2)' },
+    { value: 'rgba(143, 138, 90, 0.95)', label: '浅橄榄', cssVar: 'var(--node-bg-color3)' },
+    { value: 'rgba(90, 115, 95, 0.95)', label: '豆绿色', cssVar: 'var(--node-bg-color4)' },
+    { value: 'rgba(80, 114, 125, 0.95)', label: '青灰色', cssVar: 'var(--node-bg-color5)' },
+    { value: 'rgba(75, 95, 125, 0.95)', label: '灰蓝色', cssVar: 'var(--node-bg-color6)' },
+    { value: 'rgba(118, 90, 125, 0.95)', label: '灰紫色', cssVar: 'var(--node-bg-color7)' },
   ];
 
 

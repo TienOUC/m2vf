@@ -10,9 +10,7 @@ export interface NodeData {
   onBackgroundRemove?: (nodeId: string) => void;
 }
 
-export interface NodeType {
-  type: 'text' | 'image' | 'video';
-}
+
 
 export function useNodeBase<T extends NodeData>(data: T, id: string) {
   const nodeData = data as NodeData;
