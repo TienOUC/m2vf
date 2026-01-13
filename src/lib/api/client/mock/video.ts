@@ -1,7 +1,8 @@
 // 视频上传相关的 mock 逻辑
 
 export const handleVideoUploadMock = (url: string, options: RequestInit): Promise<Response> | null => {
-  const videoUploadMatch = url.match(/api\/images\/api\/projects\/(\d+)\/(?:folders\/(\d+)\/)?videos\/upload\//);
+  // 匹配完整的URL路径，包括可能的域名
+  const videoUploadMatch = url.match(/\/api\/images\/api\/projects\/(\d+)\/(?:folders\/(\d+)\/)?videos\/upload\//);
   if (!videoUploadMatch) return null;
 
   return new Promise((resolve) => {
@@ -21,8 +22,8 @@ export const handleVideoUploadMock = (url: string, options: RequestInit): Promis
         data: {
           id: videoId,
           name: videoName,
-          url: `/test-images/test.jpg`, // 视频也使用同一测试图片，避免404
-          thumbnail_url: `/test-images/test.jpg`,
+          url: `/video/test.mp4`, // 使用真实的视频文件
+          thumbnail_url: `/test-images/cat.jpeg`, // 缩略图仍然使用图片
           duration: Math.floor(Math.random() * (300 - 10 + 1)) + 10, // 10秒 - 5分钟
           width: 1920,
           height: 1080,

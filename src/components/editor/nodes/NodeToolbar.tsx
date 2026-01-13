@@ -1,8 +1,9 @@
 import { NodeToolbar as ReactFlowNodeToolbar, Position } from '@xyflow/react';
 import { Image as ImageIcon, VideoFile, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, HorizontalRule, Fullscreen, DeleteOutline, Crop, Brush, Download, AutoFixHigh } from '@mui/icons-material';
 import { Tooltip } from '@mui/material';
-import { memo, useState, useRef } from 'react';
+import { memo, useState, useRef, useCallback } from 'react';
 import { useClickOutside } from '@/hooks';
+import { useDebouncedCallback } from '@/hooks/utils/useDebouncedCallback';
 import { copyToClipboard, copyRichTextToClipboard } from '@/lib/utils';
 
 export interface NodeToolbarProps {
@@ -62,6 +63,15 @@ const NodeToolbar = ({
   const colorPickerRef = useRef<HTMLButtonElement>(null);
   const colorPickerPopoverRef = useRef<HTMLDivElement>(null);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
+  
+  // 使用防抖Hook处理抠图按钮点击
+  const handleBackgroundRemoveClick = useCallback(() => {
+    if (!hasImage || !onBackgroundRemove) return;
+    console.log('调用onBackgroundRemove回调，节点ID:', nodeId);
+    onBackgroundRemove(nodeId);
+  }, [hasImage, onBackgroundRemove, nodeId]);
+  
+  const [debouncedBackgroundRemove] = useDebouncedCallback(handleBackgroundRemoveClick, 300);
 
   // 点击外部关闭颜色选择器
   useClickOutside([colorPickerRef, colorPickerPopoverRef], () => {
@@ -284,13 +294,7 @@ const NodeToolbar = ({
         >
           <span>
             <button
-              onClick={() => {
-                console.log('抠图按钮点击 - hasImage:', hasImage, 'onBackgroundRemove:', !!onBackgroundRemove);
-                if (hasImage) {
-                  console.log('调用onBackgroundRemove回调，节点ID:', nodeId);
-                  onBackgroundRemove?.(nodeId);
-                }
-              }}
+              onClick={debouncedBackgroundRemove}
               className={`w-8 h-8 p-1 rounded-md transition-colors ${
                 !hasImage 
                   ? 'text-gray-300 cursor-not-allowed' 

@@ -28,6 +28,7 @@ export const useNodeAddition = ({
   onEditStart,
   onCropStart,
   handleDownload,
+  handleBackgroundRemove,
 }: UseNodeAdditionProps & { handleDownload?: (nodeId: string) => void }) => {
   const { screenToFlowPosition } = useReactFlow();
 
@@ -86,13 +87,15 @@ export const useNodeAddition = ({
           // 添加裁剪功能相关回调
           ...(onEditStart && { onEditStart }),
           ...(onCropStart && { onCropStart }),
+          // 添加抠图功能相关回调
+          ...(handleBackgroundRemove && { onBackgroundRemove: handleBackgroundRemove }),
         },
       };
 
       setNodes((nds) => nds.concat(newNode));
       setNodeId((prevId) => prevId + 1);
     },
-    [nodeId, setNodes, screenToFlowPosition, handleDelete, handleImageUpdate, onEditStart, onCropStart, handleDownload, setNodeId]
+    [nodeId, setNodes, screenToFlowPosition, handleDelete, handleImageUpdate, onEditStart, onCropStart, handleDownload, handleBackgroundRemove, setNodeId]
   );
 
   // 添加视频节点函数

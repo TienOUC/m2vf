@@ -58,6 +58,13 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
 
   const [nodeId, setNodeId] = useState(1);
   
+  // 处理抠图功能
+  const handleBackgroundRemove = useCallback((nodeId: string) => {
+    console.log('开始抠图处理，节点ID:', nodeId);
+    // 这里需要实现抠图逻辑
+    alert('抠图功能即将实现');
+  }, []);
+
   const { addTextNode, addImageNode, addVideoNode } = useNodeAddition({
     nodeId,
     setNodeId,
@@ -69,7 +76,8 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
     onEditingChange: nodeOperations.handleEditingChange,
     onEditStart: cropOperations.handleEditStart,
     onCropStart: cropOperations.handleCropStart,
-    handleDownload: nodeOperations.handleDownload
+    handleDownload: nodeOperations.handleDownload,
+    handleBackgroundRemove: handleBackgroundRemove
   });
 
   const paneInteractions = usePaneInteractions(

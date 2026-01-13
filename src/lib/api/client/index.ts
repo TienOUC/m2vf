@@ -34,12 +34,14 @@ export const apiRequest = async (
   // 开发环境下的 Mock 逻辑（仅在客户端执行）
   if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
     try {
-      const { shouldUseMock, executeMock } = await import('./mock');
+      // 使用静态导入而不是动态导入，避免路径问题
+      const { shouldUseMock, executeMock } = await import('@/lib/api/client/mock');
       if (shouldUseMock(url, options)) {
         return executeMock(url, options);
       }
     } catch (error) {
       console.error('Mock handler import error:', error);
+      // Mock导入失败时，继续使用真实API，而不是中断整个流程
     }
   }
 

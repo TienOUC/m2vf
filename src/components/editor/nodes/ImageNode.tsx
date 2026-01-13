@@ -6,6 +6,7 @@ import { Image as ImageIcon } from '@mui/icons-material';
 import { useFileUpload } from '@/hooks/utils/useFileUpload';
 import { NodeBase } from './NodeBase';
 import { ResizeIcon } from '@/components/editor';
+import { ScanningAnimation } from '@/components/editor/ScanningAnimation';
 import Image from 'next/image';
 import { useState } from 'react';
 
@@ -20,6 +21,8 @@ export interface ImageNodeData {
   onDownload?: (nodeId: string) => void;
   onBackgroundRemove?: (nodeId: string) => void;
   isLoading?: boolean;
+  isProcessing?: boolean; // 新增：标记为处理中状态
+  processingProgress?: number; // 新增：处理进度
   error?: string;
 }
 
@@ -102,7 +105,16 @@ function ImageNode({ data, id, selected }: NodeProps) {
       hasImage={!!nodeData?.imageUrl}
     >
       <div className="absolute inset-0 p-2">
-        {nodeData?.imageUrl ? (
+        {/* 处理中状态：显示扫描动画 */}
+        {nodeData?.isProcessing ? (
+          <div className="h-full w-full relative">
+            <ScanningAnimation 
+              isActive={true}
+              duration={1500}
+              className="h-full w-full"
+            />
+          </div>
+        ) : nodeData?.imageUrl ? (
           <div className="h-full w-full relative">
             <Image
               src={nodeData.imageUrl}

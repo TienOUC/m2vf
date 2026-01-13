@@ -98,7 +98,7 @@ export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
         onEditStart={onEditStart}
         onEraseStart={onEraseStart}
         onDownload={nodeData?.onDownload}
-        onBackgroundRemove={nodeData?.onBackgroundRemove}
+        onBackgroundRemove={onBackgroundRemove}
         hasImage={hasImage}
       />
 
