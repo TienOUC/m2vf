@@ -3,8 +3,6 @@
 import { apiRequest } from './index';
 import { buildApiUrl, API_ENDPOINTS } from '@/lib/config/api.config';
 import type {
-  Project,
-  ProjectListResponse,
   ProjectCreateRequest,
   ProjectUpdateRequest,
   ProjectDeleteRequest
@@ -28,7 +26,10 @@ export const getProjects = async (options?: {
   const queryString = params.toString();
   const projectsUrl = `${buildApiUrl(API_ENDPOINTS.PROJECTS.LIST)}${queryString ? '?' + queryString : ''}`;
 
-  return apiRequest(projectsUrl, { method: 'GET' });
+  return apiRequest(projectsUrl, { 
+    method: 'GET',
+    cache: 'no-cache'
+  });
 };
 
 // 获取单个项目详情
