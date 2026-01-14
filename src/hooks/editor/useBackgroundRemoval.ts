@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
 import { Node, Edge } from '@xyflow/react';
 import { ImageNodeData } from '@/components/editor/nodes/ImageNode';
-import { removeImageBackground } from '@/lib/api/client/ai'; // 导入真实的API函数
+import { removeImageBackground } from '@/lib/api/client/ai'; 
+import { useRef, useEffect } from 'react';
 
 interface BackgroundRemovalOptions {
   currentNodes: Node[];
@@ -32,24 +33,34 @@ export const useBackgroundRemoval = ({
   setNodeIdCounter,
   simulateBackendRequest = true
 }: BackgroundRemovalOptions): BackgroundRemovalResult => {
+  const currentNodesRef = useRef(currentNodes);
+  
+  useEffect(() => {
+    currentNodesRef.current = currentNodes;
+  }, [currentNodes]);
+  
   // 生成唯一的新节点ID
   const generateUniqueNodeId = useCallback(() => {
     const maxNodeId = Math.max(
-      ...currentNodes.map(node => {
+      ...currentNodesRef.current.map(node => {
         const match = node.id.match(/^node-(\d+)$/);
         return match ? parseInt(match[1], 10) : 0;
       }),
       0 // 默认值，避免空数组时的错误
     );
     return `node-${maxNodeId + 1}`;
-  }, [currentNodes]);
+  }, [currentNodesRef]);
 
   // 处理抠图功能
   const handleBackgroundRemove = useCallback((originalNodeId: string) => {
     console.log('开始抠图处理，节点ID:', originalNodeId);
     
-    // 找到原图片节点
-    const originalNode = currentNodes.find(node => node.id === originalNodeId);
+    // 生成唯一的新节点ID
+    const newNodeId = generateUniqueNodeId();
+    
+    // 找到原图片节点 - 使用ref获取最新的节点列表
+    const originalNode = currentNodesRef.current.find(node => node.id === originalNodeId);
+    
     if (!originalNode || !originalNode.data?.imageUrl) {
       console.error('找不到原图片节点或节点没有图片URL');
       return;
@@ -60,9 +71,6 @@ export const useBackgroundRemoval = ({
       x: originalNode.position.x + 200,
       y: originalNode.position.y
     };
-    
-    // 生成唯一的新节点ID
-    const newNodeId = generateUniqueNodeId();
     
     // 创建新节点
     const newNode: Node<ImageNodeData> = {
@@ -88,7 +96,7 @@ export const useBackgroundRemoval = ({
     
     // 更新nodeId计数器
     const maxNodeId = Math.max(
-      ...currentNodes.map(node => {
+      ...currentNodesRef.current.map(node => {
         const match = node.id.match(/^node-(\d+)$/);
         return match ? parseInt(match[1], 10) : 0;
       }),
@@ -161,7 +169,7 @@ export const useBackgroundRemoval = ({
     };
     
     processImage();
-  }, [currentNodes, setNodes, setEdges, handleDelete, handleImageUpdate, handleDownload, handleEditStart, handleCropStart, setNodeIdCounter, generateUniqueNodeId, simulateBackendRequest]);
+  }, [setNodes, setEdges, handleDelete, handleImageUpdate, handleDownload, handleEditStart, handleCropStart, setNodeIdCounter, generateUniqueNodeId, simulateBackendRequest]);
 
   return {
     handleBackgroundRemove
