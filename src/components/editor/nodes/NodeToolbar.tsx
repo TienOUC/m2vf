@@ -67,7 +67,6 @@ const NodeToolbar = ({
   // 使用防抖Hook处理抠图按钮点击
   const handleBackgroundRemoveClick = useCallback(() => {
     if (!hasImage || !onBackgroundRemove) return;
-    console.log('调用onBackgroundRemove回调，节点ID:', nodeId);
     onBackgroundRemove(nodeId);
   }, [hasImage, onBackgroundRemove, nodeId]);
   
