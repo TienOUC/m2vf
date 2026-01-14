@@ -1,8 +1,9 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useClickOutside } from '@/hooks';
 import { TextNodeData } from '@/lib/types/editor/text';
 import { useTextFormatting } from './useTextFormatting';
 import { useLexicalEditor } from '@/hooks/utils/useLexicalEditor';
+import { useTextNodesStore } from '@/lib/stores/textNodesStore';
 
 interface UseTextNodeProps {
   data: TextNodeData;
@@ -14,18 +15,45 @@ interface UseTextNodeProps {
 
 export const useTextNode = ({ data, id, selected, onEditingChange, onFontTypeChange }: UseTextNodeProps) => {
   const nodeData = data;
-  const [content, setContent] = useState(nodeData?.content || '');
-  const [editorStateJson, setEditorStateJson] = useState(nodeData?.editorStateJson);
-  const [isEditing, setIsEditing] = useState(nodeData?.isEditing || false);
-  const [currentFontType, setCurrentFontType] = useState<'h1' | 'h2' | 'h3' | 'p'>(nodeData?.fontType || 'p');
-
+  
+  // 使用全局状态管理
+  const textNodesStore = useTextNodesStore();
+  
+  // 初始化节点数据到全局状态
+  useEffect(() => {
+    // 只在节点首次创建或数据更新时初始化
+    const existingNode = textNodesStore.getTextNode(id);
+    if (!existingNode || 
+        (nodeData?.content && existingNode.content !== nodeData.content) ||
+        (nodeData?.fontType && existingNode.fontType !== nodeData.fontType) ||
+        (nodeData?.backgroundColor && existingNode.backgroundColor !== nodeData.backgroundColor)) {
+      textNodesStore.setTextNode(id, {
+        content: nodeData?.content || '',
+        fontType: nodeData?.fontType || 'p',
+        backgroundColor: nodeData?.backgroundColor || 'white',
+        editorStateJson: nodeData?.editorStateJson,
+        isEditing: nodeData?.isEditing || false,
+      });
+    }
+  }, [id, nodeData, textNodesStore]);
+  
+  // 从全局状态获取节点数据
+  const nodeFromStore = textNodesStore.getTextNode(id);
+  const content = nodeFromStore?.content || '';
+  const editorStateJson = nodeFromStore?.editorStateJson;
+  const currentFontType = nodeFromStore?.fontType || 'p';
+  
+  // 本地状态，不需要全局持久化
+  const [isEditing, setIsEditing] = useState(false);
+  const [isFullscreenDialogOpen, setIsFullscreenDialogOpen] = useState(false);
+  
   // 使用新的 useLexicalEditor hook
   const { lexicalEditorRef, handleEditorChange, handleEditorInit } = useLexicalEditor({
     onContentChange: (textContent, newStateJson) => {
-      setContent(textContent);
-      if (newStateJson) {
-        setEditorStateJson(newStateJson);
-      }
+      // 更新全局状态
+      textNodesStore.updateTextNodeContent(id, textContent, newStateJson);
+      
+      // 通知原始回调
       if (nodeData?.onContentChange) {
         nodeData.onContentChange(textContent, newStateJson);
       }
@@ -36,17 +64,10 @@ export const useTextNode = ({ data, id, selected, onEditingChange, onFontTypeCha
       }
     },
     onCurrentFontTypeChange: (ft) => {
-      setCurrentFontType(ft);
+      // 更新全局状态
+      textNodesStore.updateTextNodeFontType(id, ft);
     }
   });
-
-  // 暴露获取内容的函数到父组件
-  useEffect(() => {
-    if (nodeData?.getContent) {
-      // 在组件挂载时更新内容映射
-      nodeData.getContent(id);
-    }
-  }, [content, nodeData, id]);
 
   // 双击处理函数，进入编辑模式
   const handleDoubleClick = useCallback(() => {
@@ -56,9 +77,6 @@ export const useTextNode = ({ data, id, selected, onEditingChange, onFontTypeCha
   // 点击外部区域失焦处理函数
   const nodeRef = useRef<HTMLDivElement>(null);
   const editorContainerRef = useRef<HTMLDivElement>(null);
-  
-  // 使用Dialog形式的全屏，不再使用浏览器级别的全屏API
-  const [isFullscreenDialogOpen, setIsFullscreenDialogOpen] = useState(false);
   
   // 切换全屏Dialog显示状态
   const toggleFullscreenDialog = useCallback(() => {
@@ -123,10 +141,17 @@ export const useTextNode = ({ data, id, selected, onEditingChange, onFontTypeCha
       if (onFontTypeChange) {
         onFontTypeChange(id, fontType);
       }
-      setCurrentFontType(fontType);
     },
     [handleEditorFontTypeChange, onFontTypeChange, id]
   );
+
+  // 暴露获取内容的函数到父组件
+  useEffect(() => {
+    if (nodeData?.getContent) {
+      // 在组件挂载时更新内容映射
+      nodeData.getContent(id);
+    }
+  }, [content, nodeData, id]);
 
   return {
     // State
@@ -139,7 +164,6 @@ export const useTextNode = ({ data, id, selected, onEditingChange, onFontTypeCha
     // Refs
     nodeRef,
     editorContainerRef,
-    lexicalEditorRef,
     
     // Functions
     handleDoubleClick,
@@ -153,7 +177,6 @@ export const useTextNode = ({ data, id, selected, onEditingChange, onFontTypeCha
     handleBulletListToggle,
     handleNumberedListToggle,
     handleHorizontalRuleInsert,
-    setIsEditing,
     
     // Flags
     isNodeSelected: selected && !isFullscreenDialogOpen

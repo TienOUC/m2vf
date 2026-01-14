@@ -5,6 +5,7 @@ export { useProjectEditingStore } from './projectEditingStore';
 export { useAuthStore } from './authStore';
 export { useUIStore } from './uiStore';
 export { useCropStore } from './cropStore';
+export { useTextNodesStore } from './textNodesStore';
 
 // 组合所有store的类型定义
 export type { 
@@ -13,5 +14,7 @@ export type {
   ProjectEditingState, 
   AuthState, 
   UIState, 
-  RootState 
+  RootState,
+  TextNodeState,
+  TextNodesState
 } from '@/lib/types/store';

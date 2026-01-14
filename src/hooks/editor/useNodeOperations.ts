@@ -1,8 +1,9 @@
-import { useCallback, useState, useRef } from 'react';
+import { useCallback, useState, useRef, useEffect } from 'react';
 import { Node, Edge, useNodesState, useEdgesState } from '@xyflow/react';
 import { NodeOperations, FontType } from '@/lib/types/editor/nodeOperations';
 import { downloadImage } from '@/lib/utils/image';
 import { removeImageBackground } from '@/lib/api/client/ai';
+import { useTextNodesStore, TextNodeState } from '@/lib/stores/textNodesStore';
 
 export const useNodeOperations = (): NodeOperations => {
   // 使用类型断言来解决 React Flow 的类型推断问题
@@ -11,7 +12,11 @@ export const useNodeOperations = (): NodeOperations => {
   
   const editingNodeIds = useRef<Set<string>>(new Set());
   const [isAnyEditing, setIsAnyEditing] = useState(false);
+  
+  // 跟踪组件是否已经初始化完成
+  const [isInitialized, setIsInitialized] = useState(false);
 
+  // 定义节点操作函数
   const handleReplace = useCallback((nodeId: string) => {
     setNodes((nds) =>
       nds.map((node) => {
@@ -51,6 +56,8 @@ export const useNodeOperations = (): NodeOperations => {
     setEdges((eds) =>
       eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)
     );
+    // 同时从全局状态中删除节点数据
+    useTextNodesStore.getState().deleteTextNode(nodeId);
   }, [setNodes, setEdges]);
 
   const handleBackgroundColorChange = useCallback((nodeId: string, color: string) => {
@@ -87,8 +94,6 @@ export const useNodeOperations = (): NodeOperations => {
     );
   }, [setNodes]);
 
-
-
   const handleEditingChange = useCallback((nodeId: string, editing: boolean) => {
     if (editing) {
       editingNodeIds.current.add(nodeId);
@@ -97,6 +102,72 @@ export const useNodeOperations = (): NodeOperations => {
     }
     setIsAnyEditing(editingNodeIds.current.size > 0);
   }, []);
+
+  // 从持久化数据初始化节点列表
+  useEffect(() => {
+    // 获取持久化的文本节点数据
+    const textNodesState = useTextNodesStore.getState();
+    const persistedTextNodes = textNodesState.textNodes;
+    
+    // 如果有持久化的文本节点，将它们转换为 React Flow 节点
+    if (Object.keys(persistedTextNodes).length > 0) {
+      const textFlowNodes: Node[] = Object.values(persistedTextNodes).map((textNode) => ({
+        id: textNode.id,
+        type: 'text',
+        position: textNode.position || { x: 100, y: 100 }, // 使用保存的位置或默认位置
+        width: textNode.width,
+        height: textNode.height,
+        data: {
+          label: '文本节点',
+          content: textNode.content,
+          editorStateJson: textNode.editorStateJson,
+          backgroundColor: textNode.backgroundColor,
+          fontType: textNode.fontType,
+          onDelete: handleDelete,
+          onBackgroundColorChange: handleBackgroundColorChange,
+          onFontTypeChange: handleFontTypeChange,
+          onEditingChange: handleEditingChange,
+        },
+      }));
+      
+      // 只在当前节点列表为空时添加持久化节点
+      if (nodes.length === 0) {
+        setNodes((prevNodes) => [...prevNodes, ...textFlowNodes]);
+      }
+    }
+    
+    // 标记初始化完成
+    setIsInitialized(true);
+  }, [nodes.length, setNodes, handleDelete, handleBackgroundColorChange, handleFontTypeChange, handleEditingChange]);
+
+  // 监听节点变化，当节点列表为空且组件已初始化完成时，清空全局状态中的所有节点数据
+  useEffect(() => {
+    // 只有在组件初始化完成后，当节点列表为空时才清空全局状态
+    if (isInitialized && nodes.length === 0) {
+      useTextNodesStore.getState().clearAllTextNodes();
+    }
+  }, [nodes, isInitialized]);
+
+  // 监听节点变化，保存位置和宽高信息到全局状态
+  useEffect(() => {
+    // 只处理文本节点
+    const textNodes = nodes.filter(node => node.type === 'text');
+    
+    // 批量更新全局状态中的节点位置、宽高
+    const updates: Record<string, Partial<TextNodeState>> = {};
+    
+    textNodes.forEach(node => {
+      updates[node.id] = {
+        position: node.position,
+        width: node.width,
+        height: node.height
+      };
+    });
+    
+    if (Object.keys(updates).length > 0) {
+      useTextNodesStore.getState().batchUpdateTextNodes(updates);
+    }
+  }, [nodes]);
 
   const handleCropComplete = useCallback((nodeId: string, croppedImageUrl: string) => {
     setNodes((nds) =>
@@ -275,6 +346,8 @@ export const useNodeOperations = (): NodeOperations => {
       }
     }
   }, [nodes, setNodes, setEdges, handleDelete, handleReplace, handleImageUpdate, handleDownload]);
+
+
 
   return {
     nodes,

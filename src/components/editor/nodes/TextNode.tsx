@@ -8,6 +8,7 @@ import { getFontClass, isNotWhiteColor } from '@/lib/utils';
 import { ResizeIcon, FullscreenDialog, LexicalEditor } from '@/components/editor';
 import { useTextNode } from '@/hooks/nodes/useTextNode';
 import { TextNodeData } from '@/lib/types/editor/text';
+import { useTextNodesStore } from '@/lib/stores/textNodesStore';
 
 function TextNode(props: NodeProps) {
   const { data, id, selected } = props;
@@ -21,7 +22,6 @@ function TextNode(props: NodeProps) {
     isFullscreenDialogOpen,
     nodeRef,
     editorContainerRef,
-    lexicalEditorRef,
     handleDoubleClick,
     handleEditorChange,
     handleEditorInit,
@@ -33,7 +33,6 @@ function TextNode(props: NodeProps) {
     handleBulletListToggle,
     handleNumberedListToggle,
     handleHorizontalRuleInsert,
-    setIsEditing,
     isNodeSelected
   } = useTextNode({
     data: nodeData as TextNodeData,
@@ -42,6 +41,9 @@ function TextNode(props: NodeProps) {
     onEditingChange: nodeData.onEditingChange,
     onFontTypeChange: nodeData.onFontTypeChange
   });
+  
+  // 使用useTextNodesStore来处理背景颜色变更
+  const updateTextNodeBackgroundColor = useTextNodesStore(state => state.updateTextNodeBackgroundColor);
 
   const controlStyle = {
     background: 'transparent',
@@ -60,7 +62,12 @@ function TextNode(props: NodeProps) {
         // 当全屏Dialog打开时，不显示原始节点的工具栏
         selected={isNodeSelected}
         nodeType="text"
-        onBackgroundColorChange={(data as TextNodeData)?.onBackgroundColorChange}
+        onBackgroundColorChange={(nodeId: string, color: string) => {
+          // 更新全局状态
+          updateTextNodeBackgroundColor(nodeId, color);
+          // 如果提供了原始回调，也调用它
+          (data as TextNodeData)?.onBackgroundColorChange?.(nodeId, color);
+        }}
         onFontTypeChange={(_, fontType) => handleFontTypeChange(fontType)}
         backgroundColor={(data as TextNodeData)?.backgroundColor}
         fontType={currentFontType}
