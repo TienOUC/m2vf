@@ -28,11 +28,13 @@ export const useTextNode = ({ data, id, selected, onEditingChange, onFontTypeCha
         (nodeData?.fontType && existingNode.fontType !== nodeData.fontType) ||
         (nodeData?.backgroundColor && existingNode.backgroundColor !== nodeData.backgroundColor)) {
       textNodesStore.setTextNode(id, {
-        content: nodeData?.content || '',
-        fontType: nodeData?.fontType || 'p',
-        backgroundColor: nodeData?.backgroundColor || 'white',
-        editorStateJson: nodeData?.editorStateJson,
-        isEditing: nodeData?.isEditing || false,
+        // 优先使用全局状态中已有的内容，而不是 nodeData 中的内容
+        content: existingNode?.content || nodeData?.content || '',
+        fontType: nodeData?.fontType || existingNode?.fontType || 'p',
+        backgroundColor: nodeData?.backgroundColor || existingNode?.backgroundColor || 'white',
+        // 优先使用全局状态中已有的 editorStateJson，而不是 nodeData 中的内容
+        editorStateJson: existingNode?.editorStateJson || nodeData?.editorStateJson,
+        isEditing: nodeData?.isEditing || existingNode?.isEditing || false,
       });
     }
   }, [id, nodeData, textNodesStore]);
@@ -59,6 +61,10 @@ export const useTextNode = ({ data, id, selected, onEditingChange, onFontTypeCha
       }
     },
     onRichContentChange: (html) => {
+      // 更新全局状态
+      textNodesStore.updateTextNodeRichContent(id, html);
+      
+      // 通知原始回调
       if (nodeData?.onRichContentChange) {
         nodeData.onRichContentChange(html);
       }

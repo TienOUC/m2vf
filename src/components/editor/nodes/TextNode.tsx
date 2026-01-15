@@ -78,6 +78,7 @@ function TextNode(props: NodeProps) {
         onBulletListToggle={handleBulletListToggle}
         onNumberedListToggle={handleNumberedListToggle}
         onHorizontalRuleInsert={handleHorizontalRuleInsert}
+        getRichContent={(nodeId: string) => (data as TextNodeData)?.getRichContent?.(nodeId) ?? ''}
       >
         {!isFullscreenDialogOpen && (
           <NodeResizeControl className="group" style={controlStyle} minWidth={100} minHeight={50}>

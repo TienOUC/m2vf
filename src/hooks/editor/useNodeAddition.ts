@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { Node, useReactFlow } from '@xyflow/react';
+import { useTextNodesStore } from '@/lib/stores/textNodesStore';
 
 interface UseNodeAdditionProps {
   nodeId: number;
@@ -54,6 +55,14 @@ export const useNodeAddition = ({
           ...(onEditingChange && { onEditingChange }),
           content: '',
           editorStateJson: undefined, // 初始化为空
+          getContent: (nodeId: string) => {
+            // 从全局状态获取内容
+            return useTextNodesStore.getState().getTextNode(nodeId)?.content || '';
+          },
+          getRichContent: (nodeId: string) => {
+            // 从全局状态获取富文本内容
+            return useTextNodesStore.getState().getTextNode(nodeId)?.richContent || '';
+          },
         },
       };
 

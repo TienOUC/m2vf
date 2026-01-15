@@ -52,12 +52,24 @@ export const useNodeOperations = (): NodeOperations => {
   }, [setNodes]);
 
   const handleDelete = useCallback((nodeId: string) => {
-    setNodes((nds) => nds.filter((node) => node.id !== nodeId));
-    setEdges((eds) =>
-      eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)
-    );
-    // 同时从全局状态中删除节点数据
-    useTextNodesStore.getState().deleteTextNode(nodeId);
+    try {
+      // 1. 先从全局状态中删除节点数据
+      const textNodesStore = useTextNodesStore.getState();
+      textNodesStore.deleteTextNode(nodeId);
+      
+      // 2. 然后删除节点和相关边
+      setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+      setEdges((eds) =>
+        eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)
+      );
+      
+      console.log(`节点 ${nodeId} 删除成功`);
+    } catch (error) {
+      console.error(`删除节点 ${nodeId} 失败:`, error);
+      // 这里可以添加用户错误提示，例如通过 toast 通知
+      // 由于已经尝试修改节点和边，如果失败需要回滚
+      // 但考虑到回滚的复杂性，这里仅记录错误
+    }
   }, [setNodes, setEdges]);
 
   const handleBackgroundColorChange = useCallback((nodeId: string, color: string) => {
@@ -75,6 +87,8 @@ export const useNodeOperations = (): NodeOperations => {
         return node;
       })
     );
+    // 同时更新全局状态
+    useTextNodesStore.getState().updateTextNodeBackgroundColor(nodeId, color);
   }, [setNodes]);
 
   const handleFontTypeChange = useCallback((nodeId: string, fontType: FontType) => {
@@ -92,6 +106,8 @@ export const useNodeOperations = (): NodeOperations => {
         return node;
       })
     );
+    // 同时更新全局状态
+    useTextNodesStore.getState().updateTextNodeFontType(nodeId, fontType);
   }, [setNodes]);
 
   const handleEditingChange = useCallback((nodeId: string, editing: boolean) => {
@@ -104,14 +120,16 @@ export const useNodeOperations = (): NodeOperations => {
   }, []);
 
   // 从持久化数据初始化节点列表
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     // 获取持久化的文本节点数据
     const textNodesState = useTextNodesStore.getState();
     const persistedTextNodes = textNodesState.textNodes;
     
     // 如果有持久化的文本节点，将它们转换为 React Flow 节点
+    let textFlowNodes: Node[] = [];
     if (Object.keys(persistedTextNodes).length > 0) {
-      const textFlowNodes: Node[] = Object.values(persistedTextNodes).map((textNode) => ({
+      textFlowNodes = Object.values(persistedTextNodes).map((textNode) => ({
         id: textNode.id,
         type: 'text',
         position: textNode.position || { x: 100, y: 100 }, // 使用保存的位置或默认位置
@@ -127,18 +145,21 @@ export const useNodeOperations = (): NodeOperations => {
           onBackgroundColorChange: handleBackgroundColorChange,
           onFontTypeChange: handleFontTypeChange,
           onEditingChange: handleEditingChange,
+          getContent: (nodeId: string) => textNodesState.getTextNode(nodeId)?.content || '',
+          getRichContent: (nodeId: string) => textNodesState.getTextNode(nodeId)?.richContent || '',
         },
       }));
-      
-      // 只在当前节点列表为空时添加持久化节点
-      if (nodes.length === 0) {
-        setNodes((prevNodes) => [...prevNodes, ...textFlowNodes]);
-      }
+    }
+    
+    // 只在当前节点列表为空时添加持久化节点
+    if (nodes.length === 0) {
+      setNodes((prevNodes) => [...prevNodes, ...textFlowNodes]);
     }
     
     // 标记初始化完成
     setIsInitialized(true);
-  }, [nodes.length, setNodes, handleDelete, handleBackgroundColorChange, handleFontTypeChange, handleEditingChange]);
+    // 移除nodes.length作为依赖项，确保只在组件初始化时运行一次
+  }, [setNodes, handleDelete, handleBackgroundColorChange, handleFontTypeChange, handleEditingChange]);
 
   // 监听节点变化，当节点列表为空且组件已初始化完成时，清空全局状态中的所有节点数据
   useEffect(() => {
