@@ -1,32 +1,33 @@
-import { useCallback } from 'react';
-import { useReactFlow, Node, NodeChange } from '@xyflow/react';
+import { useCallback, useState } from 'react';
+import { Node, NodeChange } from '@xyflow/react';
 import { useTextNodesStore } from '@/lib/stores/textNodesStore';
 
 export interface PaneInteractions {
   handlePaneClick: (event: React.MouseEvent) => void;
   onNodesChangeWithDragControl: (changes: NodeChange[]) => void;
+  doubleClickPosition: { x: number; y: number } | null;
+  setDoubleClickPosition: React.Dispatch<React.SetStateAction<{ x: number; y: number } | null>>;
 }
 
 export const usePaneInteractions = (
-  addTextNode: (position: { x: number; y: number }) => void,
   editingNodeIds: React.MutableRefObject<Set<string>>,
   nodesRef: React.MutableRefObject<Node[]>,
   onNodesChange: (changes: NodeChange[]) => void
 ): PaneInteractions => {
-  const { screenToFlowPosition } = useReactFlow();
+  const [doubleClickPosition, setDoubleClickPosition] = useState<{ x: number; y: number } | null>(null);
 
   const handlePaneClick = useCallback(
     (event: React.MouseEvent) => {
       if (event.detail === 2) {
-        const position = screenToFlowPosition({
+        // 直接使用鼠标事件的clientX和clientY作为双击位置，不转换为画布坐标
+        const position = {
           x: event.clientX,
           y: event.clientY
-        });
-
-        addTextNode(position);
+        };
+        setDoubleClickPosition(position);
       }
     },
-    [addTextNode, screenToFlowPosition]
+    []
   );
 
   const onNodesChangeWithDragControl = useCallback((changes: NodeChange[]) => {
@@ -70,6 +71,8 @@ export const usePaneInteractions = (
 
   return {
     handlePaneClick,
-    onNodesChangeWithDragControl
+    onNodesChangeWithDragControl,
+    doubleClickPosition,
+    setDoubleClickPosition
   };
 };

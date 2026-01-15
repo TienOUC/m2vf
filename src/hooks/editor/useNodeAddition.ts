@@ -41,8 +41,10 @@ export const useNodeAddition = ({
         y: window.innerHeight / 2,
       });
       
+      // 添加时间戳的最后4位，确保即使快速点击也能生成唯一ID
+      const timestampSuffix = Date.now().toString().slice(-4);
       const newNode = {
-        id: `node-${nodeId}`,
+        id: `node-${nodeId}-${timestampSuffix}`,
         type: 'text',
         position: pos,
         data: { 
@@ -66,7 +68,15 @@ export const useNodeAddition = ({
         },
       };
 
-      setNodes((nds) => nds.concat(newNode));
+      setNodes((nds) => {
+        // 检查是否已经存在相同ID的节点，避免重复添加
+        if (!nds.some(node => node.id === newNode.id)) {
+          return nds.concat(newNode);
+        }
+        // 如果节点已存在，不添加并记录警告
+        console.warn(`节点ID ${newNode.id} 已存在，避免重复添加`);
+        return nds;
+      });
       setNodeId((prevId) => prevId + 1);
     },
     [nodeId, setNodes, screenToFlowPosition, handleDelete, handleBackgroundColorChange, handleFontTypeChange, onEditingChange, setNodeId]
@@ -80,8 +90,10 @@ export const useNodeAddition = ({
         y: window.innerHeight / 2,
       });
       
+      // 添加时间戳的最后4位，确保即使快速点击也能生成唯一ID
+      const timestampSuffix = Date.now().toString().slice(-4);
       const newNode = {
-        id: `node-${nodeId}`,
+        id: `node-${nodeId}-${timestampSuffix}`,
         type: 'image',
         position: pos,
         data: { 
@@ -115,8 +127,10 @@ export const useNodeAddition = ({
         y: window.innerHeight / 2,
       });
       
+      // 添加时间戳的最后4位，确保即使快速点击也能生成唯一ID
+      const timestampSuffix = Date.now().toString().slice(-4);
       const newNode = {
-        id: `node-${nodeId}`,
+        id: `node-${nodeId}-${timestampSuffix}`,
         type: 'video',
         position: pos,
         data: { 

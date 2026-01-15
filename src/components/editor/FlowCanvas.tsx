@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useMemo, useCallback, useState } from 'react';
+import { Add } from '@mui/icons-material';
 import { 
   ReactFlow,
   Background,
@@ -14,7 +15,7 @@ import {
   ReactFlowProvider
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Add } from '@mui/icons-material';
+
 
 import { TextNode, ImageNode, VideoNode, FabricImageEditor } from '@/components/editor';
 import LeftSidebar from '@/components/layout/LeftSidebar';
@@ -24,6 +25,10 @@ import { usePaneInteractions } from '@/hooks/editor/usePaneInteractions';
 import { useNodeAddition } from '@/hooks/editor/useNodeAddition';
 import { useNodeCentering } from '@/hooks/editor/useNodeCentering';
 import { useBackgroundRemoval } from '@/hooks/editor/useBackgroundRemoval'; // 新增：导入背景移除hook
+import { useTextNodesStore } from '@/lib/stores/textNodesStore';
+import FloatingMenu from '@/components/ui/FloatingMenu';
+import MenuButton from '@/components/ui/MenuButton';
+import { TextFields, Image as ImageIcon, VideoFile } from '@mui/icons-material';
 
 export interface FlowCanvasProps {
   projectId: string | null;
@@ -57,7 +62,30 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
     nodesRef.current = nodeOperations.nodes;
   }, [nodeOperations.nodes]);
 
-  const [nodeId, setNodeId] = useState(1);
+  // 初始化nodeId，考虑已有的节点和持久化节点，避免重复ID
+  const [nodeId, setNodeId] = useState(() => {
+    return 1;
+  });
+
+  // 监听节点变化，确保nodeId始终比现有节点的最大ID大1
+  useEffect(() => {
+    if (nodeOperations.nodes.length > 0) {
+      // 从现有的节点中找出最大的ID值，支持带时间戳的ID格式：node-123-4567
+      const maxId = nodeOperations.nodes.reduce((max, node) => {
+        const idMatch = node.id.match(/node-(\d+)(?:-\d+)?$/);
+        if (idMatch) {
+          const numId = parseInt(idMatch[1], 10);
+          return numId > max ? numId : max;
+        }
+        return max;
+      }, 0);
+      // 更新nodeId，确保新节点ID唯一
+      setNodeId(maxId + 1);
+    } else {
+      // 如果没有节点，重置为1
+      setNodeId(1);
+    }
+  }, [nodeOperations.nodes]);
   
   // 使用背景移除hook
   const { handleBackgroundRemove } = useBackgroundRemoval({
@@ -89,11 +117,15 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
   });
 
   const paneInteractions = usePaneInteractions(
-    addTextNode,
     nodeOperations.editingNodeIds,
     nodesRef,
     nodeOperations.onNodesChange
   );
+
+  // 关闭弹出菜单的处理函数
+  const handleCloseMenu = () => {
+    paneInteractions.setDoubleClickPosition(null);
+  };
 
   const onConnect: OnConnect = useCallback(
     (params) => nodeOperations.setEdges((eds: Edge[]) => addEdge(params, eds)),
@@ -153,7 +185,7 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
 
           <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-background/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-md border border-neutral-200 z-10 flex items-center gap-2">
             <Add fontSize="small" />
-            <span className="text-sm text-neutral-600">双击画布添加节点</span>
+            <span className="text-sm text-neutral-600">双击添加节点</span>
           </div>
 
           <LeftSidebar
@@ -164,6 +196,63 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
             onUploadVideo={handleUploadVideo}
             projectId={projectId ? parseInt(projectId) : undefined}
           />
+
+          {/* 双击弹出的添加节点菜单 */}
+          {paneInteractions.doubleClickPosition && (
+            <div
+              className="absolute"
+              style={{
+                left: paneInteractions.doubleClickPosition.x,
+                top: paneInteractions.doubleClickPosition.y,
+                transform: 'translate(-50%, -50%)',
+                zIndex: 1000
+              }}
+            >
+              <FloatingMenu
+                isOpen={!!paneInteractions.doubleClickPosition}
+                onClose={handleCloseMenu}
+                title="添加节点"
+                width="w-48"
+              >
+                <MenuButton
+                  icon={<TextFields fontSize="small" />}
+                  label="文本"
+                  onClick={() => {
+                    if (paneInteractions.doubleClickPosition) {
+                      // 将屏幕坐标转换为画布坐标
+                      const flowPosition = screenToFlowPosition(paneInteractions.doubleClickPosition);
+                      addTextNode(flowPosition);
+                      handleCloseMenu();
+                    }
+                  }}
+                />
+                <MenuButton
+                  icon={<ImageIcon fontSize="small" />}
+                  label="图片"
+                  onClick={() => {
+                    if (paneInteractions.doubleClickPosition) {
+                      // 将屏幕坐标转换为画布坐标
+                      const flowPosition = screenToFlowPosition(paneInteractions.doubleClickPosition);
+                      addImageNode(flowPosition);
+                      handleCloseMenu();
+                    }
+                  }}
+                />
+                <MenuButton
+                  icon={<VideoFile fontSize="small" />}
+                  label="视频"
+                  onClick={() => {
+                    if (paneInteractions.doubleClickPosition) {
+                      // 将屏幕坐标转换为画布坐标
+                      const flowPosition = screenToFlowPosition(paneInteractions.doubleClickPosition);
+                      addVideoNode(flowPosition);
+                      handleCloseMenu();
+                    }
+                  }}
+                />
+              </FloatingMenu>
+            </div>
+          )}
         </ReactFlow>
       </div>
 

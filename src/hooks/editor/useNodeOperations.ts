@@ -4,17 +4,54 @@ import { NodeOperations, FontType } from '@/lib/types/editor/nodeOperations';
 import { downloadImage } from '@/lib/utils/image';
 import { removeImageBackground } from '@/lib/api/client/ai';
 import { useTextNodesStore, TextNodeState } from '@/lib/stores/textNodesStore';
+import { useEdgesStore } from '@/lib/stores/edgesStore';
 
 export const useNodeOperations = (): NodeOperations => {
   // 使用类型断言来解决 React Flow 的类型推断问题
-  const [nodes, setNodes, onNodesChange] = useNodesState([] as Node[]);
+  const [nodes, _setNodes, onNodesChange] = useNodesState([] as Node[]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([] as Edge[]);
+  
+  // 包装setNodes函数，确保不会添加重复ID的节点
+  const setNodes = useCallback((updater: ((nodes: Node[]) => Node[]) | Node[]) => {
+    _setNodes((prevNodes: Node[]) => {
+      let nextNodes: Node[];
+      
+      // 处理函数式更新
+      if (typeof updater === 'function') {
+        nextNodes = updater(prevNodes);
+      } else {
+        nextNodes = updater;
+      }
+      
+      // 过滤重复ID的节点，保留最后一个出现的节点
+      const nodeIdMap = new Map<string, Node>();
+      nextNodes.forEach(node => {
+        nodeIdMap.set(node.id, node);
+      });
+      
+      // 如果发现重复节点，记录警告
+      if (nextNodes.length !== nodeIdMap.size) {
+        console.warn('发现重复节点ID，已自动去重');
+      }
+      
+      return Array.from(nodeIdMap.values());
+    });
+  }, [_setNodes]);
   
   const editingNodeIds = useRef<Set<string>>(new Set());
   const [isAnyEditing, setIsAnyEditing] = useState(false);
   
   // 跟踪组件是否已经初始化完成
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // 全局节点ID跟踪，防止重复添加节点
+  const nodeIdsRef = useRef<Set<string>>(new Set());
+  
+  // 同步节点ID到ref
+  useEffect(() => {
+    const currentIds = new Set(nodes.map(node => node.id));
+    nodeIdsRef.current = currentIds;
+  }, [nodes]);
 
   // 定义节点操作函数
   const handleReplace = useCallback((nodeId: string) => {
@@ -59,9 +96,11 @@ export const useNodeOperations = (): NodeOperations => {
       
       // 2. 然后删除节点和相关边
       setNodes((nds) => nds.filter((node) => node.id !== nodeId));
-      setEdges((eds) =>
-        eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)
-      );
+      const updatedEdges = edges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId);
+      setEdges(updatedEdges);
+      
+      // 3. 更新全局状态中的连线
+      useEdgesStore.getState().setEdges(updatedEdges);
       
       console.log(`节点 ${nodeId} 删除成功`);
     } catch (error) {
@@ -70,7 +109,7 @@ export const useNodeOperations = (): NodeOperations => {
       // 由于已经尝试修改节点和边，如果失败需要回滚
       // 但考虑到回滚的复杂性，这里仅记录错误
     }
-  }, [setNodes, setEdges]);
+  }, [setNodes, setEdges, edges]);
 
   const handleBackgroundColorChange = useCallback((nodeId: string, color: string) => {
     setNodes((nds) =>
@@ -119,47 +158,63 @@ export const useNodeOperations = (): NodeOperations => {
     setIsAnyEditing(editingNodeIds.current.size > 0);
   }, []);
 
-  // 从持久化数据初始化节点列表
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // 从持久化数据初始化节点列表和连线
   useEffect(() => {
-    // 获取持久化的文本节点数据
-    const textNodesState = useTextNodesStore.getState();
-    const persistedTextNodes = textNodesState.textNodes;
-    
-    // 如果有持久化的文本节点，将它们转换为 React Flow 节点
-    let textFlowNodes: Node[] = [];
-    if (Object.keys(persistedTextNodes).length > 0) {
-      textFlowNodes = Object.values(persistedTextNodes).map((textNode) => ({
-        id: textNode.id,
-        type: 'text',
-        position: textNode.position || { x: 100, y: 100 }, // 使用保存的位置或默认位置
-        width: textNode.width,
-        height: textNode.height,
-        data: {
-          label: '文本节点',
-          content: textNode.content,
-          editorStateJson: textNode.editorStateJson,
-          backgroundColor: textNode.backgroundColor,
-          fontType: textNode.fontType,
-          onDelete: handleDelete,
-          onBackgroundColorChange: handleBackgroundColorChange,
-          onFontTypeChange: handleFontTypeChange,
-          onEditingChange: handleEditingChange,
-          getContent: (nodeId: string) => textNodesState.getTextNode(nodeId)?.content || '',
-          getRichContent: (nodeId: string) => textNodesState.getTextNode(nodeId)?.richContent || '',
-        },
-      }));
+    // 只在未初始化时执行
+    if (!isInitialized) {
+      // 获取持久化的文本节点数据
+      const textNodesState = useTextNodesStore.getState();
+      const persistedTextNodes = textNodesState.textNodes;
+      
+      // 如果有持久化的文本节点，将它们转换为 React Flow 节点
+      let textFlowNodes: Node[] = [];
+      if (Object.keys(persistedTextNodes).length > 0) {
+        textFlowNodes = Object.values(persistedTextNodes).map((textNode) => ({
+          id: textNode.id,
+          type: 'text',
+          position: textNode.position || { x: 100, y: 100 }, // 使用保存的位置或默认位置
+          width: textNode.width,
+          height: textNode.height,
+          data: {
+            label: '文本节点',
+            content: textNode.content,
+            editorStateJson: textNode.editorStateJson,
+            backgroundColor: textNode.backgroundColor,
+            fontType: textNode.fontType,
+            onDelete: handleDelete,
+            onBackgroundColorChange: handleBackgroundColorChange,
+            onFontTypeChange: handleFontTypeChange,
+            onEditingChange: handleEditingChange,
+            getContent: (nodeId: string) => textNodesState.getTextNode(nodeId)?.content || '',
+            getRichContent: (nodeId: string) => textNodesState.getTextNode(nodeId)?.richContent || '',
+          },
+        }));
+      }
+      
+      // 只在当前节点列表为空时添加持久化节点
+      if (nodes.length === 0) {
+        setNodes((prevNodes) => {
+          // 确保不添加重复ID的节点
+          const uniqueNodes = textFlowNodes.filter(newNode => 
+            !prevNodes.some(existingNode => existingNode.id === newNode.id)
+          );
+          return [...prevNodes, ...uniqueNodes];
+        });
+      }
+      
+      // 从持久化数据初始化连线
+      const edgesState = useEdgesStore.getState();
+      const persistedEdges = edgesState.getAllEdges();
+      
+      // 只在当前连线列表为空时添加持久化连线
+      if (edges.length === 0 && persistedEdges.length > 0) {
+        setEdges((prevEdges) => [...prevEdges, ...persistedEdges]);
+      }
+      
+      // 标记初始化完成
+      setIsInitialized(true);
     }
-    
-    // 只在当前节点列表为空时添加持久化节点
-    if (nodes.length === 0) {
-      setNodes((prevNodes) => [...prevNodes, ...textFlowNodes]);
-    }
-    
-    // 标记初始化完成
-    setIsInitialized(true);
-    // 移除nodes.length作为依赖项，确保只在组件初始化时运行一次
-  }, [setNodes, handleDelete, handleBackgroundColorChange, handleFontTypeChange, handleEditingChange]);
+  }, [setNodes, setEdges, handleDelete, handleBackgroundColorChange, handleFontTypeChange, handleEditingChange, isInitialized, nodes.length, edges.length]);
 
   // 监听节点变化，当节点列表为空且组件已初始化完成时，清空全局状态中的所有节点数据
   useEffect(() => {
@@ -171,24 +226,33 @@ export const useNodeOperations = (): NodeOperations => {
 
   // 监听节点变化，保存位置和宽高信息到全局状态
   useEffect(() => {
-    // 只处理文本节点
-    const textNodes = nodes.filter(node => node.type === 'text');
-    
-    // 批量更新全局状态中的节点位置、宽高
-    const updates: Record<string, Partial<TextNodeState>> = {};
-    
-    textNodes.forEach(node => {
-      updates[node.id] = {
-        position: node.position,
-        width: node.width,
-        height: node.height
-      };
-    });
-    
-    if (Object.keys(updates).length > 0) {
-      useTextNodesStore.getState().batchUpdateTextNodes(updates);
+    // 只在组件初始化完成后处理
+    if (isInitialized) {
+      // 只处理文本节点
+      const textNodes = nodes.filter(node => node.type === 'text');
+      
+      // 批量更新全局状态中的节点位置、宽高
+      const updates: Record<string, Partial<TextNodeState>> = {};
+      
+      textNodes.forEach(node => {
+        updates[node.id] = {
+          position: node.position,
+          width: node.width,
+          height: node.height
+        };
+      });
+      
+      if (Object.keys(updates).length > 0) {
+        useTextNodesStore.getState().batchUpdateTextNodes(updates);
+      }
     }
-  }, [nodes]);
+  }, [nodes, isInitialized]);
+
+  // 监听连线变化，保存到全局状态
+  useEffect(() => {
+    // 保存连线到全局状态
+    useEdgesStore.getState().setEdges(edges);
+  }, [edges]);
 
   const handleCropComplete = useCallback((nodeId: string, croppedImageUrl: string) => {
     setNodes((nds) =>
