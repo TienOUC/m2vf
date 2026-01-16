@@ -94,6 +94,9 @@ export const useNodeOperations = (options: UseNodeOperationsOptions = {}): NodeO
         return node;
       })
     );
+    
+    // 同时更新全局状态
+    useImageNodesStore.getState().updateImageNodeUrl(nodeId, imageUrl);
   }, [setNodes]);
 
   const handleDelete = useCallback((nodeId: string) => {
