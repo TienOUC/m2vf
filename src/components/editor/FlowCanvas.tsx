@@ -25,7 +25,7 @@ import { usePaneInteractions } from '@/hooks/editor/usePaneInteractions';
 import { useNodeAddition } from '@/hooks/editor/useNodeAddition';
 import { useNodeCentering } from '@/hooks/editor/useNodeCentering';
 import { useBackgroundRemoval } from '@/hooks/editor/useBackgroundRemoval'; // 新增：导入背景移除hook
-import { useTextNodesStore } from '@/lib/stores/textNodesStore';
+
 import FloatingMenu from '@/components/ui/FloatingMenu';
 import MenuButton from '@/components/ui/MenuButton';
 import { TextFields, Image as ImageIcon, VideoFile } from '@mui/icons-material';
@@ -54,18 +54,53 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
 
   const centerNode = useNodeCentering(reactFlowInstance);
   
-  const nodeOperations = useNodeOperations();
+  // 初始化nodeId，考虑已有的节点和持久化节点，避免重复ID
+  const [nodeId, setNodeId] = useState(() => {
+    return 1;
+  });
+
   const cropOperations = useCropOperations(centerNode);
+  
+  // 创建ref来保存回调函数，这样可以在useEffect中更新
+  const callbacksRef = useRef({
+    onEditStart: cropOperations.handleEditStart,
+    onCropStart: cropOperations.handleCropStart,
+    onBackgroundRemove: (nodeId: string) => {}
+  });
+
+  // 使用节点操作hook，传入回调函数（使用ref的current值）
+  const nodeOperations = useNodeOperations({
+    onEditStart: (nodeId: string) => callbacksRef.current.onEditStart(nodeId),
+    onCropStart: (nodeId: string, imageUrl: string) => callbacksRef.current.onCropStart(nodeId, imageUrl),
+    onBackgroundRemove: (nodeId: string) => callbacksRef.current.onBackgroundRemove(nodeId)
+  });
+
+  // 使用背景移除hook
+  const { handleBackgroundRemove } = useBackgroundRemoval({
+    setNodes: nodeOperations.setNodes,
+    setEdges: nodeOperations.setEdges,
+    handleDelete: nodeOperations.handleDelete,
+    handleImageUpdate: nodeOperations.handleImageUpdate,
+    handleDownload: nodeOperations.handleDownload,
+    handleEditStart: cropOperations.handleEditStart,
+    handleCropStart: cropOperations.handleCropStart,
+    setNodeIdCounter: setNodeId,
+    simulateBackendRequest: true // 启用模拟后端请求
+  });
+
+  // 更新ref中的回调函数
+  useEffect(() => {
+    callbacksRef.current = {
+      onEditStart: cropOperations.handleEditStart,
+      onCropStart: cropOperations.handleCropStart,
+      onBackgroundRemove: handleBackgroundRemove
+    };
+  }, [cropOperations.handleEditStart, cropOperations.handleCropStart, handleBackgroundRemove]);
   
   const nodesRef = useRef(nodeOperations.nodes);
   useEffect(() => {
     nodesRef.current = nodeOperations.nodes;
   }, [nodeOperations.nodes]);
-
-  // 初始化nodeId，考虑已有的节点和持久化节点，避免重复ID
-  const [nodeId, setNodeId] = useState(() => {
-    return 1;
-  });
 
   // 监听节点变化，确保nodeId始终比现有节点的最大ID大1
   useEffect(() => {
@@ -86,20 +121,6 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
       setNodeId(1);
     }
   }, [nodeOperations.nodes]);
-  
-  // 使用背景移除hook
-  const { handleBackgroundRemove } = useBackgroundRemoval({
-    currentNodes: nodeOperations.nodes,
-    setNodes: nodeOperations.setNodes,
-    setEdges: nodeOperations.setEdges,
-    handleDelete: nodeOperations.handleDelete,
-    handleImageUpdate: nodeOperations.handleImageUpdate,
-    handleDownload: nodeOperations.handleDownload,
-    handleEditStart: cropOperations.handleEditStart,
-    handleCropStart: cropOperations.handleCropStart,
-    setNodeIdCounter: setNodeId,
-    simulateBackendRequest: true // 启用模拟后端请求
-  });
 
   const { addTextNode, addImageNode, addVideoNode } = useNodeAddition({
     nodeId,

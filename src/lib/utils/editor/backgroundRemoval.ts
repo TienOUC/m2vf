@@ -14,14 +14,12 @@ import {
 export const generateUniqueNodeId = (nodes: Node[]): string => {
   const maxNodeId = Math.max(
     ...nodes.map(node => {
-      const match = node.id.match(/^node-(\d+)$/);
+      const match = node.id.match(/^node-(\d+)/);
       return match ? parseInt(match[1], 10) : 0;
     }),
     0 // 默认值，避免空数组时的错误
   );
-  // 添加时间戳的最后4位，确保即使快速点击也能生成唯一ID
-  const timestampSuffix = Date.now().toString().slice(-4);
-  return `node-${maxNodeId + 1}-${timestampSuffix}`;
+  return `node-${maxNodeId + 1}`;
 };
 
 /**
@@ -62,6 +60,7 @@ export const createBackgroundRemovalNode = (
       label: '图片节点',
       imageUrl: undefined,
       isLoading: true,
+      isProcessing: true,
       onDelete: handleDelete,
       onImageUpdate: handleImageUpdate,
       onReplace: () => {},
@@ -104,13 +103,9 @@ export const updateNodeIdCounter = (
 ): void => {
   const { setNodeIdCounter } = options;
   
-  const maxNodeId = Math.max(
-    ...nodes.map(node => {
-      const match = node.id.match(/^node-(\d+)/);
-      return match ? parseInt(match[1], 10) : 0;
-    }),
-    parseInt(newNodeId.match(/^node-(\d+)/)?.[1] || '0', 10) // 确保包含新创建的节点ID
-  );
+  // 从新节点ID中提取数值部分
+  const newNodeIdNum = parseInt(newNodeId.match(/^node-(\d+)/)?.[1] || '0', 10);
   
-  setNodeIdCounter(maxNodeId + 1);
+  // 直接使用新节点ID的数值加1作为新计数器值
+  setNodeIdCounter(newNodeIdNum + 1);
 };

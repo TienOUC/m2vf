@@ -27,9 +27,7 @@ export interface NodeOperationHandlers {
   handleBackgroundColorChange: (nodeId: string, color: string) => void;
   handleFontTypeChange: (nodeId: string, fontType: FontType) => void;
   handleEditingChange: (nodeId: string, editing: boolean) => void;
-  handleCropComplete: (nodeId: string, croppedImageUrl: string) => void;
   handleDownload: (nodeId: string) => void;
-  handleBackgroundRemove: (nodeId: string) => void;
 }
 
 export interface NodeState {

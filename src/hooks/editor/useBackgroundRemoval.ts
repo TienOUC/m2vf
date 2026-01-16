@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import { removeImageBackground } from '@/lib/api/client/ai'; 
-import { useRef, useEffect } from 'react';
 import {
   BackgroundRemovalOptions,
   BackgroundRemovalResult
@@ -18,7 +17,6 @@ import {
  * 提供图片背景去除的完整逻辑，包括创建新节点、调用API、更新状态等
  */
 export const useBackgroundRemoval = ({
-  currentNodes,
   setNodes,
   setEdges,
   handleDelete,
@@ -27,16 +25,8 @@ export const useBackgroundRemoval = ({
   handleEditStart,
   handleCropStart,
   setNodeIdCounter,
-  simulateBackendRequest = true
+  simulateBackendRequest = false
 }: BackgroundRemovalOptions): BackgroundRemovalResult => {
-  // 使用useRef存储最新的节点列表，解决闭包问题
-  const currentNodesRef = useRef(currentNodes);
-  
-  // 每当currentNodes更新时，更新ref的值
-  useEffect(() => {
-    currentNodesRef.current = currentNodes;
-  }, [currentNodes]);
-
   /**
    * 处理图片背景去除
    * @param originalNodeId 原始图片节点ID
@@ -105,7 +95,8 @@ export const useBackgroundRemoval = ({
                   data: {
                     ...node.data,
                     imageUrl: processedImageUrl,
-                    isLoading: false
+                    isLoading: false,
+                    isProcessing: false
                   }
                 };
               }
@@ -123,6 +114,7 @@ export const useBackgroundRemoval = ({
                   data: {
                     ...node.data,
                     isLoading: false,
+                    isProcessing: false,
                     error: '抠图处理失败，请重试'
                   }
                 };

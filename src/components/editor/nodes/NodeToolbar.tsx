@@ -3,7 +3,7 @@ import { Image as ImageIcon, VideoFile, Palette, ContentCopy, FormatBold, Format
 import { Tooltip } from '@mui/material';
 import { memo, useState, useRef, useCallback } from 'react';
 import { useClickOutside } from '@/hooks';
-import { useDebouncedCallback } from '@/hooks/utils/useDebouncedCallback';
+
 import { copyToClipboard, copyRichTextToClipboard } from '@/lib/utils';
 
 export interface NodeToolbarProps {
@@ -64,13 +64,11 @@ const NodeToolbar = ({
   const colorPickerPopoverRef = useRef<HTMLDivElement>(null);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   
-  // 使用防抖Hook处理抠图按钮点击
+  // 处理抠图按钮点击
   const handleBackgroundRemoveClick = useCallback(() => {
     if (!hasImage || !onBackgroundRemove) return;
     onBackgroundRemove(nodeId);
   }, [hasImage, onBackgroundRemove, nodeId]);
-  
-  const [debouncedBackgroundRemove] = useDebouncedCallback(handleBackgroundRemoveClick, 300);
 
   // 点击外部关闭颜色选择器
   useClickOutside([colorPickerRef, colorPickerPopoverRef], () => {
@@ -293,7 +291,7 @@ const NodeToolbar = ({
         >
           <span>
             <button
-              onClick={debouncedBackgroundRemove}
+              onClick={handleBackgroundRemoveClick}
               className={`w-8 h-8 p-1 rounded-md transition-colors ${
                 !hasImage 
                   ? 'text-gray-300 cursor-not-allowed' 
