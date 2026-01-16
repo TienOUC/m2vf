@@ -1,6 +1,6 @@
 // 背景去除功能相关工具函数
 import type { Node, Edge } from '@xyflow/react';
-import type { ImageNodeData } from '@/components/editor/nodes/ImageNode';
+import type { ImageNodeData } from '@/lib/types/editor/image';
 import {
   BackgroundRemovalNodeOptions,
   NodeIdCounterOptions

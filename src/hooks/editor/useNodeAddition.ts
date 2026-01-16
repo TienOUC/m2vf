@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { Node, useReactFlow } from '@xyflow/react';
 import { useTextNodesStore } from '@/lib/stores/textNodesStore';
+import { useImageNodesStore } from '@/lib/stores/imageNodesStore';
 
 interface UseNodeAdditionProps {
   nodeId: number;
@@ -43,8 +44,9 @@ export const useNodeAddition = ({
       
       // 添加时间戳的最后4位，确保即使快速点击也能生成唯一ID
       const timestampSuffix = Date.now().toString().slice(-4);
+      const newNodeId = `node-${nodeId}-${timestampSuffix}`;
       const newNode = {
-        id: `node-${nodeId}-${timestampSuffix}`,
+        id: newNodeId,
         type: 'text',
         position: pos,
         data: { 
@@ -71,6 +73,15 @@ export const useNodeAddition = ({
       setNodes((nds) => {
         // 检查是否已经存在相同ID的节点，避免重复添加
         if (!nds.some(node => node.id === newNode.id)) {
+          // 同步到全局存储
+          useTextNodesStore.getState().setTextNode(newNodeId, {
+            id: newNodeId,
+            content: '',
+            backgroundColor: '#ffffff',
+            fontType: 'p',
+            position: pos,
+            editorStateJson: undefined
+          });
           return nds.concat(newNode);
         }
         // 如果节点已存在，不添加并记录警告
@@ -92,8 +103,9 @@ export const useNodeAddition = ({
       
       // 添加时间戳的最后4位，确保即使快速点击也能生成唯一ID
       const timestampSuffix = Date.now().toString().slice(-4);
+      const newNodeId = `node-${nodeId}-${timestampSuffix}`;
       const newNode = {
-        id: `node-${nodeId}-${timestampSuffix}`,
+        id: newNodeId,
         type: 'image',
         position: pos,
         data: { 
@@ -113,7 +125,15 @@ export const useNodeAddition = ({
         },
       };
 
-      setNodes((nds) => nds.concat(newNode));
+      setNodes((nds) => {
+        // 同步到全局存储
+        useImageNodesStore.getState().setImageNode(newNodeId, {
+          id: newNodeId,
+          imageUrl: undefined,
+          position: pos
+        });
+        return nds.concat(newNode);
+      });
       setNodeId((prevId) => prevId + 1);
     },
     [nodeId, setNodes, screenToFlowPosition, handleDelete, handleImageUpdate, onEditStart, onCropStart, handleDownload, handleBackgroundRemove, setNodeId]

@@ -3,99 +3,42 @@
 import { NodeResizeControl } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { Image as ImageIcon } from '@mui/icons-material';
-import { useFileUpload } from '@/hooks/utils/useFileUpload';
 import { NodeBase } from './NodeBase';
 import { ResizeIcon } from '@/components/editor';
 import { ScanningAnimation } from '@/components/editor/ScanningAnimation';
 import Image from 'next/image';
-import { useState } from 'react';
-
-export interface ImageNodeData {
-  label?: string;
-  imageUrl?: string;
-  onDelete?: (nodeId: string) => void;
-  onReplace?: (nodeId: string) => void;
-  onEditStart?: (nodeId: string) => void;
-  onCropStart?: (nodeId: string, imageUrl: string) => void;
-  onImageUpdate?: (nodeId: string, imageUrl: string) => void;
-  onDownload?: (nodeId: string) => void;
-  onBackgroundRemove?: (nodeId: string) => void;
-  isLoading?: boolean;
-  isProcessing?: boolean; // 新增：标记为处理中状态
-  processingProgress?: number; // 新增：处理进度
-  error?: string;
-  [key: string]: any; // 新增索引签名，解决类型约束问题
-}
+import { ImageNodeData } from '@/lib/types/editor/image';
+import { useImageNode } from '@/hooks/nodes/useImageNode';
 
 function ImageNode({ data, id, selected }: NodeProps) {
   const nodeData = data as ImageNodeData;
   
-  // 使用公共 hook 处理文件上传
   const {
+    imageUrl,
+    isLoading,
+    isProcessing,
+    processingProgress,
+    error,
     fileInputRef,
-    handleFileSelect,
-    handleButtonClick
-  } = useFileUpload('image/', nodeData?.imageUrl);
-
-  // 图片选择回调，更新 imageUrl
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleFileSelect(e, (url) => {
-      // 更新节点数据中的imageUrl，确保图片URL被保存
-      if (nodeData?.onImageUpdate) {
-        nodeData.onImageUpdate(id, url);
-      }
-    });
-  };
-
-  // 裁剪状态管理
-  const [isCropping, setIsCropping] = useState(false);
-
-  // 打开裁剪编辑器 - 异步居中画布，再通知父组件打开裁剪编辑器
-  const handleEditStart = async (nodeId: string) => {
-    // 1. 检测图片节点是否已包含有效图片资源
-    const imageUrl = nodeData?.imageUrl;
-    const hasImage = !!imageUrl;
-    
-    if (!hasImage) {
-      console.warn('图片节点没有有效的图片资源，无法进行裁剪');
-      return;
-    }
-
-    if (isCropping) {
-      console.warn('裁剪操作正在进行中，请等待完成');
-      return;
-    }
-
-    setIsCropping(true);
-    
-    try {
-      // 2. 响应裁剪按钮的点击事件 - 先调用画布居中逻辑
-      if (nodeData?.onEditStart) {
-        // 调用 onEditStart 进行画布居中
-        nodeData.onEditStart(nodeId);
-        
-        // 等待600ms确保画布居中动画完成
-        await new Promise(resolve => setTimeout(resolve, 600));
-      }
-      
-      // 3. 居中完成后，通知父组件打开裁剪编辑器
-      if (nodeData?.onCropStart && imageUrl) {
-        nodeData.onCropStart(nodeId, imageUrl);
-      }
-    } catch (error) {
-      console.error('裁剪流程执行失败:', error);
-      // 即使出错也尝试打开裁剪编辑器
-      if (nodeData?.onCropStart && imageUrl) {
-        nodeData.onCropStart(nodeId, imageUrl);
-      }
-    } finally {
-      setIsCropping(false);
-    }
-  };
+    handleButtonClick,
+    handleImageSelect,
+    handleEditStart
+  } = useImageNode({
+    data: nodeData as ImageNodeData,
+    id: id as string,
+    selected: selected as boolean,
+    onDelete: nodeData.onDelete,
+    onReplace: nodeData.onReplace,
+    onEditStart: nodeData.onEditStart,
+    onCropStart: nodeData.onCropStart,
+    onImageUpdate: nodeData.onImageUpdate,
+    onDownload: nodeData.onDownload,
+    onBackgroundRemove: nodeData.onBackgroundRemove
+  });
 
   return (
     <NodeBase
-      data={data}
+      data={{ ...data, isLoading, isProcessing, processingProgress, error }}
       id={id}
       selected={selected}
       nodeType="image"
@@ -103,11 +46,11 @@ function ImageNode({ data, id, selected }: NodeProps) {
       onEditStart={handleEditStart}
       onDownload={nodeData?.onDownload}
       onBackgroundRemove={nodeData?.onBackgroundRemove}
-      hasImage={!!nodeData?.imageUrl}
+      hasImage={!!imageUrl}
     >
       <div className="absolute inset-0 p-2">
         {/* 处理中状态：显示扫描动画 */}
-        {nodeData?.isProcessing ? (
+        {isProcessing ? (
           <div className="h-full w-full relative">
             <ScanningAnimation 
               isActive={true}
@@ -115,16 +58,16 @@ function ImageNode({ data, id, selected }: NodeProps) {
               className="h-full w-full"
             />
           </div>
-        ) : nodeData?.isLoading ? (
+        ) : isLoading ? (
           <div className="h-full w-full relative flex items-center justify-center">
             {/* 加载状态指示器 */}
             <div className="w-12 h-12 border-4 border-gray-800 border-t-transparent rounded-full animate-spin"></div>
             <div className="absolute inset-0 bg-white bg-opacity-70 rounded-md"></div>
           </div>
-        ) : nodeData?.imageUrl ? (
+        ) : imageUrl ? (
           <div className="h-full w-full relative">
             <Image
-              src={nodeData.imageUrl}
+              src={imageUrl}
               alt="上传的图片"
               fill
               sizes='100%'
@@ -132,9 +75,9 @@ function ImageNode({ data, id, selected }: NodeProps) {
             />
             
             {/* 错误信息显示 */}
-            {nodeData?.error && (
+            {error && (
               <div className="absolute inset-0 bg-red-100 bg-opacity-80 rounded-md flex items-center justify-center p-4">
-                <p className="text-red-800 text-sm text-center">{nodeData.error}</p>
+                <p className="text-red-800 text-sm text-center">{error}</p>
               </div>
             )}
           </div>

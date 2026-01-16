@@ -1,6 +1,6 @@
 // 背景去除功能相关类型定义
 import type { Node, Edge } from '@xyflow/react';
-import type { ImageNodeData } from '@/components/editor/nodes/ImageNode';
+import type { ImageNodeData } from './image';
 
 /**
  * 背景去除选项配置

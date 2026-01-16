@@ -107,6 +107,33 @@ export interface TextNodesState {
   updateTextNodeEditingState: (id: string, isEditing: boolean) => void;
 }
 
+// 图片节点状态
+export interface ImageNodeState {
+  id: string;
+  imageUrl?: string;
+  isLoading?: boolean;
+  isProcessing?: boolean;
+  processingProgress?: number;
+  error?: string;
+  position?: { x: number; y: number };
+  width?: number;
+  height?: number;
+}
+
+// 图片节点管理状态
+export interface ImageNodesState {
+  imageNodes: Record<string, ImageNodeState>;
+  getImageNode: (id: string) => ImageNodeState | undefined;
+  setImageNode: (id: string, data: Partial<ImageNodeState>) => void;
+  batchUpdateImageNodes: (updates: Record<string, Partial<ImageNodeState>>) => void;
+  deleteImageNode: (id: string) => void;
+  clearAllImageNodes: () => void;
+  updateImageNodeUrl: (id: string, imageUrl: string) => void;
+  updateImageNodeLoadingState: (id: string, isLoading: boolean) => void;
+  updateImageNodeProcessingState: (id: string, isProcessing: boolean, progress?: number) => void;
+  updateImageNodeError: (id: string, error?: string) => void;
+}
+
 // 组合所有状态类型
 export interface RootState {
   projectManagement: ProjectManagementState;
@@ -114,4 +141,5 @@ export interface RootState {
   auth: AuthState;
   ui: UIState;
   textNodes: TextNodesState;
+  imageNodes: ImageNodesState;
 }
