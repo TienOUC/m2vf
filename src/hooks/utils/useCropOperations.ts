@@ -7,7 +7,6 @@ export interface CropOperations {
   croppingNode: { id: string; imageUrl: string } | null;
   handleEditStart: (nodeId: string) => Promise<boolean>;
   handleCropStart: (nodeId: string, imageUrl: string) => void;
-  handleCropComplete: (nodeId: string, croppedImageUrl: string) => void;
   setCroppingNode: (node: { id: string; imageUrl: string } | null) => void;
 }
 
@@ -51,17 +50,12 @@ export const useCropOperations = (centerNode: ReturnType<typeof useNodeCentering
     setCroppingNode({ id: nodeId, imageUrl });
   }, []);
 
-  const handleCropComplete = useCallback((_nodeId: string, _croppedImageUrl: string) => {
-    setCroppingNode(null);
-  }, []);
-
   return {
     isCropping,
     croppingError,
     croppingNode,
     handleEditStart,
     handleCropStart,
-    handleCropComplete,
     setCroppingNode
   };
 };

@@ -201,17 +201,6 @@ export const addImageToCanvas = (fabric: Fabric, canvas: FabricCanvas, imageUrl:
   });
 };
 
-export const getImageCoordinates = (img: FabricObject): { left: number; top: number; width: number; height: number } => {
-  // 使用getBoundingRect()获取图片的实际边界
-  const boundingRect = img.getBoundingRect();
-  return {
-    left: boundingRect.left,
-    top: boundingRect.top,
-    width: boundingRect.width,
-    height: boundingRect.height
-  };
-};
-
 export const destroyCanvas = (canvas: FabricCanvas | null) => {
   if (canvas) {
     try {

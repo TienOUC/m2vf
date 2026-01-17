@@ -22,15 +22,8 @@ export {
   useFontStyle, 
   useLexicalEditor, 
   useFabricCanvas, 
-  useCropHistory, 
   useCropOperations 
 } from './utils';
-
-// 裁剪相关hooks
-export { 
-  useCropBox,
-  useCropMask
-} from './crop';
 
 // 节点相关hooks
 export { 

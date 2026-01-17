@@ -4,8 +4,10 @@ export const calculateImageDimensions = (naturalWidth: number, naturalHeight: nu
   const aspectRatio = naturalWidth / naturalHeight;
   
   // 计算图片放大比例和canvas尺寸
-  const viewportWidth = window.innerWidth * 0.8;
-  const viewportHeight = window.innerHeight * 0.8;
+  // 添加客户端检查，避免服务器端渲染问题
+  const isClient = typeof window !== 'undefined';
+  const viewportWidth = isClient ? window.innerWidth * 0.8 : 800;
+  const viewportHeight = isClient ? window.innerHeight * 0.8 : 600;
   
   // 确保图片完全显示在viewport内，并且不超过80%的视口大小
   let scale: number;

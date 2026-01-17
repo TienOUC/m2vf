@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import { ImageNodeData } from '@/lib/types/editor/image';
 import { useImageNodesStore } from '@/lib/stores/imageNodesStore';
 import { useFileUpload } from '../utils/useFileUpload';
@@ -32,9 +32,6 @@ export const useImageNode = ({
   // 使用全局状态管理
   const imageNodesStore = useImageNodesStore();
   
-  // 本地状态
-  const [isCropping, setIsCropping] = useState(false);
-  
   // 使用公共 hook 处理文件上传
   const { 
     fileInputRef, 
@@ -44,32 +41,36 @@ export const useImageNode = ({
   
   // 初始化节点数据到全局状态
   useEffect(() => {
-    // 确保所有图片节点（包括空白节点）都被保存到全局状态
-    const existingNode = imageNodesStore.getImageNode(id);
-    if (!existingNode || 
-        (nodeData?.imageUrl && existingNode.imageUrl !== nodeData.imageUrl) ||
-        (nodeData?.isLoading !== undefined && existingNode.isLoading !== nodeData.isLoading) ||
-        (nodeData?.isProcessing !== undefined && existingNode.isProcessing !== nodeData.isProcessing) ||
-        (nodeData?.processingProgress !== undefined && existingNode.processingProgress !== nodeData.processingProgress) ||
-        (nodeData?.error !== undefined && existingNode.error !== nodeData.error)) {
-      imageNodesStore.setImageNode(id, {
-        // 优先使用全局状态中已有的图片URL，而不是 nodeData 中的内容
-        imageUrl: existingNode?.imageUrl || nodeData?.imageUrl,
-        isLoading: nodeData?.isLoading || false,
-        isProcessing: nodeData?.isProcessing || false,
-        processingProgress: nodeData?.processingProgress || 0,
-        error: nodeData?.error,
-      });
-    }
+    // 使用 setTimeout 将状态更新延迟到渲染完成后执行
+    const timer = setTimeout(() => {
+      // 确保所有图片节点（包括空白节点）都被保存到全局状态
+      const existingNode = imageNodesStore.getImageNode(id);
+      if (!existingNode || 
+          (nodeData?.imageUrl && existingNode.imageUrl !== nodeData.imageUrl) ||
+          (nodeData?.isLoading !== undefined && existingNode.isLoading !== nodeData.isLoading) ||
+          (nodeData?.isProcessing !== undefined && existingNode.isProcessing !== nodeData.isProcessing) ||
+          (nodeData?.processingProgress !== undefined && existingNode.processingProgress !== nodeData.processingProgress) ||
+          (nodeData?.error !== undefined && existingNode.error !== nodeData.error)) {
+        imageNodesStore.setImageNode(id, {
+          // 优先使用全局状态中已有的图片URL，而不是 nodeData 中的内容
+          imageUrl: existingNode?.imageUrl || nodeData?.imageUrl,
+          isLoading: nodeData?.isLoading || false,
+          isProcessing: nodeData?.isProcessing || false,
+          processingProgress: nodeData?.processingProgress || 0,
+          error: nodeData?.error,
+        });
+      }
+    }, 0);
+    
+    return () => clearTimeout(timer);
   }, [id, nodeData, imageNodesStore]);
   
-  // 从全局状态获取节点数据
-  const nodeFromStore = imageNodesStore.getImageNode(id);
-  const imageUrl = nodeFromStore?.imageUrl;
-  const isLoading = nodeFromStore?.isLoading || false;
-  const isProcessing = nodeFromStore?.isProcessing || false;
-  const processingProgress = nodeFromStore?.processingProgress || 0;
-  const error = nodeFromStore?.error;
+  // 从组件数据获取节点数据，避免直接访问全局状态
+  const imageUrl = nodeData?.imageUrl;
+  const isLoading = nodeData?.isLoading || false;
+  const isProcessing = nodeData?.isProcessing || false;
+  const processingProgress = nodeData?.processingProgress || 0;
+  const error = nodeData?.error;
   
   // 图片选择回调，更新 imageUrl
   const handleImageSelectInternal = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,13 +96,6 @@ export const useImageNode = ({
       return;
     }
 
-    if (isCropping) {
-      console.warn('裁剪操作正在进行中，请等待完成');
-      return;
-    }
-
-    setIsCropping(true);
-    
     try {
       // 2. 响应裁剪按钮的点击事件 - 先调用画布居中逻辑
       if (onEditStart) {
@@ -122,33 +116,8 @@ export const useImageNode = ({
       if (onCropStart && currentImageUrl) {
         onCropStart(nodeId, currentImageUrl);
       }
-    } finally {
-      setIsCropping(false);
     }
-  }, [imageUrl, isCropping, onEditStart, onCropStart]);
-  
-  // 更新图片URL的公共方法
-  const updateImageUrl = useCallback((newImageUrl: string) => {
-    imageNodesStore.updateImageNodeUrl(id, newImageUrl);
-    if (onImageUpdate) {
-      onImageUpdate(id, newImageUrl);
-    }
-  }, [imageNodesStore, id, onImageUpdate]);
-  
-  // 更新加载状态的公共方法
-  const updateLoadingState = useCallback((newLoadingState: boolean) => {
-    imageNodesStore.updateImageNodeLoadingState(id, newLoadingState);
-  }, [imageNodesStore, id]);
-  
-  // 更新处理状态的公共方法
-  const updateProcessingState = useCallback((newProcessingState: boolean, progress?: number) => {
-    imageNodesStore.updateImageNodeProcessingState(id, newProcessingState, progress);
-  }, [imageNodesStore, id]);
-  
-  // 更新错误状态的公共方法
-  const updateError = useCallback((newError?: string) => {
-    imageNodesStore.updateImageNodeError(id, newError);
-  }, [imageNodesStore, id]);
+  }, [imageUrl, onEditStart, onCropStart]);
   
   return {
     // 状态
@@ -157,7 +126,6 @@ export const useImageNode = ({
     isProcessing,
     processingProgress,
     error,
-    isCropping,
     
     // Refs
     fileInputRef,
@@ -166,10 +134,6 @@ export const useImageNode = ({
     handleButtonClick,
     handleImageSelect: handleImageSelectInternal,
     handleEditStart: handleEditStartInternal,
-    updateImageUrl,
-    updateLoadingState,
-    updateProcessingState,
-    updateError,
     
     // 原始回调
     onDelete,

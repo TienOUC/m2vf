@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useFabricCanvas } from '@/hooks/utils/useFabricCanvas';
 import { useImageLoader } from '@/hooks/utils/useImageLoader';
 import { useEnhancedCropHistory } from '@/hooks/utils/useEnhancedCropHistory';
-import { createCanvas, createCropBox, createMask, updateMaskClipPath, destroyCanvas, resetMaskBoundsCache } from '@/lib/utils/fabric';
+import { createCanvas, createCropBox, createMask, updateMaskClipPath, destroyCanvas } from '@/lib/utils/fabric';
 import { calculateCropBoxPosition, calculateCropCoordinates, performCrop } from '@/lib/utils/fabric/crop';
-import type { FabricImageEditorProps, ImageCropEditorOptions, FabricCanvas, FabricObject } from '@/lib/types/editor/fabric';
+import type { FabricImageEditorProps, FabricCanvas, FabricObject, ImageCropEditorOptions } from '@/lib/types/editor/fabric';
 import { EditorContainer, NodeOperationsToolbar, LoadingState, ErrorState } from '@/components/editor';
 
 const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropComplete, onCancel }) => {
@@ -19,116 +19,17 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
   
   const cropBoxRef = useRef<FabricObject | null>(null);
   const maskRef = useRef<FabricObject | null>(null);
-  
-  // 宽高比状态管理
   const [currentAspectRatio, setCurrentAspectRatio] = useState<number | null>(null);
   
-  // 处理宽高比变化
-  const handleAspectRatioChange = (aspectRatio: number | null) => {
-    setCurrentAspectRatio(aspectRatio);
-    updateCropBoxForAspectRatio(aspectRatio);
-  };
-  
-  // 根据宽高比更新裁剪框尺寸
-  const updateCropBoxForAspectRatio = (aspectRatio: number | null) => {
-    if (!cropBoxRef.current || !imageRef.current) return;
-    
-    const cropBox = cropBoxRef.current;
-    const img = imageRef.current;
-    
-    // 获取当前裁剪框的位置和尺寸
-    const left = cropBox.left || 0;
-    const top = cropBox.top || 0;
-    const width = cropBox.width || 0;
-    const height = cropBox.height || 0;
-    
-    if (aspectRatio !== null) {
-      // 根据宽高比调整裁剪框尺寸
-      let newWidth = width;
-      let newHeight = height;
-      
-      // 保持中心位置不变
-      const centerX = left + width / 2;
-      const centerY = top + height / 2;
-      
-      // 根据宽高比重新计算尺寸
-      if (aspectRatio > 1) {
-        // 宽屏比例，以宽度为基准
-        newWidth = width;
-        newHeight = width / aspectRatio;
-      } else {
-        // 竖屏比例，以高度为基准
-        newHeight = height;
-        newWidth = height * aspectRatio;
-      }
-      
-      // 计算新的位置
-      let newLeft = centerX - newWidth / 2;
-      let newTop = centerY - newHeight / 2;
-      
-      // 获取图片的实际尺寸（考虑缩放）
-      const imgWidth = img.width! * img.scaleX!;
-      const imgHeight = img.height! * img.scaleY!;
-      
-      // 确保裁剪框在图片范围内
-      newLeft = Math.max(0, Math.min(newLeft, imgWidth - newWidth));
-      newTop = Math.max(0, Math.min(newTop, imgHeight - newHeight));
-      
-      // 更新裁剪框
-      cropBox.set({ 
-        left: newLeft, 
-        top: newTop,
-        width: newWidth,
-        height: newHeight,
-        scaleX: 1,
-        scaleY: 1
-      });
-      
-      // 应用宽高比约束
-      applyAspectRatioConstraint(cropBox, aspectRatio);
-    } else {
-      // 移除宽高比约束
-      applyAspectRatioConstraint(cropBox, null);
-    }
-    
-    // 更新遮罩层
-    createMaskLayer();
-    
-    // 保存到历史记录
-    if (imageRef.current) {
-      saveCropHistory(cropBoxRef.current, imageRef.current);
-    }
-  };
-  
-  // 应用宽高比约束
-  const applyAspectRatioConstraint = (cropBoxObj: FabricObject, aspectRatio: number | null) => {
-    if (!cropBoxObj) return;
-    
-    // 移除旧的事件监听器
-    cropBoxObj.off('scaling');
-    
-    if (aspectRatio !== null) {
-      // 添加宽高比约束
-      cropBoxObj.on('scaling', (e: unknown) => {
-        // 将事件对象转换为具有scaleX和scaleY属性的对象
-        const options = e as { scaleX?: number; scaleY?: number };
-        const scaleX = options.scaleX || 1;
-        const scaleY = options.scaleY || 1;
-        
-        // 保持宽高比
-        if (Math.abs(scaleX - 1) > Math.abs(scaleY - 1)) {
-          // 主要在水平方向缩放
-          const width = cropBoxObj.get<number>('width') || 0;
-          cropBoxObj.set({ 'scaleY': scaleX, 'height': width / aspectRatio });
-        } else {
-          // 主要在垂直方向缩放
-          const height = cropBoxObj.get<number>('height') || 0;
-          cropBoxObj.set({ 'scaleX': scaleY, 'width': height * aspectRatio });
-        }
-      });
-    } else {
-      // 允许自由缩放
-      cropBoxObj.set({ 'lockUniScaling': false });
+  // 处理裁剪操作
+  const handleCrop = async () => {
+    if (fabricCanvasRef.current && imageRef.current && cropBoxRef.current) {
+      // 计算裁剪坐标
+      const coordinates = calculateCropCoordinates(imageRef.current, cropBoxRef.current);
+      // 执行裁剪操作
+      const croppedImageUrl = await performCrop(imageUrl, coordinates);
+      // 调用回调函数返回裁剪结果
+      onCropComplete(croppedImageUrl);
     }
   };
   
@@ -142,8 +43,8 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     saveDelay: 300
   });
   
-  // 默认配置
-  const defaultOptions: ImageCropEditorOptions = {
+  // 默认配置，使用useMemo缓存避免每次重新渲染
+  const defaultOptions = useMemo<ImageCropEditorOptions>(() => ({
     imageUrl,
     canvasWidth: typeof window !== 'undefined' ? Math.min(window.innerWidth * 0.9, 1200) : 800,
     canvasHeight: typeof window !== 'undefined' ? Math.min(window.innerHeight * 0.9, 800) : 600,
@@ -154,39 +55,243 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       borderStyle: 'dashed',
       cornerSize: 12,
       cornerColor: '#ffffff'
-    },
-    initialRatio: 1
-  };
-
-  // 初始化画布
-  const initCanvas = async () => {
-    if (!canvasRef.current || !fabricRef.current) return;
-
-    const fabric = fabricRef.current;
-    
-    // 使用默认配置的尺寸创建初始画布，避免临时尺寸
-    const canvas = createCanvas(canvasRef, fabric, defaultOptions.canvasWidth, defaultOptions.canvasHeight);
-    if (!canvas) return;
-
-    fabricCanvasRef.current = canvas;
-    
-    // 加载图片
-    const success = await loadImage(imageUrl, canvas, canvasRef);
-    if (success) {
-      // 确保图片加载完成后立即创建裁剪框和遮罩层
-      // 使用 requestAnimationFrame 确保在下一帧渲染时执行
-      requestAnimationFrame(() => {
-        createCropBoxAndMask();
-        // 设置初始状态
-        if (imageRef.current && cropBoxRef.current) {
-          setInitialState(cropBoxRef.current, imageRef.current);
-        }
-      });
     }
-  };
+  }), [imageUrl]);
+
+  // 约束裁剪框在图片区域内
+  const constrainCropBox = useCallback((cropBox: FabricObject, img: FabricObject) => {
+    if (!cropBox || !img) return;
+    
+    // 获取图片边界
+    const imgBounds = img.getBoundingRect(true);
+    const imgLeft = imgBounds.left;
+    const imgTop = imgBounds.top;
+    const imgRight = imgLeft + imgBounds.width;
+    const imgBottom = imgTop + imgBounds.height;
+    
+    // 获取裁剪框当前状态
+    let newLeft = cropBox.left || 0;
+    let newTop = cropBox.top || 0;
+    let newWidth = cropBox.width || 0;
+    let newHeight = cropBox.height || 0;
+    const aspectRatio = cropBox.get('aspectRatio') as number | undefined;
+    const lockAspectRatio = cropBox.get('lockAspectRatio') || false;
+    
+    // 使用默认配置中的最小尺寸
+    const minWidth = defaultOptions.minCropSize?.width || 100;
+    const minHeight = defaultOptions.minCropSize?.height || 100;
+    
+    // 1. 应用宽高比约束
+    if (lockAspectRatio && typeof aspectRatio === 'number') {
+      // 保持宽高比不变
+      newHeight = newWidth / aspectRatio;
+    }
+    
+    // 2. 应用最小尺寸约束
+    if (newWidth < minWidth || newHeight < minHeight) {
+      if (lockAspectRatio && typeof aspectRatio === 'number') {
+        // 有宽高比约束，以最小宽度为基准
+        newWidth = minWidth;
+        newHeight = newWidth / aspectRatio;
+        
+        // 如果高度仍然小于最小高度，以最小高度为基准
+        if (newHeight < minHeight) {
+          newHeight = minHeight;
+          newWidth = newHeight * aspectRatio;
+        }
+      } else {
+        // 没有宽高比约束，直接应用最小尺寸
+        newWidth = Math.max(minWidth, newWidth);
+        newHeight = Math.max(minHeight, newHeight);
+      }
+    }
+    
+    // 3. 应用最大尺寸约束
+    const maxWidth = imgBounds.width;
+    const maxHeight = imgBounds.height;
+    if (newWidth > maxWidth || newHeight > maxHeight) {
+      if (lockAspectRatio && typeof aspectRatio === 'number') {
+        // 有宽高比约束，以最大宽度为基准
+        newWidth = maxWidth;
+        newHeight = newWidth / aspectRatio;
+        
+        // 如果高度仍然大于最大高度，以最大高度为基准
+        if (newHeight > maxHeight) {
+          newHeight = maxHeight;
+          newWidth = newHeight * aspectRatio;
+        }
+      } else {
+        // 没有宽高比约束，直接应用最大尺寸
+        newWidth = Math.min(newWidth, maxWidth);
+        newHeight = Math.min(newHeight, maxHeight);
+      }
+    }
+    
+    // 4. 计算裁剪框的右侧和底部位置
+    let newRight = newLeft + newWidth;
+    let newBottom = newTop + newHeight;
+    
+    // 5. 应用位置约束 - 确保裁剪框完全在图片范围内
+    // 左侧约束
+    if (newLeft < imgLeft) {
+      newLeft = imgLeft;
+      newRight = newLeft + newWidth;
+    }
+    
+    // 右侧约束
+    if (newRight > imgRight) {
+      newLeft = imgRight - newWidth;
+      newRight = imgRight;
+    }
+    
+    // 顶部约束
+    if (newTop < imgTop) {
+      newTop = imgTop;
+      newBottom = newTop + newHeight;
+    }
+    
+    // 底部约束
+    if (newBottom > imgBottom) {
+      newTop = imgBottom - newHeight;
+      newBottom = imgBottom;
+    }
+    
+    // 应用约束
+    cropBox.set({
+      left: newLeft,
+      top: newTop,
+      width: newWidth,
+      height: newHeight
+    });
+    cropBox.setCoords();
+  }, [defaultOptions.minCropSize?.width, defaultOptions.minCropSize?.height]);
+  
+  // 处理宽高比变化
+  const handleAspectRatioChange = useCallback((aspectRatio: number | null) => {
+    setCurrentAspectRatio(aspectRatio);
+    // 如果有裁剪框，应用新的宽高比约束并调整尺寸
+    if (cropBoxRef.current && imageRef.current && fabricCanvasRef.current) {
+      const cropBox = cropBoxRef.current;
+      const canvas = fabricCanvasRef.current;
+      
+      // 获取当前裁剪框的中心位置
+      const currentLeft = cropBox.left || 0;
+      const currentTop = cropBox.top || 0;
+      const currentWidth = cropBox.width || 0;
+      const currentHeight = cropBox.height || 0;
+      const centerX = currentLeft + currentWidth / 2;
+      const centerY = currentTop + currentHeight / 2;
+      
+      // 获取图片在画布上的实际尺寸
+      const img = imageRef.current;
+      const imgBounds = img.getBoundingRect(true);
+      const imgWidth = imgBounds.width;
+      const imgHeight = imgBounds.height;
+      
+      let newWidth = currentWidth;
+      let newHeight = currentHeight;
+      
+      // 根据新的宽高比重新计算裁剪框尺寸，保持中心位置不变
+      if (aspectRatio !== null) {
+        // 以当前尺寸为基础，根据新宽高比计算最合适的尺寸
+        // 保持面积尽量接近原裁剪框，同时满足宽高比约束
+        const currentArea = currentWidth * currentHeight;
+        const targetArea = currentArea;
+        
+        // 计算目标宽度和高度
+        let targetWidth = Math.sqrt(targetArea * aspectRatio);
+        let targetHeight = targetWidth / aspectRatio;
+        
+        // 确保不超出图片范围
+        if (targetWidth > imgWidth) {
+          targetWidth = imgWidth;
+          targetHeight = targetWidth / aspectRatio;
+        }
+        if (targetHeight > imgHeight) {
+          targetHeight = imgHeight;
+          targetWidth = targetHeight * aspectRatio;
+        }
+        
+        // 确保不小于最小尺寸
+        const minSize = defaultOptions.minCropSize || { width: 100, height: 100 };
+        if (targetWidth < minSize.width || targetHeight < minSize.height) {
+          if (targetWidth < minSize.width) {
+            targetWidth = minSize.width;
+            targetHeight = targetWidth / aspectRatio;
+          }
+          if (targetHeight < minSize.height) {
+            targetHeight = minSize.height;
+            targetWidth = targetHeight * aspectRatio;
+          }
+        }
+        
+        newWidth = targetWidth;
+        newHeight = targetHeight;
+      } else {
+        // 自由比例，保持当前尺寸
+        newWidth = currentWidth;
+        newHeight = currentHeight;
+      }
+      
+      // 计算新的左上角位置，保持中心位置不变
+      let newLeft = centerX - newWidth / 2;
+      let newTop = centerY - newHeight / 2;
+      
+      // 确保裁剪框完全在图片范围内
+      newLeft = Math.max(newLeft, imgBounds.left);
+      newTop = Math.max(newTop, imgBounds.top);
+      
+      // 确保裁剪框右边界不超出图片
+      const maxLeft = imgBounds.left + imgWidth - newWidth;
+      const maxTop = imgBounds.top + imgHeight - newHeight;
+      newLeft = Math.min(newLeft, maxLeft);
+      newTop = Math.min(newTop, maxTop);
+      
+      // 应用新的宽高比约束和尺寸
+      cropBox.set({
+        left: newLeft,
+        top: newTop,
+        width: newWidth,
+        height: newHeight,
+        lockAspectRatio: aspectRatio !== null,
+        aspectRatio: aspectRatio !== null ? aspectRatio : undefined
+      });
+      
+      // 应用约束，确保裁剪框在图片范围内
+      constrainCropBox(cropBox, img);
+      
+      // 更新坐标和遮罩层
+      cropBox.setCoords();
+      if (maskRef.current) {
+        updateMaskClipPath(canvas, cropBox, maskRef.current);
+      }
+      
+      // 重新渲染画布
+      canvas.renderAll();
+    }
+  }, [constrainCropBox, defaultOptions.minCropSize]);
+
+  // 处理裁剪框变化
+  const handleCropBoxChange = useCallback(() => {
+    if (fabricCanvasRef.current && cropBoxRef.current && maskRef.current && imageRef.current) {
+      const canvas = fabricCanvasRef.current;
+      
+      // 应用边界约束
+      constrainCropBox(cropBoxRef.current, imageRef.current);
+      
+      // 立即更新遮罩层，确保视觉同步
+      updateMaskClipPath(canvas, cropBoxRef.current, maskRef.current);
+      
+      // 自动保存历史记录
+      saveCropHistory(cropBoxRef.current, imageRef.current);
+      
+      // 重新渲染画布，确保视觉效果及时更新
+      canvas.renderAll();
+    }
+  }, [constrainCropBox, saveCropHistory]);
 
   // 清理裁剪框事件监听器
-  const cleanupCropBoxEventListeners = () => {
+  const cleanupCropBoxEventListeners = useCallback(() => {
     if (cropBoxRef.current) {
       try {
         // 移除所有事件监听器
@@ -194,15 +299,14 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
         cropBoxRef.current.off('scaling');
         cropBoxRef.current.off('rotating');
         
-
       } catch (error) {
         console.warn('Error removing crop box event listeners:', error);
       }
     }
-  };
+  }, []);
 
   // 注册裁剪框事件监听器
-  const registerCropBoxEventListeners = (cropBox: FabricObject) => {
+  const registerCropBoxEventListeners = useCallback((cropBox: FabricObject) => {
     // 先清理旧的事件监听器
     cleanupCropBoxEventListeners();
     
@@ -221,10 +325,38 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     cropBox.on('moving', throttledHandleCropBoxChange);
     cropBox.on('scaling', throttledHandleCropBoxChange);
     cropBox.on('rotating', throttledHandleCropBoxChange);
-  };
+  }, [cleanupCropBoxEventListeners, handleCropBoxChange]);
+
+  // 创建遮罩层
+  const createMaskLayer = useCallback(() => {
+    if (!fabricCanvasRef.current || !imageRef.current || !cropBoxRef.current || !fabricRef.current) return;
+    
+    const fabric = fabricRef.current;
+    const canvas = fabricCanvasRef.current;
+    const img = imageRef.current;
+    const cropBox = cropBoxRef.current;
+
+    // 移除已存在的遮罩层
+    if (maskRef.current) {
+      canvas.remove(maskRef.current);
+      maskRef.current = null;
+    }
+
+    // 创建新遮罩层
+    const maskGroup = createMask(fabric, canvas, cropBox);
+    if (!maskGroup) return;
+
+    maskRef.current = maskGroup;
+
+    // 将遮罩层添加到画布，正确的层级顺序：裁剪框 → 遮罩层 → 图片
+    canvas.add(maskGroup);
+    canvas.sendObjectToBack(img);
+    canvas.bringObjectToFront(maskGroup);
+    canvas.bringObjectToFront(cropBox);
+  }, [fabricRef]);
 
   // 创建裁剪框和遮罩层
-  const createCropBoxAndMask = () => {
+  const createCropBoxAndMask = useCallback(() => {
     if (!fabricCanvasRef.current || !imageRef.current || !fabricRef.current) return;
     
     const fabric = fabricRef.current;
@@ -267,151 +399,56 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
     requestAnimationFrame(() => {
       if (imageRef.current) {
         constrainCropBox(cropBox, imageRef.current);
-        canvas.renderAll();
       }
     });
     
     // 创建遮罩层
     createMaskLayer();
-  };
-
-  // 创建遮罩层
-  const createMaskLayer = () => {
-    if (!fabricCanvasRef.current || !imageRef.current || !cropBoxRef.current || !fabricRef.current) return;
-    
-    const fabric = fabricRef.current;
-    const canvas = fabricCanvasRef.current;
-    const img = imageRef.current;
-    const cropBox = cropBoxRef.current;
-
-    // 移除已存在的遮罩层
-    if (maskRef.current) {
-      canvas.remove(maskRef.current);
-      maskRef.current = null;
-    }
-
-    // 重置遮罩层边界缓存
-    resetMaskBoundsCache();
-
-    // 创建新遮罩层
-    const maskGroup = createMask(fabric, canvas, cropBox);
-    if (!maskGroup) return;
-
-    maskRef.current = maskGroup;
-
-
-
-    // 将遮罩层添加到画布，正确的层级顺序：裁剪框 → 遮罩层 → 图片
-    canvas.add(maskGroup);
-    canvas.sendObjectToBack(img);
-    canvas.bringObjectToFront(maskGroup);
-    canvas.bringObjectToFront(cropBox);
-    canvas.renderAll();
-  };
-
-  // 约束裁剪框在图片区域内（简化版实现）
-  const constrainCropBox = (cropBox: FabricObject, img: FabricObject) => {
-    if (!cropBox || !img) return;
-    
-    // 获取图片边界
-    const imgBounds = img.getBoundingRect(true);
-    const imgLeft = imgBounds.left;
-    const imgTop = imgBounds.top;
-    const imgRight = imgLeft + imgBounds.width;
-    const imgBottom = imgTop + imgBounds.height;
-    
-    // 获取裁剪框当前状态 - 使用原始属性而不是屏幕显示边界
-    let newLeft = cropBox.left || 0;
-    let newTop = cropBox.top || 0;
-    let newWidth = cropBox.width || 0;
-    let newHeight = cropBox.height || 0;
-    
-    // 最小尺寸约束
-    const minWidth = 50;
-    const minHeight = 50;
-    newWidth = Math.max(minWidth, newWidth);
-    newHeight = Math.max(minHeight, newHeight);
-    
-    // 最大尺寸约束
-    newWidth = Math.min(newWidth, imgBounds.width);
-    newHeight = Math.min(newHeight, imgBounds.height);
-    
-    // 边界位置约束
-    newLeft = Math.max(imgLeft, Math.min(newLeft, imgRight - newWidth));
-    newTop = Math.max(imgTop, Math.min(newTop, imgBottom - newHeight));
-    
-    // 应用约束
-    cropBox.set({
-      left: newLeft,
-      top: newTop,
-      width: newWidth,
-      height: newHeight
-    });
-    cropBox.setCoords();
-  };
-
-  // 处理裁剪框变化
-  const handleCropBoxChange = () => {
-    if (fabricCanvasRef.current && cropBoxRef.current && maskRef.current && imageRef.current) {
-      // 应用边界约束
-      constrainCropBox(cropBoxRef.current, imageRef.current);
-      
-      // 立即更新遮罩层，确保视觉同步
-      updateMaskClipPath(fabricCanvasRef.current, cropBoxRef.current, maskRef.current);
-      
-      // 自动保存历史记录
-      saveCropHistory(cropBoxRef.current, imageRef.current);
-    }
-  };
-
-  // 执行裁剪
-  const handleCrop = async () => {
-    if (!fabricCanvasRef.current || !imageRef.current || !cropBoxRef.current) return;
-
-    const img = imageRef.current;
-    const cropBox = cropBoxRef.current;
-
-    // 计算裁剪坐标
-    const coordinates = calculateCropCoordinates(img, cropBox);
-    
-    // 执行裁剪
-    const croppedImageUrl = await performCrop(imageUrl, coordinates);
-    
-    if (croppedImageUrl) {
-      onCropComplete(croppedImageUrl);
-    }
-  };
+  }, [constrainCropBox, registerCropBoxEventListeners, createMaskLayer, defaultOptions.cropBoxStyle, defaultOptions.minCropSize, fabricRef]);
 
   // 销毁编辑器
-  const destroyEditor = () => {
+  const destroyEditor = useCallback(() => {
     // 清理事件监听器
     cleanupCropBoxEventListeners();
     
     // 销毁Canvas和所有资源
     destroyCanvas(fabricCanvasRef.current);
-    
-    // 清空所有引用
-    fabricCanvasRef.current = null;
-    imageRef.current = null;
-    cropBoxRef.current = null;
-    maskRef.current = null;
-  };
-
-
+  }, [cleanupCropBoxEventListeners]);
 
   // 初始化画布
+  const initCanvas = useCallback(async () => {
+    if (!canvasRef.current || !fabricRef.current) return;
+
+    const fabric = fabricRef.current;
+    
+    // 使用默认配置的尺寸创建初始画布，避免临时尺寸
+    const canvas = createCanvas(canvasRef, fabric, defaultOptions.canvasWidth, defaultOptions.canvasHeight);
+    if (!canvas) return;
+
+    fabricCanvasRef.current = canvas;
+    
+    // 加载图片
+    const success = await loadImage(imageUrl, canvas, canvasRef);
+    if (success) {
+      // 确保图片加载完成后立即创建裁剪框和遮罩层
+      // 使用 requestAnimationFrame 确保在下一帧渲染时执行
+      requestAnimationFrame(() => {
+        createCropBoxAndMask();
+        // 设置初始状态
+        if (imageRef.current && cropBoxRef.current) {
+          setInitialState(cropBoxRef.current, imageRef.current);
+        }
+      });
+    }
+  }, [canvasRef, fabricRef, imageUrl, loadImage, setInitialState, createCropBoxAndMask, defaultOptions.canvasHeight, defaultOptions.canvasWidth]);
+
+
+  // 初始化画布和清理资源
   useEffect(() => {
     if (fabricLoaded && canvasRef.current) {
       initCanvas();
     }
 
-    return () => {
-      destroyEditor();
-    };
-  }, [fabricLoaded, imageUrl]);
-
-  // 监听组件卸载，确保完全清理
-  useEffect(() => {
     const handleBeforeUnload = () => {
       destroyEditor();
     };
@@ -423,7 +460,7 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       window.removeEventListener('beforeunload', handleBeforeUnload);
       destroyEditor();
     };
-  }, []);
+  }, [fabricLoaded, initCanvas, destroyEditor]);
 
   // 显示错误状态
   if (loadingError) {

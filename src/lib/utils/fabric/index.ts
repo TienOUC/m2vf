@@ -6,8 +6,7 @@ export {
   updateMaskClipPath,
   destroyCanvas,
   resetMaskBoundsCache,
-  addImageToCanvas,
-  getImageCoordinates
+  addImageToCanvas
 } from './fabric';
 
 export {
@@ -22,12 +21,5 @@ export {
   // history functions
   createHistoryConfig,
   createHistoryRecord,
-  areHistoryRecordsEqual,
-  restoreFromHistory,
-  serializeHistory,
-  deserializeHistory,
-  createHistoryEvent,
-  cleanupHistory
+  areHistoryRecordsEqual
 } from './history';
-
-export * from './crop/index';

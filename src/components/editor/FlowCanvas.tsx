@@ -172,10 +172,12 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
     []
   );
 
-  const handleCropComplete = useCallback((nodeId: string, croppedImageUrl: string) => {
-    nodeOperations.handleImageUpdate(nodeId, croppedImageUrl);
-    cropOperations.setCroppingNode(null);
-  }, [nodeOperations.handleImageUpdate, cropOperations.setCroppingNode]);
+  const handleCropComplete = useCallback((croppedImageUrl: string) => {
+    if (cropOperations.croppingNode) {
+      nodeOperations.handleImageUpdate(cropOperations.croppingNode.id, croppedImageUrl);
+      cropOperations.setCroppingNode(null);
+    }
+  }, [nodeOperations.handleImageUpdate, cropOperations.setCroppingNode, cropOperations.croppingNode]);
 
   return (
     <>
@@ -282,7 +284,7 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
           <div className="w-full h-full flex flex-col items-center justify-center p-4">
             <FabricImageEditor
               imageUrl={cropOperations.croppingNode.imageUrl}
-              onCropComplete={(croppedImageUrl) => handleCropComplete(cropOperations.croppingNode!.id, croppedImageUrl)}
+              onCropComplete={(croppedImageUrl) => handleCropComplete(croppedImageUrl)}
               onCancel={() => cropOperations.setCroppingNode(null)}
             />
           </div>

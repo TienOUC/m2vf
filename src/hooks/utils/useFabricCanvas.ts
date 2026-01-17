@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Fabric, EditorState } from '@/types/editor/fabric';
+import type { Fabric } from '@/lib/types/editor/fabric';
 
 export const useFabricCanvas = () => {
   const fabricRef = useRef<Fabric | null>(null);
@@ -29,15 +29,9 @@ export const useFabricCanvas = () => {
     };
   }, []);
 
-  const getEditorState = (): EditorState => ({
-    fabricLoaded,
-    loadingError
-  });
-
   return {
     fabricRef,
     fabricLoaded,
-    loadingError,
-    getEditorState
+    loadingError
   };
 };

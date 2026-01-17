@@ -4,7 +4,6 @@ export { useProjectManagementStore } from './projectManagementStore';
 export { useProjectEditingStore } from './projectEditingStore';
 export { useAuthStore } from './authStore';
 export { useUIStore } from './uiStore';
-export { useCropStore } from './cropStore';
 export { useTextNodesStore } from './textNodesStore';
 export { useImageNodesStore } from './imageNodesStore';
 

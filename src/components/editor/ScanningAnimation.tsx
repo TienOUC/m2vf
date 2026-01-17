@@ -85,19 +85,13 @@ export const ScanningAnimation: React.FC<ScanningAnimationProps> = ({
       </div>
 
       {/* 进度指示器 */}
-      <div className="absolute bottom-2 left-0 right-0 flex justify-center">
-        <div className="bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-full flex items-center space-x-1">
+      <div className="absolute top-1/2 left-0 right-0 flex justify-center transform -translate-y-1/2 z-10">
+        <div className="bg-black bg-opacity-70 text-white text-xs px-3 py-1 rounded-full flex items-center space-x-1">
           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-          <span>处理中 {Math.round(progress * 100)}%</span>
+          <span className="min-w-[36px] text-center">{Math.round(progress * 100)}%</span>
         </div>
       </div>
 
-      {/* 处理中文字提示 */}
-      <div className="absolute top-2 left-0 right-0 flex justify-center">
-        <div className="bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-full">
-          图片抠图中...
-        </div>
-      </div>
 
       {/* 动态光点效果 */}
       <div className="absolute inset-0">

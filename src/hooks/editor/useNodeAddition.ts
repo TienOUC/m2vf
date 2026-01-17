@@ -70,24 +70,29 @@ export const useNodeAddition = ({
         },
       };
 
+      // 先更新React Flow节点列表
       setNodes((nds) => {
         // 检查是否已经存在相同ID的节点，避免重复添加
         if (!nds.some(node => node.id === newNode.id)) {
-          // 同步到全局存储
-          useTextNodesStore.getState().setTextNode(newNodeId, {
-            id: newNodeId,
-            content: '',
-            backgroundColor: '#ffffff',
-            fontType: 'p',
-            position: pos,
-            editorStateJson: undefined
-          });
           return nds.concat(newNode);
         }
         // 如果节点已存在，不添加并记录警告
         console.warn(`节点ID ${newNode.id} 已存在，避免重复添加`);
         return nds;
       });
+      
+      // 然后在渲染完成后更新全局存储，避免在渲染过程中更新状态
+      setTimeout(() => {
+        useTextNodesStore.getState().setTextNode(newNodeId, {
+          id: newNodeId,
+          content: '',
+          backgroundColor: '#ffffff',
+          fontType: 'p',
+          position: pos,
+          editorStateJson: undefined
+        });
+      }, 0);
+      
       setNodeId((prevId) => prevId + 1);
     },
     [nodeId, setNodes, screenToFlowPosition, handleDelete, handleBackgroundColorChange, handleFontTypeChange, onEditingChange, setNodeId]
@@ -125,15 +130,18 @@ export const useNodeAddition = ({
         },
       };
 
-      setNodes((nds) => {
-        // 同步到全局存储
+      // 先更新React Flow节点列表
+      setNodes((nds) => nds.concat(newNode));
+      
+      // 然后在渲染完成后更新全局存储，避免在渲染过程中更新状态
+      setTimeout(() => {
         useImageNodesStore.getState().setImageNode(newNodeId, {
           id: newNodeId,
           imageUrl: undefined,
           position: pos
         });
-        return nds.concat(newNode);
-      });
+      }, 0);
+      
       setNodeId((prevId) => prevId + 1);
     },
     [nodeId, setNodes, screenToFlowPosition, handleDelete, handleImageUpdate, onEditStart, onCropStart, handleDownload, handleBackgroundRemove, setNodeId]

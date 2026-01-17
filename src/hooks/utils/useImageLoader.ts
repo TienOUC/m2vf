@@ -76,16 +76,11 @@ export const useImageLoader = (fabricRef: React.RefObject<Fabric | null>) => {
       const scaledHeight = imgHeight * scale;
       
       const htmlCanvas = canvasRef.current;
-      if (htmlCanvas) {
-        htmlCanvas.width = scaledWidth;
-        htmlCanvas.height = scaledHeight;
-      }
-      
       // 复用现有Canvas而不是重新创建
       if (canvas) {
         // 清除Canvas上的所有对象
         canvas.clear();
-        // 更新Canvas尺寸
+        // 更新Canvas尺寸 - 只通过Fabric.js API修改，避免直接操作DOM
         canvas.setDimensions({ width: scaledWidth, height: scaledHeight });
       } else {
         // 如果没有现有Canvas，创建新的

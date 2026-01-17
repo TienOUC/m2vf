@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { Node, NodeChange } from '@xyflow/react';
 import { useTextNodesStore } from '@/lib/stores/textNodesStore';
+import { useImageNodesStore } from '@/lib/stores/imageNodesStore';
 
 export interface PaneInteractions {
   handlePaneClick: (event: React.MouseEvent) => void;
@@ -48,25 +49,30 @@ export const usePaneInteractions = (
       .filter(change => change.type === 'remove')
       .map(change => change.id);
     
-    // 从全局状态中删除对应的节点数据
-    if (deletedNodeIds.length > 0) {
-      const textNodesStore = useTextNodesStore.getState();
-      
-      // 处理多个节点删除，确保每个删除操作的稳定性
-      deletedNodeIds.forEach(nodeId => {
-        try {
-          textNodesStore.deleteTextNode(nodeId);
-          console.log(`节点 ${nodeId} 删除成功`);
-        } catch (error) {
-          console.error(`删除节点 ${nodeId} 失败:`, error);
-          // 这里可以添加用户错误提示，例如通过 toast 通知
-          // 由于 React Flow 已经删除了节点，我们需要重新添加回来以保持一致性
-          // 但考虑到获取完整节点数据的复杂性，这里仅记录错误
-        }
-      });
-    }
-    
+    // 先调用原始的onNodesChange函数，确保React Flow的渲染流程正常完成
     onNodesChange(filteredChanges);
+    
+    // 然后在渲染完成后从全局状态中删除对应的节点数据，避免在渲染过程中更新状态
+    if (deletedNodeIds.length > 0) {
+      setTimeout(() => {
+        const textNodesStore = useTextNodesStore.getState();
+        const imageNodesStore = useImageNodesStore.getState();
+        
+        // 处理多个节点删除，确保每个删除操作的稳定性
+        deletedNodeIds.forEach(nodeId => {
+          try {
+            textNodesStore.deleteTextNode(nodeId);
+            imageNodesStore.deleteImageNode(nodeId);
+            console.log(`节点 ${nodeId} 删除成功`);
+          } catch (error) {
+            console.error(`删除节点 ${nodeId} 失败:`, error);
+            // 这里可以添加用户错误提示，例如通过 toast 通知
+            // 由于 React Flow 已经删除了节点，我们需要重新添加回来以保持一致性
+            // 但考虑到获取完整节点数据的复杂性，这里仅记录错误
+          }
+        });
+      }, 0);
+    }
   }, [onNodesChange, editingNodeIds, nodesRef]);
 
   return {
