@@ -125,10 +125,6 @@ export interface CropCoordinates {
   cropTop: number;
   cropWidth: number;
   cropHeight: number;
-  imgLeft: number;
-  imgTop: number;
-  imgScaleX: number;
-  imgScaleY: number;
 }
 
 // 裁剪结果

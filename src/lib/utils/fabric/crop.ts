@@ -68,11 +68,7 @@ export const calculateCropCoordinates = (image: FabricObject | null, cropBox: Fa
       cropLeft: 0,
       cropTop: 0,
       cropWidth: 0,
-      cropHeight: 0,
-      imgLeft: 0,
-      imgTop: 0,
-      imgScaleX: 1,
-      imgScaleY: 1
+      cropHeight: 0
     };
   }
 
@@ -110,23 +106,25 @@ export const calculateCropCoordinates = (image: FabricObject | null, cropBox: Fa
     cropLeft,
     cropTop,
     cropWidth,
-    cropHeight,
-    imgLeft,
-    imgTop,
-    imgScaleX,
-    imgScaleY
+    cropHeight
   };
 };
 
 export const performCrop = (imageUrl: string, coordinates: CropCoordinates): Promise<string> => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
+    // 验证裁剪参数
+    if (coordinates.cropWidth <= 0 || coordinates.cropHeight <= 0) {
+      reject(new Error('Invalid crop dimensions: width and height must be positive'));
+      return;
+    }
+
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = coordinates.cropWidth;
     tempCanvas.height = coordinates.cropHeight;
     const tempCtx = tempCanvas.getContext('2d');
 
     if (!tempCtx) {
-      resolve('');
+      reject(new Error('Failed to get canvas context'));
       return;
     }
 
@@ -134,24 +132,28 @@ export const performCrop = (imageUrl: string, coordinates: CropCoordinates): Pro
     originalImage.crossOrigin = 'anonymous';
 
     originalImage.onload = () => {
-      tempCtx.drawImage(
-        originalImage,
-        coordinates.cropLeft,
-        coordinates.cropTop,
-        coordinates.cropWidth,
-        coordinates.cropHeight,
-        0,
-        0,
-        coordinates.cropWidth,
-        coordinates.cropHeight
-      );
+      try {
+        tempCtx.drawImage(
+          originalImage,
+          coordinates.cropLeft,
+          coordinates.cropTop,
+          coordinates.cropWidth,
+          coordinates.cropHeight,
+          0,
+          0,
+          coordinates.cropWidth,
+          coordinates.cropHeight
+        );
 
-      const croppedImageUrl = tempCanvas.toDataURL('image/png');
-      resolve(croppedImageUrl);
+        const croppedImageUrl = tempCanvas.toDataURL('image/png');
+        resolve(croppedImageUrl);
+      } catch (error) {
+        reject(new Error(`Failed to draw image: ${error instanceof Error ? error.message : 'Unknown error'}`));
+      }
     };
 
     originalImage.onerror = () => {
-      resolve('');
+      reject(new Error(`Failed to load image from URL: ${imageUrl}`));
     };
 
     originalImage.src = imageUrl;

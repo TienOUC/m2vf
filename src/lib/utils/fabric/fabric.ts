@@ -120,16 +120,18 @@ const getMaskPath = (canvasWidth: number, canvasHeight: number, cropBoxLeft: num
   return `M 0 0 L ${canvasWidth} 0 L ${canvasWidth} ${canvasHeight} L 0 ${canvasHeight} L 0 0 z M ${cropBoxLeft} ${cropBoxTop} L ${cropBoxLeft + cropBoxWidth} ${cropBoxTop} L ${cropBoxLeft + cropBoxWidth} ${cropBoxTop + cropBoxHeight} L ${cropBoxLeft} ${cropBoxTop + cropBoxHeight} L ${cropBoxLeft} ${cropBoxTop} z`;
 };
 
-// 缓存上一次的裁剪框边界，用于增量更新
-let lastBounds: { left: number; top: number; width: number; height: number } | null = null;
+// 使用WeakMap管理每个画布实例的独立缓存，避免多画布冲突
+const boundsCache = new WeakMap<FabricCanvas, { left: number; top: number; width: number; height: number }>();
 
 // 重置边界缓存，在创建新遮罩层时调用
-export const resetMaskBoundsCache = () => {
-  lastBounds = null;
+export const resetMaskBoundsCache = (canvas?: FabricCanvas | null) => {
+  if (canvas) {
+    boundsCache.delete(canvas);
+  }
 };
 
 export const updateMaskClipPath = (canvas: FabricCanvas | null, cropBox: FabricObject | null, maskLayer: FabricObject | null) => {
-  if (!canvas || !cropBox || !maskLayer) return;
+  if (!canvas || !cropBox || !maskLayer || !maskLayer.clipPath) return;
 
   // 使用getBoundingRect()获取裁剪框的实际边界，确保坐标系统统一
   const boundingRect = cropBox.getBoundingRect(true);
@@ -138,51 +140,56 @@ export const updateMaskClipPath = (canvas: FabricCanvas | null, cropBox: FabricO
   const cropBoxWidth = boundingRect.width;
   const cropBoxHeight = boundingRect.height;
 
+  // 获取当前画布的缓存
+  const cachedBounds = boundsCache.get(canvas);
+  
   // 优化：增加阈值避免过于频繁的更新
-  if (lastBounds && 
-      Math.abs(lastBounds.left - cropBoxLeft) < 1.0 &&
-      Math.abs(lastBounds.top - cropBoxTop) < 1.0 &&
-      Math.abs(lastBounds.width - cropBoxWidth) < 1.0 &&
-      Math.abs(lastBounds.height - cropBoxHeight) < 1.0) {
+  // 增加阈值到2.0，减少更多不必要的更新
+  const threshold = 2.0;
+  if (cachedBounds && 
+      Math.abs(cachedBounds.left - cropBoxLeft) < threshold &&
+      Math.abs(cachedBounds.top - cropBoxTop) < threshold &&
+      Math.abs(cachedBounds.width - cropBoxWidth) < threshold &&
+      Math.abs(cachedBounds.height - cropBoxHeight) < threshold) {
     // 边界变化很小，跳过更新以提高性能
     return;
   }
 
   // 更新缓存
-  lastBounds = { 
+  boundsCache.set(canvas, { 
     left: cropBoxLeft, 
     top: cropBoxTop, 
     width: cropBoxWidth, 
     height: cropBoxHeight 
-  };
+  });
 
+  // 生成新的路径数据
+  const newPathString = getMaskPath(canvas.width, canvas.height, cropBoxLeft, cropBoxTop, cropBoxWidth, cropBoxHeight);
+  
   // 更新遮罩层的 clipPath 路径
-  if (maskLayer.clipPath) {
-    // 重新创建 clipPath 而不是更新现有对象
-    const newPath = new (maskLayer.clipPath.constructor as any)(
-      getMaskPath(canvas.width, canvas.height, cropBoxLeft, cropBoxTop, cropBoxWidth, cropBoxHeight),
-      {
-        fillRule: 'evenodd',
-        originX: 'left',
-        originY: 'top',
-        left: 0,
-        top: 0,
-        absolutePositioned: true
-      }
-    );
-    
-    // 替换 clipPath
-    maskLayer.clipPath = newPath;
-  }
+  // 恢复使用重新创建clipPath对象的方式，确保遮罩层正常显示
+  const clipPath = maskLayer.clipPath as any;
+  const newPath = new (clipPath.constructor as any)(
+    newPathString,
+    {
+      fillRule: 'evenodd',
+      originX: 'left',
+      originY: 'top',
+      left: 0,
+      top: 0,
+      absolutePositioned: true
+    }
+  );
   
-  // 优化：只更新必要的对象，避免全局重绘
+  // 替换 clipPath
+  maskLayer.clipPath = newPath;
+  
+  // 确保遮罩层的坐标正确
   maskLayer.setCoords();
+  maskLayer.set({ dirty: true });
   
-  // 标记遮罩层需要重绘
-  (maskLayer as any).dirty = true;
-  
-  // 使用异步重绘提高性能
-  (canvas as any).requestRenderAll?.() || canvas.renderAll();
+  // 立即重绘画布，确保所有更新同步显示
+  canvas.renderAll();
 };
 
 export const addImageToCanvas = (fabric: Fabric, canvas: FabricCanvas, imageUrl: string, callback?: (img: FabricObject) => void): void => {
