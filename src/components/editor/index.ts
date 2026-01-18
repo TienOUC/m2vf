@@ -14,3 +14,4 @@ export { default as LoadingState } from './LoadingState';
 export { default as ErrorState } from './ErrorState';
 export { default as FullscreenDialog } from './FullscreenDialog';
 export { default as ResizeIcon } from './ResizeIcon';
+export { default as NodeInteractionDialog } from './NodeInteractionDialog';

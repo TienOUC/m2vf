@@ -10,6 +10,7 @@ import {
   addEdge,
   type OnConnect,
   type Edge,
+  type Node,
   BackgroundVariant,
   useReactFlow,
   ReactFlowProvider
@@ -17,7 +18,7 @@ import {
 import '@xyflow/react/dist/style.css';
 
 
-import { TextNode, ImageNode, VideoNode, FabricImageEditor } from '@/components/editor';
+import { TextNode, ImageNode, VideoNode, FabricImageEditor, NodeInteractionDialog } from '@/components/editor';
 import LeftSidebar from '@/components/layout/LeftSidebar';
 import { useNodeOperations } from '@/hooks/editor/useNodeOperations';
 import { useCropOperations } from '@/hooks/utils/useCropOperations';
@@ -58,7 +59,7 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
   const [nodeId, setNodeId] = useState(() => {
     return 1;
   });
-
+  
   const cropOperations = useCropOperations(centerNode);
   
   // 创建ref来保存回调函数，这样可以在useEffect中更新
@@ -142,6 +143,110 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
     nodesRef,
     nodeOperations.onNodesChange
   );
+  
+  // 对话框状态管理
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [dialogPosition, setDialogPosition] = useState({ x: 0, y: 0 });
+  const [isDialogVisible, setIsDialogVisible] = useState(false);
+  
+  // 优化：直接从节点数据计算对话框位置，避免DOM查询
+  const updateDialogPositionFromNodeData = useCallback(() => {
+    if (selectedNode) {
+      // 计算节点在屏幕上的位置 - 直接使用节点数据，避免DOM查询
+      // 这里需要考虑画布的缩放和位移，使用reactFlowInstance的project方法
+      // 首先获取节点的中心底部位置
+      const nodeCenterBottom = {
+        x: selectedNode.position.x + (selectedNode.width || 0) / 2,
+        y: selectedNode.position.y + (selectedNode.height || 0)
+      };
+      
+      // 直接使用requestAnimationFrame更新位置，确保平滑跟随
+      requestAnimationFrame(() => {
+        setDialogPosition(prevPosition => {
+          // 如果节点数据没有变化，就不更新位置，减少不必要的重绘
+          const nodeElement = document.querySelector(`[data-id="${selectedNode.id}"]`);
+          if (nodeElement) {
+            const rect = nodeElement.getBoundingClientRect();
+            const newPosition = {
+              x: rect.left + rect.width / 2,
+              y: rect.bottom
+            };
+            
+            // 只有位置变化超过1像素时才更新，减少不必要的重绘
+            if (Math.abs(newPosition.x - prevPosition.x) > 1 || Math.abs(newPosition.y - prevPosition.y) > 1) {
+              return newPosition;
+            }
+          }
+          return prevPosition;
+        });
+      });
+    }
+  }, [selectedNode]);
+  
+  // 监听节点位置变化，更新对话框位置
+  useEffect(() => {
+    if (selectedNode && isDialogVisible) {
+      updateDialogPositionFromNodeData();
+    }
+  }, [nodeOperations.nodes, selectedNode, isDialogVisible, updateDialogPositionFromNodeData]);
+  
+  // 处理节点选择变化
+  const handleNodesChange = useCallback((changes: any[]) => {
+    // 收集所有变化，区分选中和取消选中
+    const selectedChanges = changes.filter(change => change.type === 'select' && change.selected);
+    const unselectedChanges = changes.filter(change => change.type === 'select' && !change.selected);
+    
+    // 处理选中的节点 - 优先处理选中变化，确保对话框能正常显示
+    if (selectedChanges.length > 0) {
+      const selectedChange = selectedChanges[0];
+      const node = nodeOperations.nodes.find(n => n.id === selectedChange.id);
+      if (node) {
+        setSelectedNode(node);
+        setIsDialogVisible(true);
+      }
+    } 
+    // 只有在没有选中变化时，才处理取消选中
+    else if (unselectedChanges.length > 0) {
+      // 节点被取消选中
+      setIsDialogVisible(false);
+      setSelectedNode(null);
+    }
+    
+    // 调用原始的nodesChange处理函数
+    paneInteractions.onNodesChangeWithDragControl(changes);
+  }, [nodeOperations.nodes, paneInteractions.onNodesChangeWithDragControl]);
+  
+  // 处理对话框关闭
+  const handleDialogClose = useCallback(() => {
+    setIsDialogVisible(false);
+    setSelectedNode(null);
+  }, []);
+  
+  // 处理对话框发送
+  const handleDialogSend = useCallback((content: string, model: string) => {
+    console.log('Dialog send:', { content, model, nodeId: selectedNode?.id });
+    // 这里可以添加发送逻辑，例如调用API或更新节点内容
+    handleDialogClose();
+  }, [selectedNode?.id, handleDialogClose]);
+  
+  // 处理画布点击事件，关闭对话框
+  const handlePaneClick = useCallback((event: React.MouseEvent) => {
+    // 调用原始的paneClick处理函数
+    paneInteractions.handlePaneClick(event);
+    
+    // 关闭对话框
+    handleDialogClose();
+  }, [paneInteractions.handlePaneClick, handleDialogClose]);
+  
+  // 监听节点删除，关闭对应对话框
+  useEffect(() => {
+    if (selectedNode) {
+      const nodeExists = nodeOperations.nodes.some(node => node.id === selectedNode.id);
+      if (!nodeExists) {
+        handleDialogClose();
+      }
+    }
+  }, [nodeOperations.nodes, selectedNode, handleDialogClose]);
 
   // 关闭弹出菜单的处理函数
   const handleCloseMenu = () => {
@@ -186,10 +291,16 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
         <ReactFlow
           nodes={nodeOperations.nodes}
           edges={nodeOperations.edges}
-          onNodesChange={paneInteractions.onNodesChangeWithDragControl}
+          onNodesChange={handleNodesChange}
           onEdgesChange={nodeOperations.onEdgesChange}
           onConnect={onConnect}
-          onPaneClick={paneInteractions.handlePaneClick}
+          onPaneClick={handlePaneClick}
+          // 新增：监听画布变化，更新对话框位置
+          onMoveEnd={() => {
+            if (selectedNode && isDialogVisible) {
+              updateDialogPositionFromNodeData();
+            }
+          }}
           nodeTypes={nodeTypes}
           fitView
           zoomOnScroll={!nodeOperations.isAnyEditing}
@@ -278,6 +389,17 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
           )}
         </ReactFlow>
       </div>
+
+      {/* 节点交互对话框 */}
+      {selectedNode && (
+        <NodeInteractionDialog
+          isVisible={isDialogVisible}
+          position={dialogPosition}
+          nodeType={selectedNode.type as 'text' | 'image' | 'video'}
+          onClose={handleDialogClose}
+          onSend={handleDialogSend}
+        />
+      )}
 
       {cropOperations.croppingNode && (
         <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center">
