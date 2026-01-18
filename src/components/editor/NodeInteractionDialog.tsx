@@ -29,11 +29,22 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
   const [selectedAspectRatio, setSelectedAspectRatio] = useState('Auto');
   const [isAspectRatioMenuOpen, setIsAspectRatioMenuOpen] = useState(false);
   
+  // 视频节点配置
+  const [selectedVideoQuality, setSelectedVideoQuality] = useState('480p');
+  const [isVideoQualityMenuOpen, setIsVideoQualityMenuOpen] = useState(false);
+  const [selectedVideoDuration, setSelectedVideoDuration] = useState('5s');
+  const [isVideoDurationMenuOpen, setIsVideoDurationMenuOpen] = useState(false);
+  const [selectedVideoAspectRatio, setSelectedVideoAspectRatio] = useState('16:9');
+  const [isVideoAspectRatioMenuOpen, setIsVideoAspectRatioMenuOpen] = useState(false);
+  
   const dialogRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLDivElement>(null);
   const modelMenuRef = useRef<HTMLDivElement>(null);
   const resolutionMenuRef = useRef<HTMLDivElement>(null);
   const aspectRatioMenuRef = useRef<HTMLDivElement>(null);
+  const videoQualityMenuRef = useRef<HTMLDivElement>(null);
+  const videoDurationMenuRef = useRef<HTMLDivElement>(null);
+  const videoAspectRatioMenuRef = useRef<HTMLDivElement>(null);
   
   const models = [
     'Doubao',
@@ -54,6 +65,27 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
     '4:3',
     '9:16',
     '16:9'
+  ];
+  
+  // 视频节点配置选项
+  const videoQualities = [
+    '480p',
+    '720p',
+    '1080p'
+  ];
+  
+  const videoDurations = [
+    '5s',
+    '10s',
+    '15s'
+  ];
+  
+  const videoAspectRatios = [
+    '4:3',
+    '3:4',
+    '9:16',
+    '16:9',
+    '21:9'
   ];
   
   // 处理输入区域的内容变化
@@ -78,16 +110,25 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
   // 处理发送按钮点击
   const handleSend = useCallback(() => {
     if (content.trim()) {
-      const config = nodeType === 'image' ? {
-        resolution: selectedResolution,
-        aspectRatio: selectedAspectRatio
-      } : {};
+      let config = {};
+      if (nodeType === 'image') {
+        config = {
+          resolution: selectedResolution,
+          aspectRatio: selectedAspectRatio
+        };
+      } else if (nodeType === 'video') {
+        config = {
+          quality: selectedVideoQuality,
+          duration: selectedVideoDuration,
+          aspectRatio: selectedVideoAspectRatio
+        };
+      }
       onSend(content, selectedModel, config);
       setContent('');
       // 重置输入区域高度
       setInputHeight(100);
     }
-  }, [content, selectedModel, onSend, nodeType, selectedResolution, selectedAspectRatio]);
+  }, [content, selectedModel, onSend, nodeType, selectedResolution, selectedAspectRatio, selectedVideoQuality, selectedVideoDuration, selectedVideoAspectRatio]);
   
   // 处理键盘快捷键
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -122,7 +163,7 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
         setIsModelMenuOpen(false);
       }
       
-      // 关闭分辨率菜单
+      // 关闭图片分辨率菜单
       if (
         resolutionMenuRef.current &&
         !resolutionMenuRef.current.contains(event.target as Node) &&
@@ -131,13 +172,40 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
         setIsResolutionMenuOpen(false);
       }
       
-      // 关闭宽高比菜单
+      // 关闭图片宽高比菜单
       if (
         aspectRatioMenuRef.current &&
         !aspectRatioMenuRef.current.contains(event.target as Node) &&
         !isClickOnButton
       ) {
         setIsAspectRatioMenuOpen(false);
+      }
+      
+      // 关闭视频清晰度菜单
+      if (
+        videoQualityMenuRef.current &&
+        !videoQualityMenuRef.current.contains(event.target as Node) &&
+        !isClickOnButton
+      ) {
+        setIsVideoQualityMenuOpen(false);
+      }
+      
+      // 关闭视频时长菜单
+      if (
+        videoDurationMenuRef.current &&
+        !videoDurationMenuRef.current.contains(event.target as Node) &&
+        !isClickOnButton
+      ) {
+        setIsVideoDurationMenuOpen(false);
+      }
+      
+      // 关闭视频宽高比菜单
+      if (
+        videoAspectRatioMenuRef.current &&
+        !videoAspectRatioMenuRef.current.contains(event.target as Node) &&
+        !isClickOnButton
+      ) {
+        setIsVideoAspectRatioMenuOpen(false);
       }
     };
     
@@ -323,6 +391,122 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
                           setIsAspectRatioMenuOpen(false);
                         }}
                         className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selectedAspectRatio === ratio ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
+                      >
+                        {ratio}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+          
+          {/* 视频节点专属配置按钮 */}
+          {nodeType === 'video' && (
+            <>
+              {/* 清晰度按钮 */}
+              <div className="relative" ref={videoQualityMenuRef}>
+                <button
+                  onClick={() => setIsVideoQualityMenuOpen(!isVideoQualityMenuOpen)}
+                  className="flex items-center gap-2 px-4 py-2 bg-white rounded-full hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  <span className="text-sm font-medium text-gray-700">{selectedVideoQuality}</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`w-4 h-4 text-gray-500 transition-transform ${isVideoQualityMenuOpen ? 'transform rotate-180' : ''}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                
+                {/* 清晰度下拉菜单 */}
+                {isVideoQualityMenuOpen && (
+                  <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-1001">
+                    {videoQualities.map((quality) => (
+                      <button
+                        key={quality}
+                        onClick={() => {
+                          setSelectedVideoQuality(quality);
+                          setIsVideoQualityMenuOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selectedVideoQuality === quality ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
+                      >
+                        {quality}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              {/* 时长按钮 */}
+              <div className="relative" ref={videoDurationMenuRef}>
+                <button
+                  onClick={() => setIsVideoDurationMenuOpen(!isVideoDurationMenuOpen)}
+                  className="flex items-center gap-2 px-4 py-2 bg-white rounded-full hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  <span className="text-sm font-medium text-gray-700">{selectedVideoDuration}</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`w-4 h-4 text-gray-500 transition-transform ${isVideoDurationMenuOpen ? 'transform rotate-180' : ''}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                
+                {/* 时长下拉菜单 */}
+                {isVideoDurationMenuOpen && (
+                  <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-1001">
+                    {videoDurations.map((duration) => (
+                      <button
+                        key={duration}
+                        onClick={() => {
+                          setSelectedVideoDuration(duration);
+                          setIsVideoDurationMenuOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selectedVideoDuration === duration ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
+                      >
+                        {duration}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              {/* 宽高比按钮 */}
+              <div className="relative" ref={videoAspectRatioMenuRef}>
+                <button
+                  onClick={() => setIsVideoAspectRatioMenuOpen(!isVideoAspectRatioMenuOpen)}
+                  className="flex items-center gap-2 px-4 py-2 bg-white rounded-full hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  <span className="text-sm font-medium text-gray-700">{selectedVideoAspectRatio}</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`w-4 h-4 text-gray-500 transition-transform ${isVideoAspectRatioMenuOpen ? 'transform rotate-180' : ''}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                
+                {/* 宽高比下拉菜单 */}
+                {isVideoAspectRatioMenuOpen && (
+                  <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-1001">
+                    {videoAspectRatios.map((ratio) => (
+                      <button
+                        key={ratio}
+                        onClick={() => {
+                          setSelectedVideoAspectRatio(ratio);
+                          setIsVideoAspectRatioMenuOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selectedVideoAspectRatio === ratio ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
                       >
                         {ratio}
                       </button>
