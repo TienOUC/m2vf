@@ -1,12 +1,14 @@
 'use client';
 
-import { memo, useEffect } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import { NodeResizeControl } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { VideoFile } from '@mui/icons-material';
 import { useFileUpload } from '@/hooks/utils/useFileUpload';
 import { NodeBase } from './NodeBase';
 import { ResizeIcon } from '@/components/editor';
+import videojs from 'video.js';
+import 'video.js/dist/video-js.css';
 
 export interface VideoNodeData {
   label?: string;
@@ -17,6 +19,8 @@ export interface VideoNodeData {
 
 function VideoNode({ data, id, selected, ...rest }: NodeProps) {
   const nodeData = data as VideoNodeData;
+  const videoRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<videojs.Player | null>(null);
 
   // 使用公共 hook 处理文件上传
   const {
@@ -33,6 +37,42 @@ function VideoNode({ data, id, selected, ...rest }: NodeProps) {
       setVideoUrl(nodeData.videoUrl);
     }
   }, [nodeData?.videoUrl, videoUrl, setVideoUrl]);
+
+  // 初始化和更新 Video.js 播放器
+  useEffect(() => {
+    if (!videoRef.current || !videoUrl) {
+      return;
+    }
+
+    // 销毁已存在的播放器
+    if (playerRef.current) {
+      playerRef.current.dispose();
+      playerRef.current = null;
+    }
+
+    // 创建新的播放器
+    playerRef.current = videojs(videoRef.current, {
+      controls: true,
+      autoplay: false,
+      preload: 'auto',
+      responsive: true,
+      fluid: true,
+      sources: [
+        {
+          src: videoUrl,
+          type: 'video/mp4'
+        }
+      ]
+    });
+
+    // 组件卸载时销毁播放器
+    return () => {
+      if (playerRef.current) {
+        playerRef.current.dispose();
+        playerRef.current = null;
+      }
+    };
+  }, [videoUrl]);
 
   // 视频选择回调，更新 videoUrl
   const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,13 +102,7 @@ function VideoNode({ data, id, selected, ...rest }: NodeProps) {
       <div className="absolute inset-0 p-2">
         {videoUrl ? (
           <div className="h-full w-full">
-            <video
-              src={videoUrl}
-              controls
-              className="w-full h-full object-contain rounded-md"
-            >
-              您的浏览器不支持视频播放
-            </video>
+            <div ref={videoRef} className="video-js vjs-theme-sea vjs-big-play-centered w-full h-full rounded-md" />
           </div>
         ) : (
           <button
