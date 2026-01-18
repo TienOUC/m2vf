@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { uploadProjectImage } from '@/lib/api/client/images';
+import { uploadProjectImage, uploadProjectVideo } from '@/lib/api/client/images';
 
 export function useFileUpload(acceptType: string, initialUrl?: string) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -23,8 +23,13 @@ export function useFileUpload(acceptType: string, initialUrl?: string) {
         const projectId = 1;
         const folderId = 1;
         
-        // 调用实际的上传API
-        const response = await uploadProjectImage(projectId, folderId, file, file.name);
+        // 根据文件类型调用不同的上传API
+        let response;
+        if (file.type.startsWith('video/')) {
+          response = await uploadProjectVideo(projectId, folderId, file, file.name);
+        } else {
+          response = await uploadProjectImage(projectId, folderId, file, file.name);
+        }
         
         if (response.ok) {
           const data = await response.json();

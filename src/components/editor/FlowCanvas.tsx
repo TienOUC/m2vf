@@ -224,10 +224,39 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
   
   // 处理对话框发送
   const handleDialogSend = useCallback((content: string, model: string, config?: Record<string, any>) => {
-    console.log('Dialog send:', { content, model, config, nodeId: selectedNode?.id });
-    // 这里可以添加发送逻辑，例如调用API或更新节点内容
+    if (!selectedNode) return;
+
+    console.log('Dialog send:', { content, model, config, nodeId: selectedNode.id });
+
+    // 如果是视频节点，处理视频生成逻辑
+    if (selectedNode.type === 'video') {
+      // 更新节点状态为加载中
+      nodeOperations.setNodes((prevNodes) =>
+        prevNodes.map((node) =>
+          node.id === selectedNode.id
+            ? { ...node, data: { ...node.data, isLoading: true } }
+            : node
+        )
+      );
+
+      // 模拟后端请求
+      setTimeout(() => {
+        // 模拟生成的视频URL
+        const mockVideoUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+
+        // 更新节点数据，添加视频URL并关闭loading状态
+        nodeOperations.setNodes((prevNodes) =>
+          prevNodes.map((node) =>
+            node.id === selectedNode.id
+              ? { ...node, data: { ...node.data, videoUrl: mockVideoUrl, isLoading: false } }
+              : node
+          )
+        );
+      }, 3000);
+    }
+
     handleDialogClose();
-  }, [selectedNode?.id, handleDialogClose]);
+  }, [selectedNode, handleDialogClose, nodeOperations.setNodes]);
   
   // 处理画布点击事件，关闭对话框
   const handlePaneClick = useCallback((event: React.MouseEvent) => {

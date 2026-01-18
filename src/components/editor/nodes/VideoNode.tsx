@@ -1,12 +1,12 @@
 'use client';
 
-import { memo, useEffect, useRef } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { NodeResizeControl } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { VideoFile } from '@mui/icons-material';
-import { useFileUpload } from '@/hooks/utils/useFileUpload';
 import { NodeBase } from './NodeBase';
 import { ResizeIcon } from '@/components/editor';
+import { ScanningAnimation } from '@/components/editor/ScanningAnimation';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 
@@ -14,29 +14,16 @@ export interface VideoNodeData {
   label?: string;
   videoUrl?: string;
   onDelete?: (nodeId: string) => void;
-  onReplace?: (nodeId: string) => void;
+  isLoading?: boolean;
+  onGenerateVideo?: (nodeId: string, prompt: string, config: any) => void;
 }
 
-function VideoNode({ data, id, selected, ...rest }: NodeProps) {
+function VideoNode({ data, id, selected }: NodeProps) {
   const nodeData = data as VideoNodeData;
   const videoRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<videojs.Player | null>(null);
-
-  // 使用公共 hook 处理文件上传
-  const {
-    fileInputRef,
-    fileUrl: videoUrl,
-    setFileUrl: setVideoUrl,
-    handleFileSelect,
-    handleButtonClick
-  } = useFileUpload('video/');
-
-  // 如果初始有视频 URL，使用它 - 修复为useEffect
-  useEffect(() => {
-    if (nodeData?.videoUrl && !videoUrl) {
-      setVideoUrl(nodeData.videoUrl);
-    }
-  }, [nodeData?.videoUrl, videoUrl, setVideoUrl]);
+  const playerRef = useRef<ReturnType<typeof videojs> | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const videoUrl = nodeData.videoUrl;
 
   // 初始化和更新 Video.js 播放器
   useEffect(() => {
@@ -50,6 +37,16 @@ function VideoNode({ data, id, selected, ...rest }: NodeProps) {
       playerRef.current = null;
     }
 
+    // 确定视频类型
+    let videoType = 'video/mp4';
+    // 如果是Data URL，尝试从URL中提取类型
+    if (videoUrl.startsWith('data:')) {
+      const typeMatch = videoUrl.match(/data:(video\/[^;]+);/);
+      if (typeMatch && typeMatch[1]) {
+        videoType = typeMatch[1];
+      }
+    }
+
     // 创建新的播放器
     playerRef.current = videojs(videoRef.current, {
       controls: true,
@@ -60,7 +57,7 @@ function VideoNode({ data, id, selected, ...rest }: NodeProps) {
       sources: [
         {
           src: videoUrl,
-          type: 'video/mp4'
+          type: videoType
         }
       ]
     });
@@ -74,11 +71,14 @@ function VideoNode({ data, id, selected, ...rest }: NodeProps) {
     };
   }, [videoUrl]);
 
-  // 视频选择回调，更新 videoUrl
-  const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleFileSelect(e, (url) => {
-      setVideoUrl(url);
-    });
+  // 处理首尾帧生成视频点击事件
+  const handleFirstLastFrameGenerate = () => {
+    console.log('首尾帧生成视频');
+  };
+
+  // 处理首帧生成视频点击事件
+  const handleFirstFrameGenerate = () => {
+    console.log('首帧生成视频');
   };
 
   const controlStyle = {
@@ -94,7 +94,6 @@ function VideoNode({ data, id, selected, ...rest }: NodeProps) {
       icon={<VideoFile fontSize="small" className="text-gray-500" />}
       title="视频"
       nodeType="video"
-      onReplace={handleButtonClick}
     >
       <NodeResizeControl className="group" style={controlStyle} minWidth={100} minHeight={50}>
         <ResizeIcon className="absolute right-0 bottom-0" />
@@ -105,21 +104,30 @@ function VideoNode({ data, id, selected, ...rest }: NodeProps) {
             <div ref={videoRef} className="video-js vjs-theme-sea vjs-big-play-centered w-full h-full rounded-md" />
           </div>
         ) : (
-          <button
-            onClick={handleButtonClick}
-            className="w-full h-full border border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center hover:border-gray-500 hover:bg-gray-50 transition-colors text-gray-500"
-          >
-            <VideoFile className="text-3xl mb-2" />
-            <span className="text-xs">点击上传视频</span>
-          </button>
+          <>
+            {/* 显示loading状态或生成选项 */}
+            {isLoading || nodeData.isLoading ? (
+              <div className="w-full h-full">
+                <ScanningAnimation isActive={true} duration={1500} />
+              </div>
+            ) : (
+              <div className="w-full h-full flex flex-col items-start justify-center gap-2 p-4">
+                <button
+                  onClick={handleFirstLastFrameGenerate}
+                  className="px-3 py-1 text-xs text-gray-700 rounded-full hover:bg-gray-100 transition-colors"
+                >
+                  首尾帧生成视频
+                </button>
+                <button
+                  onClick={handleFirstFrameGenerate}
+                  className="px-3 py-1 text-xs text-gray-700 rounded-full hover:bg-gray-100 transition-colors"
+                >
+                  首帧生成视频
+                </button>
+              </div>
+            )}
+          </>
         )}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="video/*"
-          onChange={handleVideoSelect}
-          className="hidden"
-        />
       </div>
     </NodeBase>
   );
