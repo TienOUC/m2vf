@@ -223,8 +223,8 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
   }, []);
   
   // 处理对话框发送
-  const handleDialogSend = useCallback((content: string, model: string) => {
-    console.log('Dialog send:', { content, model, nodeId: selectedNode?.id });
+  const handleDialogSend = useCallback((content: string, model: string, config?: Record<string, any>) => {
+    console.log('Dialog send:', { content, model, config, nodeId: selectedNode?.id });
     // 这里可以添加发送逻辑，例如调用API或更新节点内容
     handleDialogClose();
   }, [selectedNode?.id, handleDialogClose]);
