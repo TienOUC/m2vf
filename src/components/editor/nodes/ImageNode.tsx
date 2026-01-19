@@ -66,10 +66,9 @@ function ImageNode({ data, id, selected }: NodeProps) {
             />
           </div>
         ) : isLoading ? (
-          <div className="h-full w-full relative flex items-center justify-center">
-            {/* 加载状态指示器 */}
-            <div className="w-12 h-12 border-4 border-gray-800 border-t-transparent rounded-full animate-spin"></div>
-            <div className="absolute inset-0 bg-white bg-opacity-70 rounded-md"></div>
+          <div className="h-full w-full">
+            {/* 与视频节点保持一致的loading样式 */}
+            <ScanningAnimation isActive={true} duration={1500} />
           </div>
         ) : imageUrl ? (
           <div className="h-full w-full relative">

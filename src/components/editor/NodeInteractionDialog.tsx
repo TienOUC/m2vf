@@ -280,7 +280,7 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
   // 计算对话框的最终位置
   const calculateDialogPosition = useCallback(() => {
     const dialogWidth = 650;
-    const padding = 10;
+    const padding = 20;
     
     // 始终将对话框定位在节点底部，不进行视口边界检测
     const x = position.x - dialogWidth / 2;

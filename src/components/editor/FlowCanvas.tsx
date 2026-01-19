@@ -578,10 +578,58 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
           )
         );
       }, 3000);
+    } 
+    // 如果是图片节点，处理图片生成逻辑
+    else if (selectedNode.type === 'image') {
+      // 更新节点状态：清除旧图片、显示loading和processing
+      nodeOperations.setNodes((prevNodes) =>
+        prevNodes.map((node) =>
+          node.id === selectedNode.id
+            ? { ...node, data: { ...node.data, isLoading: true, isProcessing: true, imageUrl: undefined } }
+            : node
+        )
+      );
+
+      // 构建请求参数
+      const requestParams = {
+        content,
+        model,
+        config: {
+          ...config
+        },
+        nodeId: selectedNode.id
+      };
+
+      console.log('发送图片生成请求:', requestParams);
+
+      // 模拟后端请求 - 实际项目中应该替换为真实的API调用
+      setTimeout(() => {
+        // 模拟生成的图片URL，添加时间戳参数确保每次URL都不同
+        const mockImageUrl = 'https://picsum.photos/800/600?timestamp=' + Date.now();
+
+        // 更新节点数据，添加图片URL并关闭loading和processing状态
+        nodeOperations.setNodes((prevNodes) =>
+          prevNodes.map((node) =>
+            node.id === selectedNode.id
+              ? { ...node, data: { ...node.data, imageUrl: mockImageUrl, isLoading: false, isProcessing: false } }
+              : node
+          )
+        );
+
+        // 更新全局存储
+        setTimeout(() => {
+          const imageNodesStore = useImageNodesStore.getState();
+          imageNodesStore.setImageNode(selectedNode.id, {
+            id: selectedNode.id,
+            imageUrl: mockImageUrl,
+            position: selectedNode.position
+          });
+        }, 0);
+      }, 3000);
 
       // 真实API调用示例（注释部分）
       /*
-      fetch('/api/generate-video', {
+      fetch('/api/generate-image', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -590,22 +638,32 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
       })
       .then(response => response.json())
       .then(data => {
-        // 更新节点数据，添加视频URL并关闭loading状态
+        // 更新节点数据，添加图片URL并关闭loading和processing状态
         nodeOperations.setNodes((prevNodes) =>
           prevNodes.map((node) =>
             node.id === selectedNode.id
-              ? { ...node, data: { ...node.data, videoUrl: data.videoUrl, isLoading: false } }
+              ? { ...node, data: { ...node.data, imageUrl: data.imageUrl, isLoading: false, isProcessing: false } }
               : node
           )
         );
+
+        // 更新全局存储
+        setTimeout(() => {
+          const imageNodesStore = useImageNodesStore.getState();
+          imageNodesStore.setImageNode(selectedNode.id, {
+            id: selectedNode.id,
+            imageUrl: data.imageUrl,
+            position: selectedNode.position
+          });
+        }, 0);
       })
       .catch(error => {
-        console.error('视频生成失败:', error);
-        // 出错时关闭loading状态
+        console.error('图片生成失败:', error);
+        // 出错时关闭loading和processing状态
         nodeOperations.setNodes((prevNodes) =>
           prevNodes.map((node) =>
             node.id === selectedNode.id
-              ? { ...node, data: { ...node.data, isLoading: false } }
+              ? { ...node, data: { ...node.data, isLoading: false, isProcessing: false, error: '图片生成失败' } }
               : node
           )
         );

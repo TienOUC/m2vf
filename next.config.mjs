@@ -6,6 +6,18 @@ const nextConfig = {
     } : false,
   },
 
+  // 图片配置，仅在开发环境允许picsum.photos域名
+  images: process.env.NODE_ENV === 'development' ? {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+        pathname: '/**',
+      },
+    ],
+  } : {},
+
+
   // 代理到后端，只在开发环境启用
   async rewrites() {
     // 只在开发环境启用代理
