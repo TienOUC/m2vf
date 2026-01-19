@@ -20,22 +20,22 @@ interface UseNodeAdditionProps {
   onFirstFrameGenerate?: (nodeId: string) => void;
 }
 
-export const useNodeAddition = ({
-  nodeId,
-  setNodeId,
-  setNodes,
-  handleDelete,
-  handleBackgroundColorChange,
-  handleImageUpdate,
-  handleFontTypeChange,
-  onEditingChange,
-  onEditStart,
-  onCropStart,
-  handleDownload,
-  handleBackgroundRemove,
-  onFirstLastFrameGenerate,
-  onFirstFrameGenerate,
-}) => {
+export const useNodeAddition = ({ 
+  nodeId, 
+  setNodeId, 
+  setNodes, 
+  handleDelete, 
+  handleBackgroundColorChange, 
+  handleImageUpdate, 
+  handleFontTypeChange, 
+  onEditingChange, 
+  onEditStart, 
+  onCropStart, 
+  handleDownload, 
+  handleBackgroundRemove, 
+  onFirstLastFrameGenerate, 
+  onFirstFrameGenerate 
+}: UseNodeAdditionProps) => {
   const { screenToFlowPosition } = useReactFlow();
 
   // 添加文本节点函数
@@ -75,9 +75,9 @@ export const useNodeAddition = ({
       };
 
       // 先更新React Flow节点列表
-      setNodes((nds) => {
+      setNodes((nds: Node[]) => {
         // 检查是否已经存在相同ID的节点，避免重复添加
-        if (!nds.some(node => node.id === newNode.id)) {
+        if (!nds.some((node: Node) => node.id === newNode.id)) {
           return nds.concat(newNode);
         }
         // 如果节点已存在，不添加并记录警告
@@ -97,7 +97,7 @@ export const useNodeAddition = ({
         });
       }, 0);
       
-      setNodeId((prevId) => prevId + 1);
+      setNodeId((prevId: number) => prevId + 1);
     },
     [nodeId, setNodes, screenToFlowPosition, handleDelete, handleBackgroundColorChange, handleFontTypeChange, onEditingChange, setNodeId]
   );
@@ -135,7 +135,7 @@ export const useNodeAddition = ({
       };
 
       // 先更新React Flow节点列表
-      setNodes((nds) => nds.concat(newNode));
+      setNodes((nds: Node[]) => nds.concat(newNode));
       
       // 然后在渲染完成后更新全局存储，避免在渲染过程中更新状态
       setTimeout(() => {
@@ -146,7 +146,7 @@ export const useNodeAddition = ({
         });
       }, 0);
       
-      setNodeId((prevId) => prevId + 1);
+      setNodeId((prevId: number) => prevId + 1);
     },
     [nodeId, setNodes, screenToFlowPosition, handleDelete, handleImageUpdate, onEditStart, onCropStart, handleDownload, handleBackgroundRemove, setNodeId]
   );
@@ -176,8 +176,8 @@ export const useNodeAddition = ({
         },
       };
 
-      setNodes((nds) => nds.concat(newNode));
-      setNodeId((prevId) => prevId + 1);
+      setNodes((nds: Node[]) => nds.concat(newNode));
+      setNodeId((prevId: number) => prevId + 1);
     },
     [nodeId, setNodes, screenToFlowPosition, handleDelete, onFirstLastFrameGenerate, onFirstFrameGenerate, setNodeId]
   );

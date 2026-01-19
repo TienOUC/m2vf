@@ -194,8 +194,24 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
       }
     };
 
-    // 添加新节点
-    nodeOperations.setNodes(prevNodes => [...prevNodes, firstFrameNode, lastFrameNode]);
+    // 添加新节点并更新视频节点状态
+    nodeOperations.setNodes(prevNodes => {
+      // 更新视频节点，标记为已连接帧节点
+      const updatedNodes = prevNodes.map(node => {
+        if (node.id === videoNodeId && node.type === 'video' && node.data) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              hasConnectedFrameNodes: true
+            }
+          };
+        }
+        return node;
+      });
+      // 添加新的图片节点
+      return [...updatedNodes, firstFrameNode, lastFrameNode];
+    });
 
     // 添加连接
     const newEdges = [
@@ -277,8 +293,24 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
       }
     };
 
-    // 添加新节点
-    nodeOperations.setNodes(prevNodes => [...prevNodes, firstFrameNode]);
+    // 添加新节点并更新视频节点状态
+    nodeOperations.setNodes(prevNodes => {
+      // 更新视频节点，标记为已连接帧节点
+      const updatedNodes = prevNodes.map(node => {
+        if (node.id === videoNodeId && node.type === 'video' && node.data) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              hasConnectedFrameNodes: true
+            }
+          };
+        }
+        return node;
+      });
+      // 添加新的图片节点
+      return [...updatedNodes, firstFrameNode];
+    });
 
     // 添加连接
     const newEdges = [
@@ -535,8 +567,8 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
 
       // 模拟后端请求 - 实际项目中应该替换为真实的API调用
       setTimeout(() => {
-        // 模拟生成的视频URL
-        const mockVideoUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+        // 模拟生成的视频URL，添加时间戳参数确保每次URL都不同
+        const mockVideoUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4?timestamp=' + Date.now();
 
         // 更新节点数据，添加视频URL并关闭loading状态
         nodeOperations.setNodes((prevNodes) =>
