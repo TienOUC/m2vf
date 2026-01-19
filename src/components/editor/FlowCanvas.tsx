@@ -6,7 +6,6 @@ import {
   ReactFlow,
   Background,
   Controls,
-  MiniMap,
   addEdge,
   type OnConnect,
   type Edge,
@@ -25,7 +24,7 @@ import { useCropOperations } from '@/hooks/utils/useCropOperations';
 import { usePaneInteractions } from '@/hooks/editor/usePaneInteractions';
 import { useNodeAddition } from '@/hooks/editor/useNodeAddition';
 import { useNodeCentering } from '@/hooks/editor/useNodeCentering';
-import { useBackgroundRemoval } from '@/hooks/editor/useBackgroundRemoval'; // 新增：导入背景移除hook
+import { useBackgroundRemoval } from '@/hooks/editor/useBackgroundRemoval'; 
 import { useImageNodesStore } from '@/lib/stores/imageNodesStore';
 import { useEdgesStore } from '@/lib/stores/edgesStore';
 
@@ -703,12 +702,14 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
             color="var(--color-neutral-400)"
           />
           <Controls />
-          <MiniMap />
 
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-background/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-md border border-neutral-200 z-10 flex items-center gap-2">
-            <Add fontSize="small" />
-            <span className="text-sm text-neutral-600">双击添加节点</span>
-          </div>
+
+          {nodeOperations.nodes.length === 0 && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-background/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-md border border-neutral-200 z-10 flex items-center gap-2">
+              <Add fontSize="small" />
+              <span className="text-sm text-neutral-600">双击添加节点</span>
+            </div>
+          )}
 
           <LeftSidebar
             onAddTextNode={addTextNode}

@@ -59,7 +59,7 @@ export const ScanningAnimation: React.FC<ScanningAnimationProps> = ({
   const scanPosition = progress * 100; // 百分比位置
 
   return (
-    <div className={`relative w-full h-full overflow-hidden rounded-md bg-gradient-to-br from-gray-100 via-blue-50 to-gray-100 ${className}`}>
+    <div className={`relative w-full h-full overflow-hidden rounded-md bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100 ${className}`}>
       {/* 动态网格效果 */}
       <div 
         className="absolute inset-0 opacity-30"
@@ -80,17 +80,11 @@ export const ScanningAnimation: React.FC<ScanningAnimationProps> = ({
           transform: 'translateX(-20px)',
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500 to-transparent shadow-lg shadow-blue-500/50" />
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-400 to-transparent blur-sm opacity-60" />
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-500 to-transparent shadow-lg shadow-gray-500/50" />
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-400 to-transparent blur-sm opacity-60" />
       </div>
 
-      {/* 进度指示器 */}
-      <div className="absolute top-1/2 left-0 right-0 flex justify-center transform -translate-y-1/2 z-10">
-        <div className="bg-black bg-opacity-70 text-white text-xs px-3 py-1 rounded-full flex items-center space-x-1">
-          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-          <span className="min-w-[36px] text-center">{Math.round(progress * 100)}%</span>
-        </div>
-      </div>
+
 
 
       {/* 动态光点效果 */}
