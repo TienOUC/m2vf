@@ -17,6 +17,7 @@ interface UseNodeAdditionProps {
   onEditStart?: (nodeId: string) => void;
   onCropStart?: (nodeId: string, imageUrl: string) => void;
   onFirstLastFrameGenerate?: (nodeId: string) => void;
+  onFirstFrameGenerate?: (nodeId: string) => void;
 }
 
 export const useNodeAddition = ({
@@ -33,7 +34,8 @@ export const useNodeAddition = ({
   handleDownload,
   handleBackgroundRemove,
   onFirstLastFrameGenerate,
-}: UseNodeAdditionProps & { handleDownload?: (nodeId: string) => void }) => {
+  onFirstFrameGenerate,
+}) => {
   const { screenToFlowPosition } = useReactFlow();
 
   // 添加文本节点函数
@@ -170,13 +172,14 @@ export const useNodeAddition = ({
             console.log(`替换节点 ${id} 的文件`);
           },
           ...(onFirstLastFrameGenerate && { onFirstLastFrameGenerate }),
+          ...(onFirstFrameGenerate && { onFirstFrameGenerate }),
         },
       };
 
       setNodes((nds) => nds.concat(newNode));
       setNodeId((prevId) => prevId + 1);
     },
-    [nodeId, setNodes, screenToFlowPosition, handleDelete, onFirstLastFrameGenerate, setNodeId]
+    [nodeId, setNodes, screenToFlowPosition, handleDelete, onFirstLastFrameGenerate, onFirstFrameGenerate, setNodeId]
   );
 
   return {

@@ -238,31 +238,123 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
     setNodeId(prevId => prevId + 1);
   }, [nodeOperations.nodes, nodeOperations.setNodes, nodeOperations.setEdges, nodeOperations.handleDelete, nodeOperations.handleImageUpdate, nodeOperations.handleDownload, cropOperations.handleEditStart, cropOperations.handleCropStart, handleBackgroundRemove, nodeId, setNodeId]);
 
+  // 处理首帧生成视频事件
+  const handleFirstFrameGenerate = useCallback((videoNodeId: string) => {
+    console.log('处理首帧生成视频事件', videoNodeId);
+    // 找到触发事件的视频节点
+    const videoNode = nodeOperations.nodes.find(node => node.id === videoNodeId);
+    if (!videoNode) return;
+
+    // 计算新图片节点的位置（视频节点左侧）
+    const firstFramePos = {
+      x: videoNode.position.x - 200,
+      y: videoNode.position.y
+    };
+
+    // 生成唯一ID
+    const timestampSuffix = Date.now().toString().slice(-4);
+    const firstFrameNodeId = `node-${nodeId}-${timestampSuffix}-first`;
+
+    // 创建首帧图片节点
+    const firstFrameNode = {
+      id: firstFrameNodeId,
+      type: 'image' as const,
+      position: firstFramePos,
+      data: {
+        label: '图片节点',
+        imageUrl: undefined,
+        onDelete: nodeOperations.handleDelete,
+        onImageUpdate: nodeOperations.handleImageUpdate,
+        onDownload: nodeOperations.handleDownload,
+        onReplace: (id: string) => {
+          console.log(`替换节点 ${id} 的文件`);
+        },
+        onEditStart: cropOperations.handleEditStart,
+        onCropStart: cropOperations.handleCropStart,
+        onBackgroundRemove: handleBackgroundRemove,
+        // 添加首帧标识
+        frameType: 'first' as const
+      }
+    };
+
+    // 添加新节点
+    nodeOperations.setNodes(prevNodes => [...prevNodes, firstFrameNode]);
+
+    // 添加连接
+    const newEdges = [
+      {
+        id: `${firstFrameNodeId}-${videoNodeId}`,
+        source: firstFrameNodeId,
+        target: videoNodeId,
+        type: 'simplebezier' as const
+      }
+    ];
+
+    nodeOperations.setEdges(prevEdges => [...prevEdges, ...newEdges]);
+
+    // 更新全局存储
+    setTimeout(() => {
+      const imageNodesStore = useImageNodesStore.getState();
+      imageNodesStore.setImageNode(firstFrameNodeId, {
+        id: firstFrameNodeId,
+        imageUrl: undefined,
+        position: firstFramePos
+      });
+      
+      // 更新边存储
+      const edgesStore = useEdgesStore.getState();
+      edgesStore.setEdges([...edgesStore.getAllEdges(), ...newEdges]);
+    }, 0);
+
+    // 更新nodeId，确保后续节点ID唯一
+    setNodeId(prevId => prevId + 1);
+  }, [nodeOperations.nodes, nodeOperations.setNodes, nodeOperations.setEdges, nodeOperations.handleDelete, nodeOperations.handleImageUpdate, nodeOperations.handleDownload, cropOperations.handleEditStart, cropOperations.handleCropStart, handleBackgroundRemove, nodeId, setNodeId]);
+
+  // 使用ref保存最新的首帧生成视频回调函数，避免依赖循环
+  const handleFirstFrameGenerateRef = useRef<(videoNodeId: string) => void>();
+
   // 更新ref中的回调函数
   useEffect(() => {
     handleFirstLastFrameGenerateRef.current = handleFirstLastFrameGenerate;
-  }, [handleFirstLastFrameGenerate]);
+    handleFirstFrameGenerateRef.current = handleFirstFrameGenerate;
+  }, [handleFirstLastFrameGenerate, handleFirstFrameGenerate]);
 
-  // 确保所有视频节点都有onFirstLastFrameGenerate回调
+  // 确保所有视频节点都有必要的回调函数
   // 只在组件初始化时运行一次，避免监听节点变化导致的无限循环
   useEffect(() => {
     nodeOperations.setNodes(prevNodes => {
       let hasUpdates = false;
       const updatedNodes = prevNodes.map(node => {
-        if (node.type === 'video' && node.data && typeof node.data.onFirstLastFrameGenerate !== 'function') {
-          hasUpdates = true;
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              onFirstLastFrameGenerate: (videoNodeId: string) => {
-                // 调用ref中的最新回调函数
-                if (handleFirstLastFrameGenerateRef.current) {
-                  handleFirstLastFrameGenerateRef.current(videoNodeId);
-                }
+        if (node.type === 'video' && node.data) {
+          // 检查是否需要更新回调函数
+          const needsFirstLastFrameUpdate = typeof node.data.onFirstLastFrameGenerate !== 'function';
+          const needsFirstFrameUpdateOnly = typeof node.data.onFirstFrameGenerate !== 'function';
+          
+          if (needsFirstLastFrameUpdate || needsFirstFrameUpdateOnly) {
+            hasUpdates = true;
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                ...(needsFirstLastFrameUpdate && {
+                  onFirstLastFrameGenerate: (videoNodeId: string) => {
+                    // 调用ref中的最新回调函数
+                    if (handleFirstLastFrameGenerateRef.current) {
+                      handleFirstLastFrameGenerateRef.current(videoNodeId);
+                    }
+                  }
+                }),
+                ...(needsFirstFrameUpdateOnly && {
+                  onFirstFrameGenerate: (videoNodeId: string) => {
+                    // 调用ref中的最新回调函数
+                    if (handleFirstFrameGenerateRef.current) {
+                      handleFirstFrameGenerateRef.current(videoNodeId);
+                    }
+                  }
+                })
               }
-            }
-          };
+            };
+          }
         }
         return node;
       });
@@ -284,7 +376,8 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
     onCropStart: cropOperations.handleCropStart,
     handleDownload: nodeOperations.handleDownload,
     handleBackgroundRemove: handleBackgroundRemove,
-    onFirstLastFrameGenerate: (id) => handleFirstLastFrameGenerateRef.current?.(id)
+    onFirstLastFrameGenerate: (id) => handleFirstLastFrameGenerateRef.current?.(id),
+    onFirstFrameGenerate: (id) => handleFirstFrameGenerateRef.current?.(id)
   });
 
   const paneInteractions = usePaneInteractions(
@@ -410,9 +503,9 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
       // 查找与视频节点相连的首帧和尾帧图片节点
       const { firstFrameUrl, lastFrameUrl } = findConnectedFrameNodes();
       
-      // 确保首帧和尾帧图片都已上传
-      if (!firstFrameUrl || !lastFrameUrl) {
-        console.warn('首帧或尾帧图片未上传');
+      // 确保首帧图片已上传（尾帧可选）
+      if (!firstFrameUrl) {
+        console.warn('首帧图片未上传');
         // 可以在这里添加用户提示
         return;
       }

@@ -17,6 +17,7 @@ export interface VideoNodeData {
   isLoading?: boolean;
   onGenerateVideo?: (nodeId: string, prompt: string, config: any) => void;
   onFirstLastFrameGenerate?: (nodeId: string) => void;
+  onFirstFrameGenerate?: (nodeId: string) => void;
 }
 
 function VideoNode({ data, id, selected }: NodeProps) {
@@ -127,7 +128,12 @@ function VideoNode({ data, id, selected }: NodeProps) {
 
   // 处理首帧生成视频点击事件
   const handleFirstFrameGenerate = () => {
-    console.log('首帧生成视频');
+    console.log('VideoNode首帧生成视频按钮点击事件触发，节点ID:', id);
+    console.log('onFirstFrameGenerate回调存在:', !!nodeData.onFirstFrameGenerate);
+    if (nodeData.onFirstFrameGenerate) {
+      console.log('调用onFirstFrameGenerate回调');
+      nodeData.onFirstFrameGenerate(id);
+    }
   };
 
   const controlStyle = {
