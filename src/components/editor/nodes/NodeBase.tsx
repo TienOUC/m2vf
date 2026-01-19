@@ -62,7 +62,7 @@ export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
   return (
     <div
       ref={ref}
-      className="rounded-lg w-full h-full relative transition-colors duration-150 shadow-sm hover:shadow-md"
+      className="rounded-lg w-full h-full relative transition-colors duration-150 shadow-sm hover:shadow-md border border-gray-100"
       style={{ 
         backgroundColor: backgroundColor || 'white',
         minWidth: '180px', 

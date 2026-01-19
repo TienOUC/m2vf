@@ -48,6 +48,13 @@ function ImageNode({ data, id, selected }: NodeProps) {
       onBackgroundRemove={nodeData?.onBackgroundRemove}
       hasImage={!!imageUrl}
     >
+      {/* 首帧/尾帧标签 */}
+      {nodeData.frameType && (
+        <div className="absolute -top-4 left-0 text-gray-400 text-xs z-10">
+          {nodeData.frameType === 'first' ? '首帧' : '尾帧'}
+        </div>
+      )}
+      
       <div className="absolute inset-0 p-2">
         {/* 处理中状态：显示扫描动画 */}
         {isProcessing ? (

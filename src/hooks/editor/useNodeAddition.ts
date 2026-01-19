@@ -16,6 +16,7 @@ interface UseNodeAdditionProps {
   onEditingChange?: (nodeId: string, editing: boolean) => void;
   onEditStart?: (nodeId: string) => void;
   onCropStart?: (nodeId: string, imageUrl: string) => void;
+  onFirstLastFrameGenerate?: (nodeId: string) => void;
 }
 
 export const useNodeAddition = ({
@@ -31,6 +32,7 @@ export const useNodeAddition = ({
   onCropStart,
   handleDownload,
   handleBackgroundRemove,
+  onFirstLastFrameGenerate,
 }: UseNodeAdditionProps & { handleDownload?: (nodeId: string) => void }) => {
   const { screenToFlowPosition } = useReactFlow();
 
@@ -167,13 +169,14 @@ export const useNodeAddition = ({
           onReplace: (id: string) => {
             console.log(`替换节点 ${id} 的文件`);
           },
+          ...(onFirstLastFrameGenerate && { onFirstLastFrameGenerate }),
         },
       };
 
       setNodes((nds) => nds.concat(newNode));
       setNodeId((prevId) => prevId + 1);
     },
-    [nodeId, setNodes, screenToFlowPosition, handleDelete, setNodeId]
+    [nodeId, setNodes, screenToFlowPosition, handleDelete, onFirstLastFrameGenerate, setNodeId]
   );
 
   return {

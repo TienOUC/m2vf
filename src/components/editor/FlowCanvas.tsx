@@ -26,6 +26,8 @@ import { usePaneInteractions } from '@/hooks/editor/usePaneInteractions';
 import { useNodeAddition } from '@/hooks/editor/useNodeAddition';
 import { useNodeCentering } from '@/hooks/editor/useNodeCentering';
 import { useBackgroundRemoval } from '@/hooks/editor/useBackgroundRemoval'; // 新增：导入背景移除hook
+import { useImageNodesStore } from '@/lib/stores/imageNodesStore';
+import { useEdgesStore } from '@/lib/stores/edgesStore';
 
 import FloatingMenu from '@/components/ui/FloatingMenu';
 import MenuButton from '@/components/ui/MenuButton';
@@ -123,6 +125,152 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
     }
   }, [nodeOperations.nodes]);
 
+  // 使用ref保存最新的回调函数，避免依赖循环
+  const handleFirstLastFrameGenerateRef = useRef<(videoNodeId: string) => void>();
+
+  // 处理首尾帧生成视频事件
+  const handleFirstLastFrameGenerate = useCallback((videoNodeId: string) => {
+    console.log('处理首尾帧生成视频事件', videoNodeId);
+    // 找到触发事件的视频节点
+    const videoNode = nodeOperations.nodes.find(node => node.id === videoNodeId);
+    if (!videoNode) return;
+
+    // 计算新图片节点的位置（视频节点左侧，上下排列）
+    const firstFramePos = {
+      x: videoNode.position.x - 200,
+      y: videoNode.position.y - 50
+    };
+    const lastFramePos = {
+      x: videoNode.position.x - 200,
+      y: videoNode.position.y + 100
+    };
+
+    // 生成唯一ID
+    const timestampSuffix = Date.now().toString().slice(-4);
+    const firstFrameNodeId = `node-${nodeId}-${timestampSuffix}-first`;
+    const lastFrameNodeId = `node-${nodeId}-${timestampSuffix}-last`;
+
+    // 创建首帧图片节点
+    const firstFrameNode = {
+      id: firstFrameNodeId,
+      type: 'image' as const,
+      position: firstFramePos,
+      data: {
+        label: '图片节点',
+        imageUrl: undefined,
+        onDelete: nodeOperations.handleDelete,
+        onImageUpdate: nodeOperations.handleImageUpdate,
+        onDownload: nodeOperations.handleDownload,
+        onReplace: (id: string) => {
+          console.log(`替换节点 ${id} 的文件`);
+        },
+        onEditStart: cropOperations.handleEditStart,
+        onCropStart: cropOperations.handleCropStart,
+        onBackgroundRemove: handleBackgroundRemove,
+        // 添加首尾帧标识
+        frameType: 'first' as const
+      }
+    };
+
+    // 创建尾帧图片节点
+    const lastFrameNode = {
+      id: lastFrameNodeId,
+      type: 'image' as const,
+      position: lastFramePos,
+      data: {
+        label: '图片节点',
+        imageUrl: undefined,
+        onDelete: nodeOperations.handleDelete,
+        onImageUpdate: nodeOperations.handleImageUpdate,
+        onDownload: nodeOperations.handleDownload,
+        onReplace: (id: string) => {
+          console.log(`替换节点 ${id} 的文件`);
+        },
+        onEditStart: cropOperations.handleEditStart,
+        onCropStart: cropOperations.handleCropStart,
+        onBackgroundRemove: handleBackgroundRemove,
+        // 添加首尾帧标识
+        frameType: 'last' as const
+      }
+    };
+
+    // 添加新节点
+    nodeOperations.setNodes(prevNodes => [...prevNodes, firstFrameNode, lastFrameNode]);
+
+    // 添加连接
+    const newEdges = [
+      {
+        id: `${firstFrameNodeId}-${videoNodeId}`,
+        source: firstFrameNodeId,
+        target: videoNodeId,
+        type: 'simplebezier' as const
+      },
+      {
+        id: `${lastFrameNodeId}-${videoNodeId}`,
+        source: lastFrameNodeId,
+        target: videoNodeId,
+        type: 'simplebezier' as const
+      }
+    ];
+
+    nodeOperations.setEdges(prevEdges => [...prevEdges, ...newEdges]);
+
+    // 更新全局存储
+    setTimeout(() => {
+      const imageNodesStore = useImageNodesStore.getState();
+      imageNodesStore.setImageNode(firstFrameNodeId, {
+        id: firstFrameNodeId,
+        imageUrl: undefined,
+        position: firstFramePos
+      });
+      imageNodesStore.setImageNode(lastFrameNodeId, {
+        id: lastFrameNodeId,
+        imageUrl: undefined,
+        position: lastFramePos
+      });
+      
+      // 更新边存储
+      const edgesStore = useEdgesStore.getState();
+      edgesStore.setEdges([...edgesStore.getAllEdges(), ...newEdges]);
+    }, 0);
+
+    // 更新nodeId，确保后续节点ID唯一
+    setNodeId(prevId => prevId + 1);
+  }, [nodeOperations.nodes, nodeOperations.setNodes, nodeOperations.setEdges, nodeOperations.handleDelete, nodeOperations.handleImageUpdate, nodeOperations.handleDownload, cropOperations.handleEditStart, cropOperations.handleCropStart, handleBackgroundRemove, nodeId, setNodeId]);
+
+  // 更新ref中的回调函数
+  useEffect(() => {
+    handleFirstLastFrameGenerateRef.current = handleFirstLastFrameGenerate;
+  }, [handleFirstLastFrameGenerate]);
+
+  // 确保所有视频节点都有onFirstLastFrameGenerate回调
+  // 只在组件初始化时运行一次，避免监听节点变化导致的无限循环
+  useEffect(() => {
+    nodeOperations.setNodes(prevNodes => {
+      let hasUpdates = false;
+      const updatedNodes = prevNodes.map(node => {
+        if (node.type === 'video' && node.data && typeof node.data.onFirstLastFrameGenerate !== 'function') {
+          hasUpdates = true;
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              onFirstLastFrameGenerate: (videoNodeId: string) => {
+                // 调用ref中的最新回调函数
+                if (handleFirstLastFrameGenerateRef.current) {
+                  handleFirstLastFrameGenerateRef.current(videoNodeId);
+                }
+              }
+            }
+          };
+        }
+        return node;
+      });
+      // 只有当确实需要更新节点时才返回新的节点列表，避免不必要的更新
+      return hasUpdates ? updatedNodes : prevNodes;
+    });
+  }, []); // 空依赖数组，只在组件挂载时运行一次
+
   const { addTextNode, addImageNode, addVideoNode } = useNodeAddition({
     nodeId,
     setNodeId,
@@ -135,7 +283,8 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
     onEditStart: cropOperations.handleEditStart,
     onCropStart: cropOperations.handleCropStart,
     handleDownload: nodeOperations.handleDownload,
-    handleBackgroundRemove: handleBackgroundRemove
+    handleBackgroundRemove: handleBackgroundRemove,
+    onFirstLastFrameGenerate: (id) => handleFirstLastFrameGenerateRef.current?.(id)
   });
 
   const paneInteractions = usePaneInteractions(
@@ -222,24 +371,76 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
     setSelectedNode(null);
   }, []);
   
+  // 查找与视频节点相连的首帧和尾帧图片节点
+  const findConnectedFrameNodes = useCallback(() => {
+    if (!selectedNode || selectedNode.type !== 'video') {
+      return { firstFrameUrl: undefined, lastFrameUrl: undefined };
+    }
+
+    // 查找所有指向当前视频节点的边
+    const incomingEdges = nodeOperations.edges.filter(edge => edge.target === selectedNode.id);
+    
+    // 查找首帧和尾帧图片节点
+    let firstFrameUrl: string | undefined;
+    let lastFrameUrl: string | undefined;
+
+    for (const edge of incomingEdges) {
+      // 查找边的源节点
+      const sourceNode = nodeOperations.nodes.find(node => node.id === edge.source);
+      if (sourceNode && sourceNode.type === 'image' && sourceNode.data) {
+        // 检查是否是首帧或尾帧节点
+        const imageData = sourceNode.data as any;
+        if (imageData.frameType === 'first') {
+          firstFrameUrl = imageData.imageUrl;
+        } else if (imageData.frameType === 'last') {
+          lastFrameUrl = imageData.imageUrl;
+        }
+      }
+    }
+
+    return { firstFrameUrl, lastFrameUrl };
+  }, [selectedNode, nodeOperations.nodes, nodeOperations.edges]);
+
   // 处理对话框发送
   const handleDialogSend = useCallback((content: string, model: string, config?: Record<string, any>) => {
     if (!selectedNode) return;
 
-    console.log('Dialog send:', { content, model, config, nodeId: selectedNode.id });
-
     // 如果是视频节点，处理视频生成逻辑
     if (selectedNode.type === 'video') {
-      // 更新节点状态为加载中
+      // 查找与视频节点相连的首帧和尾帧图片节点
+      const { firstFrameUrl, lastFrameUrl } = findConnectedFrameNodes();
+      
+      // 确保首帧和尾帧图片都已上传
+      if (!firstFrameUrl || !lastFrameUrl) {
+        console.warn('首帧或尾帧图片未上传');
+        // 可以在这里添加用户提示
+        return;
+      }
+
+      // 更新节点状态：清除旧视频、显示loading
       nodeOperations.setNodes((prevNodes) =>
         prevNodes.map((node) =>
           node.id === selectedNode.id
-            ? { ...node, data: { ...node.data, isLoading: true } }
+            ? { ...node, data: { ...node.data, isLoading: true, videoUrl: undefined } }
             : node
         )
       );
 
-      // 模拟后端请求
+      // 构建请求参数
+      const requestParams = {
+        content,
+        model,
+        config: {
+          ...config,
+          firstFrameUrl,
+          lastFrameUrl
+        },
+        nodeId: selectedNode.id
+      };
+
+      console.log('发送视频生成请求:', requestParams);
+
+      // 模拟后端请求 - 实际项目中应该替换为真实的API调用
       setTimeout(() => {
         // 模拟生成的视频URL
         const mockVideoUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
@@ -253,10 +454,43 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
           )
         );
       }, 3000);
+
+      // 真实API调用示例（注释部分）
+      /*
+      fetch('/api/generate-video', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestParams),
+      })
+      .then(response => response.json())
+      .then(data => {
+        // 更新节点数据，添加视频URL并关闭loading状态
+        nodeOperations.setNodes((prevNodes) =>
+          prevNodes.map((node) =>
+            node.id === selectedNode.id
+              ? { ...node, data: { ...node.data, videoUrl: data.videoUrl, isLoading: false } }
+              : node
+          )
+        );
+      })
+      .catch(error => {
+        console.error('视频生成失败:', error);
+        // 出错时关闭loading状态
+        nodeOperations.setNodes((prevNodes) =>
+          prevNodes.map((node) =>
+            node.id === selectedNode.id
+              ? { ...node, data: { ...node.data, isLoading: false } }
+              : node
+          )
+        );
+      });
+      */
     }
 
     handleDialogClose();
-  }, [selectedNode, handleDialogClose, nodeOperations.setNodes]);
+  }, [selectedNode, handleDialogClose, nodeOperations.setNodes, findConnectedFrameNodes]);
   
   // 处理画布点击事件，关闭对话框
   const handlePaneClick = useCallback((event: React.MouseEvent) => {
@@ -427,6 +661,7 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
           nodeType={selectedNode.type as 'text' | 'image' | 'video'}
           onClose={handleDialogClose}
           onSend={handleDialogSend}
+          {...findConnectedFrameNodes()}
         />
       )}
 

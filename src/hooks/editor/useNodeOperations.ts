@@ -101,6 +101,10 @@ export const useNodeOperations = (options: UseNodeOperationsOptions = {}): NodeO
 
   const handleDelete = useCallback((nodeId: string) => {
     try {
+      // 获取当前所有节点和边，用于确定需要删除的相关节点
+      const currentNodes = nodes;
+      const currentEdges = edges;
+      
       // 1. 立即从全局状态中删除节点数据
       const textNodesStore = useTextNodesStore.getState();
       textNodesStore.deleteTextNode(nodeId);
@@ -108,17 +112,42 @@ export const useNodeOperations = (options: UseNodeOperationsOptions = {}): NodeO
       const imageNodesStore = useImageNodesStore.getState();
       imageNodesStore.deleteImageNode(nodeId);
       
-      // 2. 使用函数式更新来确保获取最新的节点和边
+      // 2. 确定需要删除的节点ID列表
+      const nodesToDelete = [nodeId];
+      
+      // 如果是视频节点，找到与之相连的首帧和尾帧图片节点
+      const isVideoNode = currentNodes.some(node => node.id === nodeId && node.type === 'video');
+      if (isVideoNode) {
+        // 获取所有与该视频节点相连的图片节点
+        const connectedImageNodes = currentNodes.filter(node => {
+          return node.type === 'image' && 
+                 currentEdges.some(edge => edge.target === nodeId && edge.source === node.id);
+        });
+        
+        // 将这些图片节点添加到删除列表
+        connectedImageNodes.forEach(imageNode => {
+          nodesToDelete.push(imageNode.id);
+          // 从全局状态中删除这些图片节点的数据
+          imageNodesStore.deleteImageNode(imageNode.id);
+        });
+      }
+      
+      // 3. 使用函数式更新来确保获取最新的节点和边
       setNodes((prevNodes) => {
-        const updatedNodes = prevNodes.filter((node) => node.id !== nodeId);
+        // 删除所有标记的节点
+        const updatedNodes = prevNodes.filter((node) => !nodesToDelete.includes(node.id));
         return updatedNodes;
       });
       
-      // 3. 同步更新边，确保获取最新的边数据
+      // 4. 同步更新边，确保获取最新的边数据
       setEdges((prevEdges) => {
-        const updatedEdges = prevEdges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId);
+        // 删除所有与标记节点相关的边
+        const updatedEdges = prevEdges.filter((edge) => 
+          !nodesToDelete.includes(edge.source) && 
+          !nodesToDelete.includes(edge.target)
+        );
         
-        // 4. 立即更新全局状态中的边
+        // 5. 立即更新全局状态中的边
         useEdgesStore.getState().setEdges(updatedEdges);
         return updatedEdges;
       });
@@ -130,7 +159,7 @@ export const useNodeOperations = (options: UseNodeOperationsOptions = {}): NodeO
       // 由于已经尝试修改节点和边，如果失败需要回滚
       // 但考虑到回滚的复杂性，这里仅记录错误
     }
-  }, [setNodes, setEdges]);
+  }, [setNodes, setEdges, nodes, edges]);
 
   const handleBackgroundColorChange = useCallback((nodeId: string, color: string) => {
     setNodes((nds) =>
@@ -274,6 +303,8 @@ export const useNodeOperations = (options: UseNodeOperationsOptions = {}): NodeO
       setIsInitialized(true);
     }
   }, [setNodes, setEdges, handleDelete, handleBackgroundColorChange, handleFontTypeChange, handleEditingChange, handleReplace, handleImageUpdate, handleDownload, isInitialized, nodes.length, edges.length, onEditStart, onCropStart, onBackgroundRemove]);
+
+
 
   // 监听节点变化，保存位置和宽高信息到全局状态
   useEffect(() => {

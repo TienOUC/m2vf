@@ -9,6 +9,9 @@ interface NodeInteractionDialogProps {
   nodeType: 'text' | 'image' | 'video';
   onClose: () => void;
   onSend: (content: string, model: string, config?: Record<string, any>) => void;
+  // 首帧和尾帧图片URL，用于视频节点
+  firstFrameUrl?: string;
+  lastFrameUrl?: string;
 }
 
 const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
@@ -16,12 +19,34 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
   position,
   nodeType,
   onClose,
-  onSend
+  onSend,
+  firstFrameUrl,
+  lastFrameUrl
 }) => {
+  // 使用本地状态管理缩略图URL，支持删除功能
+  const [localFirstFrameUrl, setLocalFirstFrameUrl] = useState(firstFrameUrl);
+  const [localLastFrameUrl, setLocalLastFrameUrl] = useState(lastFrameUrl);
+  
+  // 当props变化时更新本地状态
+  useEffect(() => {
+    setLocalFirstFrameUrl(firstFrameUrl);
+    setLocalLastFrameUrl(lastFrameUrl);
+  }, [firstFrameUrl, lastFrameUrl]);
+  
   const [content, setContent] = useState('');
   const [selectedModel, setSelectedModel] = useState('Default Model');
   const [isModelMenuOpen, setIsModelMenuOpen] = useState(false);
   const [inputHeight, setInputHeight] = useState(100);
+  
+  // 处理首帧删除
+  const handleDeleteFirstFrame = useCallback(() => {
+    setLocalFirstFrameUrl(undefined);
+  }, []);
+  
+  // 处理尾帧删除
+  const handleDeleteLastFrame = useCallback(() => {
+    setLocalLastFrameUrl(undefined);
+  }, []);
   
   // 图片节点配置
   const [selectedResolution, setSelectedResolution] = useState('1K');
@@ -120,7 +145,10 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
         config = {
           quality: selectedVideoQuality,
           duration: selectedVideoDuration,
-          aspectRatio: selectedVideoAspectRatio
+          aspectRatio: selectedVideoAspectRatio,
+          // 使用本地状态的首帧和尾帧图片URL，支持删除功能
+          firstFrameUrl: localFirstFrameUrl,
+          lastFrameUrl: localLastFrameUrl
         };
       }
       onSend(content, selectedModel, config);
@@ -128,7 +156,83 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
       // 重置输入区域高度
       setInputHeight(100);
     }
-  }, [content, selectedModel, onSend, nodeType, selectedResolution, selectedAspectRatio, selectedVideoQuality, selectedVideoDuration, selectedVideoAspectRatio]);
+  }, [content, selectedModel, onSend, nodeType, selectedResolution, selectedAspectRatio, selectedVideoQuality, selectedVideoDuration, selectedVideoAspectRatio, localFirstFrameUrl, localLastFrameUrl]);
+  
+  // 关闭所有下拉菜单
+  const closeAllMenus = useCallback(() => {
+    setIsModelMenuOpen(false);
+    setIsResolutionMenuOpen(false);
+    setIsAspectRatioMenuOpen(false);
+    setIsVideoQualityMenuOpen(false);
+    setIsVideoDurationMenuOpen(false);
+    setIsVideoAspectRatioMenuOpen(false);
+  }, []);
+  
+  // 处理模型菜单点击
+  const handleModelMenuClick = useCallback(() => {
+    setIsModelMenuOpen(prev => !prev);
+    // 关闭其他菜单
+    setIsResolutionMenuOpen(false);
+    setIsAspectRatioMenuOpen(false);
+    setIsVideoQualityMenuOpen(false);
+    setIsVideoDurationMenuOpen(false);
+    setIsVideoAspectRatioMenuOpen(false);
+  }, []);
+  
+  // 处理图片分辨率菜单点击
+  const handleResolutionMenuClick = useCallback(() => {
+    setIsResolutionMenuOpen(prev => !prev);
+    // 关闭其他菜单
+    setIsModelMenuOpen(false);
+    setIsAspectRatioMenuOpen(false);
+    setIsVideoQualityMenuOpen(false);
+    setIsVideoDurationMenuOpen(false);
+    setIsVideoAspectRatioMenuOpen(false);
+  }, []);
+  
+  // 处理图片宽高比菜单点击
+  const handleAspectRatioMenuClick = useCallback(() => {
+    setIsAspectRatioMenuOpen(prev => !prev);
+    // 关闭其他菜单
+    setIsModelMenuOpen(false);
+    setIsResolutionMenuOpen(false);
+    setIsVideoQualityMenuOpen(false);
+    setIsVideoDurationMenuOpen(false);
+    setIsVideoAspectRatioMenuOpen(false);
+  }, []);
+  
+  // 处理视频清晰度菜单点击
+  const handleVideoQualityMenuClick = useCallback(() => {
+    setIsVideoQualityMenuOpen(prev => !prev);
+    // 关闭其他菜单
+    setIsModelMenuOpen(false);
+    setIsResolutionMenuOpen(false);
+    setIsAspectRatioMenuOpen(false);
+    setIsVideoDurationMenuOpen(false);
+    setIsVideoAspectRatioMenuOpen(false);
+  }, []);
+  
+  // 处理视频时长菜单点击
+  const handleVideoDurationMenuClick = useCallback(() => {
+    setIsVideoDurationMenuOpen(prev => !prev);
+    // 关闭其他菜单
+    setIsModelMenuOpen(false);
+    setIsResolutionMenuOpen(false);
+    setIsAspectRatioMenuOpen(false);
+    setIsVideoQualityMenuOpen(false);
+    setIsVideoAspectRatioMenuOpen(false);
+  }, []);
+  
+  // 处理视频宽高比菜单点击
+  const handleVideoAspectRatioMenuClick = useCallback(() => {
+    setIsVideoAspectRatioMenuOpen(prev => !prev);
+    // 关闭其他菜单
+    setIsModelMenuOpen(false);
+    setIsResolutionMenuOpen(false);
+    setIsAspectRatioMenuOpen(false);
+    setIsVideoQualityMenuOpen(false);
+    setIsVideoDurationMenuOpen(false);
+  }, []);
   
   // 处理键盘快捷键
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -149,63 +253,21 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
   // 点击外部关闭所有菜单
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // 如果点击的不是任何菜单内容，也不是按钮本身，就关闭所有菜单
       const dialogButtons = dialogRef.current?.querySelectorAll('button') || [];
       const isClickOnButton = Array.from(dialogButtons).some(button => 
         button.contains(event.target as Node)
       );
       
-      // 关闭模型菜单
-      if (
-        modelMenuRef.current &&
-        !modelMenuRef.current.contains(event.target as Node) &&
-        !isClickOnButton
-      ) {
-        setIsModelMenuOpen(false);
-      }
+      // 检查是否点击在任何菜单内部
+      const menus = [modelMenuRef, resolutionMenuRef, aspectRatioMenuRef, videoQualityMenuRef, videoDurationMenuRef, videoAspectRatioMenuRef];
+      const isClickOnMenu = menus.some(menuRef => 
+        menuRef.current?.contains(event.target as Node)
+      );
       
-      // 关闭图片分辨率菜单
-      if (
-        resolutionMenuRef.current &&
-        !resolutionMenuRef.current.contains(event.target as Node) &&
-        !isClickOnButton
-      ) {
-        setIsResolutionMenuOpen(false);
-      }
-      
-      // 关闭图片宽高比菜单
-      if (
-        aspectRatioMenuRef.current &&
-        !aspectRatioMenuRef.current.contains(event.target as Node) &&
-        !isClickOnButton
-      ) {
-        setIsAspectRatioMenuOpen(false);
-      }
-      
-      // 关闭视频清晰度菜单
-      if (
-        videoQualityMenuRef.current &&
-        !videoQualityMenuRef.current.contains(event.target as Node) &&
-        !isClickOnButton
-      ) {
-        setIsVideoQualityMenuOpen(false);
-      }
-      
-      // 关闭视频时长菜单
-      if (
-        videoDurationMenuRef.current &&
-        !videoDurationMenuRef.current.contains(event.target as Node) &&
-        !isClickOnButton
-      ) {
-        setIsVideoDurationMenuOpen(false);
-      }
-      
-      // 关闭视频宽高比菜单
-      if (
-        videoAspectRatioMenuRef.current &&
-        !videoAspectRatioMenuRef.current.contains(event.target as Node) &&
-        !isClickOnButton
-      ) {
-        setIsVideoAspectRatioMenuOpen(false);
+      // 如果点击的不是按钮也不是菜单内部，就关闭所有菜单
+      if (!isClickOnButton && !isClickOnMenu) {
+        closeAllMenus();
       }
     };
     
@@ -213,7 +275,7 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [closeAllMenus]);
   
   // 计算对话框的最终位置
   const calculateDialogPosition = useCallback(() => {
@@ -260,10 +322,65 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
         transform: 'translateY(0) scale(1)',
         backgroundColor: 'white',
         borderRadius: '8px',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
       }}
     >
+      {/* 首帧和尾帧图片缩略图 - 仅视频节点显示 */}
+      {nodeType === 'video' && (localFirstFrameUrl || localLastFrameUrl) && (
+        <div className="p-4 pb-0">
+          <div className="flex items-center gap-2">
+            {/* 首帧图片 */}
+            {localFirstFrameUrl && (
+              <div className="flex flex-col items-center relative">
+                <div className="w-[60px] h-[60px] rounded-lg overflow-hidden border border-gray-200 relative group">
+                  <img 
+                    src={localFirstFrameUrl} 
+                    alt="首帧" 
+                    className="w-full h-full object-cover transition-all duration-200 group-hover:brightness-90"
+                  />
+                  {/* 半透明模糊遮罩 */}
+                  <div className="absolute inset-0 bg-gray-500 bg-opacity-20 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                  {/* 删除按钮 */}
+                  <button
+                    onClick={handleDeleteFirstFrame}
+                    className="absolute top-0 right-0 w-6 h-6 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:scale-125"
+                    aria-label="删除首帧"
+                    style={{ fontSize: '20px' }}
+                  >
+                    ×
+                  </button>
+                </div>
+                <span className="text-xs text-gray-500 mt-1">首帧</span>
+              </div>
+            )}
+            {/* 尾帧图片 */}
+            {localLastFrameUrl && (
+              <div className="flex flex-col items-center relative">
+                <div className="w-[60px] h-[60px] rounded-lg overflow-hidden border border-gray-200 relative group">
+                  <img 
+                    src={localLastFrameUrl} 
+                    alt="尾帧" 
+                    className="w-full h-full object-cover transition-all duration-200 group-hover:brightness-90"
+                  />
+                  {/* 半透明模糊遮罩 */}
+                  <div className="absolute inset-0 bg-gray-500 bg-opacity-20 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                  {/* 删除按钮 */}
+                  <button
+                    onClick={handleDeleteLastFrame}
+                    className="absolute top-0 right-0 w-6 h-6 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:scale-125"
+                    aria-label="删除尾帧"
+                    style={{ fontSize: '20px'}}
+                  >
+                    ×
+                  </button>
+                </div>
+                <span className="text-xs text-gray-500 mt-1">尾帧</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
       {/* 富文本输入区域 */}
       <div
         ref={inputRef}
@@ -273,9 +390,8 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
           maxHeight: '300px',
           height: `${inputHeight}px`,
           overflowY: 'auto',
-          backgroundColor: '#fafafa',
-          borderRadius: '8px 8px 0 0',
-     
+          borderRadius: nodeType === 'video' && (firstFrameUrl || lastFrameUrl) ? '0' : '8px 8px 0 0',
+      
         }}
         contentEditable
         suppressContentEditableWarning
@@ -291,7 +407,7 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
           {/* 模型选择按钮 */}
           <div className="relative" ref={modelMenuRef}>
             <button
-              onClick={() => setIsModelMenuOpen(!isModelMenuOpen)}
+              onClick={handleModelMenuClick}
               className="flex items-center gap-2 px-4 py-2 bg-white rounded-full hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
               <span className="text-sm font-medium text-gray-700">{selectedModel}</span>
@@ -328,7 +444,7 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
               {/* 分辨率按钮 */}
               <div className="relative" ref={resolutionMenuRef}>
                 <button
-                  onClick={() => setIsResolutionMenuOpen(!isResolutionMenuOpen)}
+                  onClick={handleResolutionMenuClick}
                   className="flex items-center gap-2 px-4 py-2 bg-white rounded-full hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
                   <span className="text-sm font-medium text-gray-700">{selectedResolution}</span>
@@ -365,7 +481,7 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
               {/* 宽高比按钮 */}
               <div className="relative" ref={aspectRatioMenuRef}>
                 <button
-                  onClick={() => setIsAspectRatioMenuOpen(!isAspectRatioMenuOpen)}
+                  onClick={handleAspectRatioMenuClick}
                   className="flex items-center gap-2 px-4 py-2 bg-white rounded-full hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
                   <span className="text-sm font-medium text-gray-700">{selectedAspectRatio}</span>
@@ -407,7 +523,7 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
               {/* 清晰度按钮 */}
               <div className="relative" ref={videoQualityMenuRef}>
                 <button
-                  onClick={() => setIsVideoQualityMenuOpen(!isVideoQualityMenuOpen)}
+                  onClick={handleVideoQualityMenuClick}
                   className="flex items-center gap-2 px-4 py-2 bg-white rounded-full hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
                   <span className="text-sm font-medium text-gray-700">{selectedVideoQuality}</span>
@@ -444,7 +560,7 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
               {/* 时长按钮 */}
               <div className="relative" ref={videoDurationMenuRef}>
                 <button
-                  onClick={() => setIsVideoDurationMenuOpen(!isVideoDurationMenuOpen)}
+                  onClick={handleVideoDurationMenuClick}
                   className="flex items-center gap-2 px-4 py-2 bg-white rounded-full hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
                   <span className="text-sm font-medium text-gray-700">{selectedVideoDuration}</span>
@@ -481,7 +597,7 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
               {/* 宽高比按钮 */}
               <div className="relative" ref={videoAspectRatioMenuRef}>
                 <button
-                  onClick={() => setIsVideoAspectRatioMenuOpen(!isVideoAspectRatioMenuOpen)}
+                  onClick={handleVideoAspectRatioMenuClick}
                   className="flex items-center gap-2 px-4 py-2 bg-white rounded-full hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
                   <span className="text-sm font-medium text-gray-700">{selectedVideoAspectRatio}</span>

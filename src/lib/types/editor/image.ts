@@ -13,6 +13,7 @@ export interface ImageNodeData {
   isProcessing?: boolean; // 标记为处理中状态
   processingProgress?: number; // 处理进度
   error?: string;
+  frameType?: 'first' | 'last'; // 首帧或尾帧标识
   [key: string]: any; // 索引签名，解决类型约束问题
 }
 
