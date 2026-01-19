@@ -282,27 +282,12 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
     const dialogWidth = 650;
     const padding = 10;
     
-    let x = position.x - dialogWidth / 2;
-    let y = position.y + padding;
-    
-    // 确保对话框不会超出视口左侧
-    x = Math.max(0, x);
-    
-    // 确保对话框不会超出视口右侧
-    const viewportWidth = window.innerWidth;
-    if (x + dialogWidth > viewportWidth) {
-      x = viewportWidth - dialogWidth;
-    }
-    
-    // 确保对话框不会超出视口底部
-    const dialogHeight = 200 + Math.min(300, inputHeight); // 估计值，包含输入区域和按钮
-    const viewportHeight = window.innerHeight;
-    if (y + dialogHeight > viewportHeight) {
-      y = position.y - dialogHeight - padding;
-    }
+    // 始终将对话框定位在节点底部，不进行视口边界检测
+    const x = position.x - dialogWidth / 2;
+    const y = position.y + padding;
     
     return { x, y };
-  }, [position, inputHeight]);
+  }, [position]);
   
   const dialogPosition = calculateDialogPosition();
   
