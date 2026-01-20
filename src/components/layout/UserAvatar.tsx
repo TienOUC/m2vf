@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { logoutUser } from '@/lib/api/client/auth';
-import { Person, Logout } from '@mui/icons-material';
+import { User, LogOut } from 'lucide-react';
 
 interface UserAvatarProps {
   user: {
@@ -25,7 +25,7 @@ export default function UserAvatar({ user }: UserAvatarProps) {
         onClick={() => setIsMenuOpen(!isMenuOpen)}
         className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-primary-500 to-primary-600 rounded-full text-white font-medium hover:from-primary-600 hover:to-primary-700 transition"
       >
-        <Person fontSize="small" />
+        <User size={16} />
       </button>
 
       {/* 下拉菜单 */}
@@ -42,7 +42,7 @@ export default function UserAvatar({ user }: UserAvatarProps) {
             {/* 用户信息 */}
             <div className="px-4 py-3 border-b border-neutral-100">
               <div className="flex items-center gap-2">
-                <Person fontSize="small" className="text-neutral-600" />
+                <User size={16} className="text-neutral-600" />
                 <div className="flex flex-col">
                   <span className="text-sm font-medium text-foreground">
                     {user.name}
@@ -58,7 +58,7 @@ export default function UserAvatar({ user }: UserAvatarProps) {
                 onClick={handleLogout}
                 className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-neutral-50 transition flex items-center gap-2"
               >
-                <Logout fontSize="small" />
+                <LogOut size={16} />
                 退出登录
               </button>
             </div>

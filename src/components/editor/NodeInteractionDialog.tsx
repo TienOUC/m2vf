@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send } from '@mui/icons-material';
+import { Send } from 'lucide-react';
 
 interface NodeInteractionDialogProps {
   isVisible: boolean;
@@ -625,7 +625,7 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
           disabled={!content.trim()}
           className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${content.trim() ? 'bg-blue-500 hover:bg-blue-600 hover:scale-105 focus:ring-blue-500' : 'bg-gray-300 cursor-not-allowed focus:ring-gray-300'}`}
         >
-          <Send className={`w-5 h-5 ${content.trim() ? 'text-white' : 'text-gray-500'}`} />
+          <Send size={20} className={`${content.trim() ? 'text-white' : 'text-gray-500'}`} />
         </button>
       </div>
       

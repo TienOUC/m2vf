@@ -4,7 +4,7 @@ import { memo } from 'react';
 import { NodeResizeControl } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { NodeBase } from './NodeBase';
-import { getFontClass, isNotWhiteColor } from '@/lib/utils';
+import { getFontClass, isNotWhiteColor } from '@/lib/utils/text';
 import { ResizeIcon, FullscreenDialog, LexicalEditor } from '@/components/editor';
 import { useTextNode } from '@/hooks/nodes/useTextNode';
 import { TextNodeData } from '@/lib/types/editor/text';

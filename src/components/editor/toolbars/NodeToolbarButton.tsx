@@ -1,4 +1,4 @@
-import { Tooltip } from '@mui/material';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { memo } from 'react';
 
 interface ToolbarButtonProps {
@@ -20,14 +20,19 @@ const ToolbarButton = ({
 }: ToolbarButtonProps) => {
   return (
     <div className="relative group">
-      <Tooltip title={title} placement="top">
-        <button
-          onClick={onClick}
-          className={className}
-          aria-label={ariaLabel}
-        >
-          {icon}
-        </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={onClick}
+            className={className}
+            aria-label={ariaLabel}
+          >
+            {icon}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{title}</p>
+        </TooltipContent>
       </Tooltip>
       {children && (
         <div className="absolute left-0 top-9 bg-white rounded-md shadow-sm border border-gray-200 py-1 z-20 min-w-[120px] w-32 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useMemo, useCallback, useState } from 'react';
-import { Add, ArrowBack } from '@mui/icons-material';
+import { Plus, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { 
   ReactFlow,
@@ -32,7 +32,7 @@ import { useEdgesStore } from '@/lib/stores/edgesStore';
 
 import FloatingMenu from '@/components/ui/FloatingMenu';
 import MenuButton from '@/components/ui/MenuButton';
-import { TextFields, Image as ImageIcon, VideoFile } from '@mui/icons-material';
+import { Type, Image, Video } from 'lucide-react';
 
 export interface FlowCanvasProps {
   projectId: string | null;
@@ -741,7 +741,7 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
             e.currentTarget.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
           }}
         >
-          <ArrowBack sx={{ fontSize: 24, color: '#333' }} />
+          <ArrowLeft size={24} color="#333" />
         </div>
         
         <ReactFlow
@@ -775,7 +775,7 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
 
           {nodeOperations.nodes.length === 0 && (
             <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-background/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-md border border-neutral-200 z-10 flex items-center gap-2">
-              <Add fontSize="small" />
+              <Plus size={16} />
               <span className="text-sm text-neutral-600">双击添加节点</span>
             </div>
           )}
@@ -807,7 +807,7 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
                 width="w-48"
               >
                 <MenuButton
-                  icon={<TextFields fontSize="small" />}
+                  icon={<Type size={16} />}
                   label="文本"
                   onClick={() => {
                     if (paneInteractions.doubleClickPosition) {
@@ -819,7 +819,7 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
                   }}
                 />
                 <MenuButton
-                  icon={<ImageIcon fontSize="small" />}
+                  icon={<Image size={16} />}
                   label="图片"
                   onClick={() => {
                     if (paneInteractions.doubleClickPosition) {
@@ -831,7 +831,7 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
                   }}
                 />
                 <MenuButton
-                  icon={<VideoFile fontSize="small" />}
+                  icon={<Video size={16} />}
                   label="视频"
                   onClick={() => {
                     if (paneInteractions.doubleClickPosition) {

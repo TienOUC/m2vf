@@ -1,10 +1,10 @@
 import { NodeToolbar as ReactFlowNodeToolbar, Position } from '@xyflow/react';
-import { Image as ImageIcon, VideoFile, Palette, ContentCopy, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, HorizontalRule, Fullscreen, DeleteOutline, Crop, Brush, Download, AutoFixHigh } from '@mui/icons-material';
-import { Tooltip } from '@mui/material';
+import { Image, Video, Palette, Copy, Bold, Italic, List, ListOrdered, Minus, Maximize, Trash2, Crop, Brush, Download, Sparkles } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { memo, useState, useRef, useCallback } from 'react';
 import { useClickOutside } from '@/hooks';
 
-import { copyToClipboard, copyRichTextToClipboard } from '@/lib/utils';
+import { copyToClipboard, copyRichTextToClipboard } from '@/lib/utils/text';
 
 export interface NodeToolbarProps {
   nodeId: string;
@@ -158,13 +158,18 @@ const NodeToolbar = ({
     >
       <div className="grid grid-cols-4 gap-2">
         {colorOptions.map((color, index) => (
-          <Tooltip key={index} title={color.label} placement="top">
-            <button
-              onClick={() => handleBackgroundColorChange(color.value)}
-              className="w-8 h-8 rounded-full border border-gray-300 hover:scale-110 transition-transform"
-              style={{ backgroundColor: color.cssVar }}
-              aria-label={color.label}
-            />
+          <Tooltip key={index}>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => handleBackgroundColorChange(color.value)}
+                className="w-8 h-8 rounded-full border border-gray-300 hover:scale-110 transition-transform"
+                style={{ backgroundColor: color.cssVar }}
+                aria-label={color.label}
+              />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{color.label}</p>
+            </TooltipContent>
           </Tooltip>
         ))}
       </div>
@@ -179,145 +184,145 @@ const NodeToolbar = ({
       isVisible={selected}
       className="bg-white shadow-md rounded-full border border-gray-200 px-2 py-1 flex items-center gap-1"
     >
-      <Tooltip title="删除节点" placement="top">
-        <button
-          onClick={handleDelete}
-          className="w-8 h-8 p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
-          aria-label="删除节点"
-        >
-          <DeleteOutline fontSize="small" />
-        </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={handleDelete}
+            className="w-8 h-8 p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
+            aria-label="删除节点"
+          >
+            <Trash2 size={16} />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>删除节点</p>
+        </TooltipContent>
       </Tooltip>
       
 
       
       {/* 更换文件按钮 - 仅对图片和视频节点显示 */}
       {(type === 'image' || type === 'video') && (
-        <Tooltip 
-          title={type === 'image' && !hasImage ? "请先上传图片" : "更换文件"} 
-          placement="top"
-        >
-          <span>
-            <button
-              onClick={handleReplace}
-              className={`w-8 h-8 p-1 rounded-md transition-colors ${
-                type === 'image' && !hasImage 
-                  ? 'text-gray-300 cursor-not-allowed' 
-                  : 'text-gray-500 hover:text-blue-500 hover:bg-blue-50'
-              }`}
-              aria-label="更换文件"
-              disabled={type === 'image' && !hasImage}
-            >
-              {type === 'image' ? <ImageIcon fontSize="small" /> : <VideoFile fontSize="small" />}
-            </button>
-          </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span>
+              <button
+                onClick={handleReplace}
+                className={`w-8 h-8 p-1 rounded-md transition-colors ${type === 'image' && !hasImage ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-blue-500 hover:bg-blue-50'}`}
+                aria-label="更换文件"
+                disabled={type === 'image' && !hasImage}
+              >
+                {type === 'image' ? <Image size={16} /> : <Video size={16} />}
+              </button>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{type === 'image' && !hasImage ? "请先上传图片" : "更换文件"}</p>
+          </TooltipContent>
         </Tooltip>
       )}
       
       {/* 裁剪按钮 - 仅对图片节点显示 */}
       {type === 'image' && (
-        <Tooltip 
-          title={!hasImage ? "请先上传图片" : "裁剪图片"} 
-          placement="top"
-        >
-          <span>
-            <button
-              onClick={() => hasImage && onEditStart?.(nodeId)}
-              className={`w-8 h-8 p-1 rounded-md transition-colors ${
-                !hasImage 
-                  ? 'text-gray-300 cursor-not-allowed' 
-                  : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
-              }`}
-              aria-label="裁剪图片"
-              disabled={!hasImage}
-            >
-              <Crop fontSize="small" />
-            </button>
-          </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span>
+              <button
+                onClick={() => hasImage && onEditStart?.(nodeId)}
+                className={`w-8 h-8 p-1 rounded-md transition-colors ${!hasImage ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'}`}
+                aria-label="裁剪图片"
+                disabled={!hasImage}
+              >
+                <Crop size={16} />
+              </button>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{!hasImage ? "请先上传图片" : "裁剪图片"}</p>
+          </TooltipContent>
         </Tooltip>
       )}
       
       {/* 擦除按钮 - 仅对图片节点显示 */}
       {type === 'image' && (
-        <Tooltip 
-          title={!hasImage ? "请先上传图片" : "擦除"} 
-          placement="top"
-        >
-          <span>
-            <button
-              onClick={() => hasImage && onEraseStart?.(nodeId)}
-              className={`w-8 h-8 p-1 rounded-md transition-colors ${
-                !hasImage 
-                  ? 'text-gray-300 cursor-not-allowed' 
-                  : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
-              }`}
-              aria-label="擦除"
-              disabled={!hasImage}
-            >
-              <Brush fontSize="small" />
-            </button>
-          </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span>
+              <button
+                onClick={() => hasImage && onEraseStart?.(nodeId)}
+                className={`w-8 h-8 p-1 rounded-md transition-colors ${!hasImage ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'}`}
+                aria-label="擦除"
+                disabled={!hasImage}
+              >
+                <Brush size={16} />
+              </button>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{!hasImage ? "请先上传图片" : "擦除"}</p>
+          </TooltipContent>
         </Tooltip>
       )}
       
       {/* 下载按钮 - 仅对图片节点显示 */}
       {type === 'image' && (
-        <Tooltip 
-          title={!hasImage ? "请先上传图片" : "下载图片"} 
-          placement="top"
-        >
-          <span>
-            <button
-              onClick={() => hasImage && onDownload?.(nodeId)}
-              className={`w-8 h-8 p-1 rounded-md transition-colors ${
-                !hasImage 
-                  ? 'text-gray-300 cursor-not-allowed' 
-                  : 'text-gray-500 hover:text-green-600 hover:bg-green-50'
-              }`}
-              aria-label="下载图片"
-              disabled={!hasImage}
-            >
-              <Download fontSize="small" />
-            </button>
-          </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span>
+              <button
+                onClick={() => hasImage && onDownload?.(nodeId)}
+                className={`w-8 h-8 p-1 rounded-md transition-colors ${!hasImage ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-green-600 hover:bg-green-50'}`}
+                aria-label="下载图片"
+                disabled={!hasImage}
+              >
+                <Download size={16} />
+              </button>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{!hasImage ? "请先上传图片" : "下载图片"}</p>
+          </TooltipContent>
         </Tooltip>
       )}
       
       {/* 背景去除按钮 - 仅对图片节点显示 */}
       {type === 'image' && (
-        <Tooltip 
-          title={!hasImage ? "请先上传图片" : "抠图"} 
-          placement="top"
-        >
-          <span>
-            <button
-              onClick={handleBackgroundRemoveClick}
-              className={`w-8 h-8 p-1 rounded-md transition-colors ${
-                !hasImage 
-                  ? 'text-gray-300 cursor-not-allowed' 
-                  : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
-              }`}
-              aria-label="抠图"
-              disabled={!hasImage}
-            >
-              <AutoFixHigh fontSize="small" />
-            </button>
-          </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span>
+              <button
+                onClick={handleBackgroundRemoveClick}
+                className={`w-8 h-8 p-1 rounded-md transition-colors ${!hasImage ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'}`}
+                aria-label="抠图"
+                disabled={!hasImage}
+              >
+                <Sparkles size={16} />
+              </button>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{!hasImage ? "请先上传图片" : "抠图"}</p>
+          </TooltipContent>
         </Tooltip>
       )}
       
       {/* 背景色选择按钮 - 仅对文本节点显示 */}
       {type === 'text' && (
         <div className="relative">
-          <Tooltip title="设置背景色" placement="top">
-            <button
-              ref={colorPickerRef}
-              onClick={() => setColorPickerOpen(!colorPickerOpen)}
-              className="w-8 h-8 p-1 text-gray-500 hover:text-purple-500 hover:bg-purple-50  rounded-md transition-colors"
-              aria-label="设置背景色"
-            >
-              <Palette fontSize="small" />
-            </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                ref={colorPickerRef}
+                onClick={() => setColorPickerOpen(!colorPickerOpen)}
+                className="w-8 h-8 p-1 text-gray-500 hover:text-purple-500 hover:bg-purple-50  rounded-md transition-colors"
+                aria-label="设置背景色"
+              >
+                <Palette size={16} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>设置背景色</p>
+            </TooltipContent>
           </Tooltip>
           <ColorPickerPopover />
         </div>
@@ -327,48 +332,68 @@ const NodeToolbar = ({
       {/* 字体样式选择按钮 - 仅对文本节点显示 */}
       {type === 'text' && (
         <div className="flex gap-1">
-          <Tooltip title="H1标题" placement="top">
-            <button
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => handleFontTypeChange('h1')}
-              className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h1' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
-              aria-label="H1标题"
-            >
-              H1
-            </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => handleFontTypeChange('h1')}
+                className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h1' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
+                aria-label="H1标题"
+              >
+                H1
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>H1标题</p>
+            </TooltipContent>
           </Tooltip>
           
-          <Tooltip title="H2标题" placement="top">
-            <button
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => handleFontTypeChange('h2')}
-              className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h2' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
-              aria-label="H2标题"
-            >
-              H2
-            </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => handleFontTypeChange('h2')}
+                className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h2' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
+                aria-label="H2标题"
+              >
+                H2
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>H2标题</p>
+            </TooltipContent>
           </Tooltip>
           
-          <Tooltip title="H3标题" placement="top">
-            <button
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => handleFontTypeChange('h3')}
-              className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h3' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
-              aria-label="H3标题"
-            >
-              H3
-            </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => handleFontTypeChange('h3')}
+                className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h3' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
+                aria-label="H3标题"
+              >
+                H3
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>H3标题</p>
+            </TooltipContent>
           </Tooltip>
           
-          <Tooltip title="正文" placement="top">
-            <button
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => handleFontTypeChange('p')}
-              className={`w-8 h-8 p-1 text-sm rounded-md transition-colors ${fontType === 'p' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
-              aria-label="正文"
-            >
-              P
-            </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => handleFontTypeChange('p')}
+                className={`w-8 h-8 p-1 text-sm rounded-md transition-colors ${fontType === 'p' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
+                aria-label="正文"
+              >
+                P
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>正文</p>
+            </TooltipContent>
           </Tooltip>
         </div>
       )}
@@ -378,63 +403,88 @@ const NodeToolbar = ({
       {type === 'text' && (
         <>
           {/* 加粗按钮 */}
-          <Tooltip title="加粗" placement="top">
-            <button
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={handleBoldToggle}
-              className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
-              aria-label="加粗"
-            >
-              <FormatBold fontSize="small" />
-            </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={handleBoldToggle}
+                className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
+                aria-label="加粗"
+              >
+                <Bold size={16} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>加粗</p>
+            </TooltipContent>
           </Tooltip>
           
           {/* 斜体按钮 */}
-          <Tooltip title="斜体" placement="top">
-            <button
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={handleItalicToggle}
-              className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
-              aria-label="斜体"
-            >
-              <FormatItalic fontSize="small" />
-            </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={handleItalicToggle}
+                className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
+                aria-label="斜体"
+              >
+                <Italic size={16} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>斜体</p>
+            </TooltipContent>
           </Tooltip>
           
           {/* 无序列表按钮 */}
-          <Tooltip title="无序列表" placement="top">
-            <button
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={handleBulletListToggle}
-              className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
-              aria-label="无序列表"
-            >
-              <FormatListBulleted fontSize="small" />
-            </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={handleBulletListToggle}
+                className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
+                aria-label="无序列表"
+              >
+                <List size={16} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>无序列表</p>
+            </TooltipContent>
           </Tooltip>
           
           {/* 有序列表按钮 */}
-          <Tooltip title="有序列表" placement="top">
-            <button
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={handleNumberedListToggle}
-              className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
-              aria-label="有序列表"
-            >
-              <FormatListNumbered fontSize="small" />
-            </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={handleNumberedListToggle}
+                className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
+                aria-label="有序列表"
+              >
+                <ListOrdered size={16} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>有序列表</p>
+            </TooltipContent>
           </Tooltip>
           
           {/* 分割线按钮 */}
-          <Tooltip title="分割线" placement="top">
-            <button
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={handleHorizontalRuleInsert}
-              className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
-              aria-label="分割线"
-            >
-              <HorizontalRule fontSize="small" />
-            </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={handleHorizontalRuleInsert}
+                className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
+                aria-label="分割线"
+              >
+                <Minus size={16} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>分割线</p>
+            </TooltipContent>
           </Tooltip>
           <div className="w-px h-6 bg-gray-200 mx-1" />
         </>
@@ -442,27 +492,37 @@ const NodeToolbar = ({
       
       {/* 全屏按钮 - 仅对文本节点显示 */}
       {type === 'text' && (
-        <Tooltip title="全屏" placement="top">
-          <button
-            onClick={handleToggleFullscreen}
-            className="w-8 h-8 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
-            aria-label="全屏"
-          >
-            <Fullscreen fontSize="small" />
-          </button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={handleToggleFullscreen}
+              className="w-8 h-8 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+              aria-label="全屏"
+            >
+              <Maximize size={16} />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>全屏</p>
+          </TooltipContent>
         </Tooltip>
       )}
       
       {/* 复制文本内容按钮 - 仅对文本节点显示 */}
       {type === 'text' && (
-        <Tooltip title={copySuccess ? "已复制" : "复制全文"} placement="top">
-          <button
-            onClick={handleCopyText}
-            className={`w-8 h-8 p-1 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-md transition-colors ${copySuccess ? 'text-green-500' : ''}`}
-            aria-label="复制全文"
-          >
-            <ContentCopy fontSize="small" />
-          </button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={handleCopyText}
+              className={`w-8 h-8 p-1 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-md transition-colors ${copySuccess ? 'text-green-500' : ''}`}
+              aria-label="复制全文"
+            >
+              <Copy size={16} />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{copySuccess ? "已复制" : "复制全文"}</p>
+          </TooltipContent>
         </Tooltip>
       )}
     </ReactFlowNodeToolbar>

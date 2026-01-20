@@ -7,10 +7,7 @@ import { validateLoginCredential, validatePassword } from '@/lib/utils/validatio
 import { ROUTES } from '@/lib/config/api.config';
 import { useForm } from '@/hooks/utils/useForm';
 import { useAuthStore } from '@/lib/stores';
-import {
-  EnvelopeIcon,
-  LockClosedIcon
-} from '@heroicons/react/24/outline';
+import { Mail, Lock } from 'lucide-react';
 
 interface LoginFormValues {
   credential: string;
@@ -169,7 +166,7 @@ export default function LoginPage() {
                   邮箱或手机号
                 </label>
                 <div className="relative">
-                  <EnvelopeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
                   <input
                     id="credential"
                     name="credential"
@@ -198,7 +195,7 @@ export default function LoginPage() {
                   密码
                 </label>
                 <div className="relative">
-                  <LockClosedIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
                   <input
                     id="password"
                     name="password"

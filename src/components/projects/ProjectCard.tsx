@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ProjectEditModal from '@/components/projects/ProjectEditModal';
-import { Tooltip } from '@mui/material';
-import { AutoAwesome } from '@mui/icons-material';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Sparkles } from 'lucide-react';
 import { useProjectEditingStore } from '@/lib/stores';
 
 interface Project {
@@ -104,7 +104,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
       >
         {/* 图标背景层 */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <AutoAwesome className="text-neutral-100" style={{ fontSize: 140 }} />
+          <Sparkles className="text-neutral-100" size={140} />
         </div>
         
         {/* 内容层 */}
@@ -113,8 +113,13 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
             {/* 项目标题和操作按钮区域 */}
             <div className="flex justify-between items-start mb-4">
               {showTitleTooltip ? (
-                <Tooltip title={project.name} placement="top" arrow>
-                  <h3 ref={titleRef} className="text-xl font-bold text-foreground truncate flex-1 cursor-default">{project.name}</h3>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <h3 ref={titleRef} className="text-xl font-bold text-foreground truncate flex-1 cursor-default">{project.name}</h3>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{project.name}</p>
+                  </TooltipContent>
                 </Tooltip>
               ) : (
                 <h3 ref={titleRef} className="text-xl font-bold text-foreground truncate flex-1 cursor-default">{project.name}</h3>
@@ -144,8 +149,13 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
             {/* 项目描述区域 */}
             <div className="flex-1 mb-4">
               {showDescTooltip ? (
-                <Tooltip title={project.description} placement="top" arrow>
-                  <p ref={descRef} className="text-foreground text-sm line-clamp-4 cursor-default">{project.description}</p>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <p ref={descRef} className="text-foreground text-sm line-clamp-4 cursor-default">{project.description}</p>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{project.description}</p>
+                  </TooltipContent>
                 </Tooltip>
               ) : (
                 <p ref={descRef} className="text-foreground text-sm line-clamp-4 cursor-default">{project.description}</p>

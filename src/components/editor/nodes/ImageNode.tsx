@@ -2,7 +2,7 @@
 
 import { NodeResizeControl } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
-import { Image as ImageIcon } from '@mui/icons-material';
+import { Image as ImageIcon } from 'lucide-react';
 import { NodeBase } from './NodeBase';
 import { ResizeIcon } from '@/components/editor';
 import { ScanningAnimation } from '@/components/editor/ScanningAnimation';
@@ -77,6 +77,7 @@ function ImageNode({ data, id, selected }: NodeProps) {
               alt="上传的图片"
               fill
               sizes='100%'
+              priority
               className="object-contain rounded-md"
             />
             
@@ -92,7 +93,7 @@ function ImageNode({ data, id, selected }: NodeProps) {
             onClick={handleButtonClick}
             className="w-full h-full border border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center hover:border-gray-500 hover:bg-gray-50 transition-colors text-gray-500"
           >
-            <ImageIcon className="text-3xl mb-2" />
+            <ImageIcon size={48} className="mb-2" />
             <span className="text-xs">点击上传图片</span>
           </button>
         )}

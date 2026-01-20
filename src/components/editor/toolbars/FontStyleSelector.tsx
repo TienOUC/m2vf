@@ -1,4 +1,4 @@
-import { Title } from '@mui/icons-material';
+import { Type } from 'lucide-react';
 import { memo } from 'react';
 import NodeToolbarButton from './NodeToolbarButton';
 
@@ -13,7 +13,7 @@ const FontStyleSelector = ({
 }: FontStyleSelectorProps) => {
   return (
     <NodeToolbarButton
-      icon={<Title fontSize="small" />}
+      icon={<Type size={16} />}
       title="设置字体样式"
       onClick={() => {}}
       className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"

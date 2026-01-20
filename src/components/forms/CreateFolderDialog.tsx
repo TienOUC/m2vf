@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Folder as FolderIcon, Close as CloseIcon } from '@mui/icons-material';
+import { FolderOpen as FolderIcon, X as CloseIcon } from 'lucide-react';
 import { getProjectImageTree } from '@/lib/api/client/images';
 
 interface CreateFolderDialogProps {
@@ -87,14 +87,12 @@ export default function CreateFolderDialog({ onClose, onConfirm, projectId }: Cr
     return folders.map((folder) => (
       <div key={folder.id}>
         <div
-          className={`flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-gray-100 ${
-            parentId === folder.id ? 'bg-blue-100 border border-blue-300' : ''
-          }`}
-          onClick={() => setParentId(folder.id)}
-        >
-          <FolderIcon className="w-4 h-4 text-blue-500" />
-          <span className="text-sm">{folder.name}</span>
-        </div>
+            className={`flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-gray-100 ${parentId === folder.id ? 'bg-blue-100 border border-blue-300' : ''}`}
+            onClick={() => setParentId(folder.id)}
+          >
+            <FolderIcon size={16} className="text-blue-500" />
+            <span className="text-sm">{folder.name}</span>
+          </div>
         {folder.children && folder.children.length > 0 && (
           <div className="ml-4">
             {renderFolderTree(folder.children, level + 1)}
@@ -115,11 +113,11 @@ export default function CreateFolderDialog({ onClose, onConfirm, projectId }: Cr
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold">新建文件夹</h3>
             <button 
-              onClick={onClose} 
-              className="p-1 rounded-full hover:bg-gray-100 text-gray-500"
-            >
-              <CloseIcon fontSize="small" />
-            </button>
+            onClick={onClose} 
+            className="p-1 rounded-full hover:bg-gray-100 text-gray-500"
+          >
+            <CloseIcon size={16} />
+          </button>
           </div>
 
           <div className="space-y-4">
@@ -156,12 +154,10 @@ export default function CreateFolderDialog({ onClose, onConfirm, projectId }: Cr
                 ) : (
                   <>
                     <div
-                      className={`flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-gray-100 ${
-                        parentId === null ? 'bg-blue-100 border border-blue-300' : ''
-                      }`}
+                      className={`flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-gray-100 ${parentId === null ? 'bg-blue-100 border border-blue-300' : ''}`}
                       onClick={() => setParentId(null)}
                     >
-                      <FolderIcon className="w-4 h-4 text-blue-500" />
+                      <FolderIcon size={16} className="text-blue-500" />
                       <span className="text-sm">根目录</span>
                     </div>
                     {renderFolderTree(folders)}

@@ -1,5 +1,6 @@
-import { Close, Check } from '@mui/icons-material';
-import { Tooltip, Menu, MenuItem } from '@mui/material';
+import { X, Check } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useState } from 'react';
 import { ASPECT_RATIOS, type AspectRatioOption } from '@/lib/types/crop';
 
@@ -110,61 +111,40 @@ const Toolbar: React.FC<ToolbarProps> = ({
             className="flex items-center justify-center w-10 h-10 bg-black rounded-full text-white hover:bg-gray-800 transition-colors"
             aria-label="关闭"
           >
-            <Close fontSize="small" />
+            <X size={16} />
           </button>
           
           {/* 宽高比选择下拉菜单 */}
-          <Tooltip title="宽高比" placement="top">
-            <div className="relative">
-              <button
-                id="aspect-ratio-button"
-                aria-controls={open ? 'aspect-ratio-menu' : undefined}
-                aria-haspopup="true"
-                aria-expanded={open ? 'true' : undefined}
-                onClick={handleMenuOpen}
-                className=" flex items-center justify-center min-w-[80px] text-white bg-gray-800 hover:bg-gray-700 transition-colors text-xs rounded-full px-4 py-3 font-medium"
-              >
-                {currentRatioOption.label}
-              </button>
-
-              <Menu
-                id="aspect-ratio-menu"
-                anchorEl={anchorEl}
-                open={open}
-                onClose={handleMenuClose}
-                MenuListProps={{
-                  'aria-labelledby': 'aspect-ratio-button',
-                }}
-                sx={{
-                  zIndex: 10000, // 设置高z-index确保菜单显示在最上层
-                  '& .MuiMenu-paper': {
-                    backgroundColor: '#111',
-                    border: '1px solid #333',
-                    borderRadius: '8px',
-                  },
-                  '& .MuiMenuItem-root': {
-                    color: '#fff',
-                    fontSize: '0.75rem',
-                    '&:hover': {
-                      backgroundColor: '#333',
-                    },
-                    '&.Mui-selected': {
-                      backgroundColor: '#444',
-                    },
-                  },
-                }}
-              >
-                {ASPECT_RATIOS.map((ratio) => (
-                  <MenuItem
-                    key={ratio.label}
-                    onClick={() => handleAspectRatioSelect(ratio)}
-                    selected={ratio.value === currentAspectRatio}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    id="aspect-ratio-button"
+                    className="flex items-center justify-center min-w-[80px] text-white bg-gray-800 hover:bg-gray-700 transition-colors text-xs rounded-full px-4 py-3 font-medium"
                   >
-                    {ratio.label}
-                  </MenuItem>
-                ))}
-              </Menu>
-            </div>
+                    {currentRatioOption.label}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  className="bg-[#111] border border-[#333] rounded-lg"
+                  align="center"
+                >
+                  {ASPECT_RATIOS.map((ratio) => (
+                    <DropdownMenuItem
+                      key={ratio.label}
+                      onClick={() => handleAspectRatioSelect(ratio)}
+                      className={`text-white text-xs ${ratio.value === currentAspectRatio ? 'bg-[#444]' : 'hover:bg-[#333]'}`}
+                    >
+                      {ratio.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>宽高比</p>
+            </TooltipContent>
           </Tooltip>
       
           {/* 确认裁剪按钮 */}
@@ -172,7 +152,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
             onClick={onCrop}
             className="flex items-center justify-center gap-1 px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors text-xs font-medium"
           >
-            <Check fontSize="small" />
+            <Check size={16} />
             确认裁剪
           </button>
         </div>

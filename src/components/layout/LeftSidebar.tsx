@@ -2,15 +2,14 @@
 
 import { useState } from 'react';
 import {
-  Add,
-  Folder,
-  TextFields,
-  Image as ImageIcon,
-  VideoFile,
-
-  UploadFile,
-  Collections
-} from '@mui/icons-material';
+  Plus,
+  FolderOpen,
+  Type,
+  Image,
+  Video,
+  Upload,
+  Images
+} from 'lucide-react';
 import { FloatingMenu, MenuButton, SidebarButton } from '@/components/ui';
 import { AssetDrawer } from '@/components/forms';
 
@@ -66,7 +65,7 @@ export default function LeftSidebar({
       {/* 添加按钮 */}
       <div className="relative">
         <SidebarButton
-          icon={<Add fontSize="small" />}
+          icon={<Plus size={16} />}
           title="添加"
           onClick={handleAddClick}
           className="w-10 h-10 rounded-full bg-gray-200 hover:bg-gray-300 shadow-md"
@@ -81,7 +80,7 @@ export default function LeftSidebar({
           width="w-48"
         >
           <MenuButton
-            icon={<TextFields fontSize="small" />}
+            icon={<Type size={16} />}
             label="文本"
             onClick={() => {
               onAddTextNode?.();
@@ -89,7 +88,7 @@ export default function LeftSidebar({
             }}
           />
           <MenuButton
-            icon={<ImageIcon fontSize="small" />}
+            icon={<Image size={16} />}
             label="图片"
             onClick={() => {
               onAddImageNode?.();
@@ -97,7 +96,7 @@ export default function LeftSidebar({
             }}
           />
           <MenuButton
-            icon={<VideoFile fontSize="small" />}
+            icon={<Video size={16} />}
             label="视频"
             onClick={() => {
               onAddVideoNode?.();
@@ -110,7 +109,7 @@ export default function LeftSidebar({
       {/* 资产库按钮 */}
       <div className="relative">
         <SidebarButton
-          icon={<Folder fontSize="small" />}
+          icon={<FolderOpen size={16} />}
           title="资产库"
           onClick={handleAssetClick}
           animation="scale"
@@ -124,7 +123,7 @@ export default function LeftSidebar({
           width="w-48"
         >
           <MenuButton
-            icon={<Collections fontSize="small" />}
+            icon={<Images size={16} />}
             label="所有资产"
             onClick={() => {
               closeAllMenus();
@@ -140,7 +139,7 @@ export default function LeftSidebar({
 
 
           <MenuButton
-            icon={<ImageIcon fontSize="small" />}
+            icon={<Image size={16} />}
             label="上传图片"
             onClick={() => {
               onUploadImage?.();
@@ -148,7 +147,7 @@ export default function LeftSidebar({
             }}
           />
           <MenuButton
-            icon={<VideoFile fontSize="small" />}
+            icon={<Video size={16} />}
             label="上传视频"
             onClick={() => {
               onUploadVideo?.();

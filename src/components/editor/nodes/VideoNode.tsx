@@ -3,7 +3,7 @@
 import { memo, useRef, useEffect} from 'react';
 import { NodeResizeControl } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
-import { VideoFile } from '@mui/icons-material';
+import { Video } from 'lucide-react';
 import { NodeBase } from './NodeBase';
 import { ResizeIcon } from '@/components/editor';
 import { ScanningAnimation } from '@/components/editor/ScanningAnimation';
@@ -79,7 +79,7 @@ function VideoNode({ data, id, selected }: NodeProps) {
       data={data}
       id={id}
       selected={selected}
-      icon={<VideoFile fontSize="small" className="text-gray-500" />}
+      icon={<Video size={16} className="text-gray-500" />}
       title="视频"
       nodeType="video"
     >

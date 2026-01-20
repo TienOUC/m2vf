@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Folder as FolderIcon, Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
+import { FolderOpen as FolderIcon, Plus as AddIcon, X as CloseIcon } from 'lucide-react';
 import { getProjectImageTree, createFolder, getFolderImages, getFolderVideos } from '@/lib/api/client/images';
 import CreateFolderDialog from '@/components/forms/CreateFolderDialog';
 
@@ -249,17 +249,18 @@ export default function AssetDrawer({ isOpen, onClose, projectId }: AssetDrawerP
     return (
       <div className="w-full">
         <div 
-          className={`flex items-center gap-2 p-2 rounded cursor-pointer ${isSelected ? 'bg-blue-100' : 'hover:bg-gray-100'}`}
-          style={{ paddingLeft }}
-          onClick={toggleExpanded}
-        >
-          <FolderIcon 
-            className={`w-5 h-5 text-blue-500 transition-transform ${expanded ? 'rotate-90' : ''}`} 
-            onClick={(e) => {
-              e.stopPropagation();
-              handleFolderClick();
-            }}
-          />
+            className={`flex items-center gap-2 p-2 rounded cursor-pointer ${isSelected ? 'bg-blue-100' : 'hover:bg-gray-100'}`}
+            style={{ paddingLeft }}
+            onClick={toggleExpanded}
+          >
+            <FolderIcon 
+              size={20} 
+              className={`text-blue-500 transition-transform ${expanded ? 'rotate-90' : ''}`} 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleFolderClick();
+              }}
+            />
           <div className="flex-1 min-w-0" onClick={handleFolderClick}>
             <h3 className="font-medium truncate">{folder.name}</h3>
             <p className="text-xs text-gray-500">
@@ -305,7 +306,7 @@ export default function AssetDrawer({ isOpen, onClose, projectId }: AssetDrawerP
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-semibold">资产库</h2>
               <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100">
-                <CloseIcon />
+                <CloseIcon size={20} />
               </button>
             </div>
           </div>
@@ -343,14 +344,14 @@ export default function AssetDrawer({ isOpen, onClose, projectId }: AssetDrawerP
                 onClick={() => setShowCreateFolderDialog(true)}
                 className="flex items-center gap-1 bg-primary-600 text-white px-3 py-1.5 rounded-lg hover:bg-primary-700 transition-colors"
               >
-                <AddIcon fontSize="small" />
+                <AddIcon size={16} />
                 <span>新建文件夹</span>
               </button>
               <button 
                 onClick={onClose} 
                 className="p-2 rounded-full hover:bg-gray-100"
               >
-                <CloseIcon />
+                <CloseIcon size={20} />
               </button>
             </div>
           </div>
@@ -375,7 +376,7 @@ export default function AssetDrawer({ isOpen, onClose, projectId }: AssetDrawerP
                     fetchFiles(null);
                   }}
                 >
-                  <FolderIcon className="w-5 h-5 text-blue-500" />
+                  <FolderIcon size={20} className="text-blue-500" />
                   <span>根目录</span>
                 </div>
                 
@@ -404,9 +405,9 @@ export default function AssetDrawer({ isOpen, onClose, projectId }: AssetDrawerP
             </h3>
             {files.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-500">
-                <FolderIcon className="w-16 h-16 mb-4" />
-                <p>暂无文件</p>
-              </div>
+              <FolderIcon size={64} className="mb-4 text-gray-400" />
+              <p>暂无文件</p>
+            </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {files.map((file) => (

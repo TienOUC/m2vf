@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { getFontClass as getFontClassUtil } from '@/lib/utils';
+import { getFontClass as getFontClassUtil } from '@/lib/utils/text';
 
 type FontType = 'h1' | 'h2' | 'h3' | 'p';
 

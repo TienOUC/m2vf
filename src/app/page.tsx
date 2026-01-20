@@ -1,10 +1,6 @@
 
 import Link from 'next/link';
-import {
-  BoltIcon,
-  CpuChipIcon,
-  ArrowsRightLeftIcon
-} from '@heroicons/react/24/outline';
+import { Zap, Cpu, ArrowRightLeft } from 'lucide-react';
 
 export default function HomePage() {
   return (
@@ -24,7 +20,7 @@ export default function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
           <div className="bg-white rounded-lg p-8 shadow-sm border border-neutral-200">
             <div className="w-16 h-16 bg-neutral-100 rounded-lg flex items-center justify-center mb-6 mx-auto">
-              <BoltIcon className="w-8 h-8 text-primary-600" />
+              <Zap className="w-8 h-8 text-primary-600" />
             </div>
             <h3 className="text-2xl font-bold text-neutral-900 mb-3">
               快速构建
@@ -36,7 +32,7 @@ export default function HomePage() {
 
           <div className="bg-white rounded-lg p-8 shadow-sm border border-neutral-200">
             <div className="w-16 h-16 bg-neutral-100 rounded-lg flex items-center justify-center mb-6 mx-auto">
-              <CpuChipIcon className="w-8 h-8 text-primary-600" />
+              <Cpu className="w-8 h-8 text-primary-600" />
             </div>
             <h3 className="text-2xl font-bold text-neutral-900 mb-3">AI智能</h3>
             <p className="text-neutral-600 leading-relaxed">
@@ -46,7 +42,7 @@ export default function HomePage() {
 
           <div className="bg-white rounded-lg p-8 shadow-sm border border-neutral-200">
             <div className="w-16 h-16 bg-neutral-100 rounded-lg flex items-center justify-center mb-6 mx-auto">
-              <ArrowsRightLeftIcon className="w-8 h-8 text-primary-600" />
+              <ArrowRightLeft className="w-8 h-8 text-primary-600" />
             </div>
             <h3 className="text-2xl font-bold text-neutral-900 mb-3">
               多模态支持
@@ -63,7 +59,7 @@ export default function HomePage() {
             href="/login"
             className="inline-flex items-center justify-center bg-primary-600 hover:bg-primary-700 text-white font-semibold text-lg px-12 py-4 rounded-lg transition-colors"
           >
-            <BoltIcon className="w-5 h-5 mr-2" />
+            <Zap className="w-5 h-5 mr-2" />
             开始使用 - 立即登录
           </Link>
           <div className="text-neutral-600 text-sm">

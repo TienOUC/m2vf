@@ -6,12 +6,7 @@ import { useRouter } from 'next/navigation';
 import { registerUser } from '@/lib/api/client/auth';
 import { validateEmail, validatePhone, validatePassword, validateConfirmPassword, validateName } from '@/lib/utils/validation';
 import { useForm } from '@/hooks/utils/useForm';
-import {
-  UserIcon,
-  EnvelopeIcon,
-  PhoneIcon,
-  LockClosedIcon
-} from '@heroicons/react/24/outline';
+import { User, Mail, Phone, Lock } from 'lucide-react';
 
 interface RegisterFormValues {
   name: string;
@@ -173,7 +168,7 @@ export default function RegisterPage() {
                   姓名 *
                 </label>
                 <div className="relative">
-                  <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
                   <input
                     id="name"
                     name="name"
@@ -204,7 +199,7 @@ export default function RegisterPage() {
                     邮箱地址 *
                   </label>
                   <div className="relative">
-                    <EnvelopeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
                     <input
                       id="email"
                       name="email"
@@ -236,7 +231,7 @@ export default function RegisterPage() {
                     手机号码 *
                   </label>
                   <div className="relative">
-                    <PhoneIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
                     <input
                       id="phoneNumber"
                       name="phoneNumber"
@@ -267,7 +262,7 @@ export default function RegisterPage() {
                   密码 *
                 </label>
                 <div className="relative">
-                  <LockClosedIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
                   <input
                     id="password"
                     name="password"
@@ -298,7 +293,7 @@ export default function RegisterPage() {
                   确认密码 *
                 </label>
                 <div className="relative">
-                  <LockClosedIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
                   <input
                     id="confirmPassword"
                     name="confirmPassword"
