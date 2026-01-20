@@ -770,7 +770,7 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
             size={1}
             color="var(--color-neutral-400)"
           />
-          <Controls />
+          <Controls orientation="horizontal" className="custom-controls" />
 
 
           {nodeOperations.nodes.length === 0 && (
