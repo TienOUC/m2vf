@@ -16,7 +16,7 @@ const FontStyleSelector = ({
       icon={<Type size={16} />}
       title="设置字体样式"
       onClick={() => {}}
-      className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
+      className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors flex items-center justify-center"
       ariaLabel="设置字体样式"
     >
       <div className="flex flex-col w-full">

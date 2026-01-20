@@ -55,7 +55,7 @@ function ImageNode({ data, id, selected }: NodeProps) {
         </div>
       )}
       
-      <div className="absolute inset-0 p-2">
+      <div className="absolute inset-0">
         {/* 处理中状态：显示扫描动画 */}
         {isProcessing ? (
           <div className="h-full w-full relative">
@@ -106,8 +106,8 @@ function ImageNode({ data, id, selected }: NodeProps) {
         />
       </div>
       
-      <NodeResizeControl className="group" style={{ background: 'transparent', border: 'none' }} minWidth={100} minHeight={50}>
-        <ResizeIcon className="absolute right-0 bottom-0" />
+      <NodeResizeControl className="group group-selected" style={{ background: 'transparent', border: 'none' }} minWidth={100} minHeight={50}>
+        <ResizeIcon className="absolute right-[-10px] bottom-[-10px]" />
       </NodeResizeControl>
     </NodeBase>
   );

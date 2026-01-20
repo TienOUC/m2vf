@@ -105,11 +105,11 @@ const FullscreenDialog = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => onFontTypeChange?.('h1')}
-                className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h1' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
-                aria-label="H1标题"
-              >
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => onFontTypeChange?.('h1')}
+            className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h1' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'} flex items-center justify-center`}
+            aria-label="H1标题"
+          >
                 H1
               </button>
             </TooltipTrigger>
@@ -121,11 +121,11 @@ const FullscreenDialog = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => onFontTypeChange?.('h2')}
-                className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h2' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
-                aria-label="H2标题"
-              >
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => onFontTypeChange?.('h2')}
+            className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h2' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'} flex items-center justify-center`}
+            aria-label="H2标题"
+          >
                 H2
               </button>
             </TooltipTrigger>
@@ -137,11 +137,11 @@ const FullscreenDialog = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => onFontTypeChange?.('h3')}
-                className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h3' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
-                aria-label="H3标题"
-              >
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => onFontTypeChange?.('h3')}
+            className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h3' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'} flex items-center justify-center`}
+            aria-label="H3标题"
+          >
                 H3
               </button>
             </TooltipTrigger>
@@ -153,11 +153,11 @@ const FullscreenDialog = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => onFontTypeChange?.('p')}
-                className={`w-8 h-8 p-1 text-sm rounded-md transition-colors ${fontType === 'p' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
-                aria-label="正文"
-              >
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => onFontTypeChange?.('p')}
+            className={`w-8 h-8 p-1 text-sm rounded-md transition-colors ${fontType === 'p' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'} flex items-center justify-center`}
+            aria-label="正文"
+          >
                 P
               </button>
             </TooltipTrigger>
@@ -172,11 +172,11 @@ const FullscreenDialog = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={onBoldToggle}
-                className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
-                aria-label="加粗"
-              >
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={onBoldToggle}
+            className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors flex items-center justify-center"
+            aria-label="加粗"
+          >
                 <Bold size={16} />
               </button>
             </TooltipTrigger>
@@ -188,11 +188,11 @@ const FullscreenDialog = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={onItalicToggle}
-                className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
-                aria-label="斜体"
-              >
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={onItalicToggle}
+            className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors flex items-center justify-center"
+            aria-label="斜体"
+          >
                 <Italic size={16} />
               </button>
             </TooltipTrigger>
@@ -204,11 +204,11 @@ const FullscreenDialog = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={onBulletListToggle}
-                className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
-                aria-label="无序列表"
-              >
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={onBulletListToggle}
+            className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors flex items-center justify-center"
+            aria-label="无序列表"
+          >
                 <List size={16} />
               </button>
             </TooltipTrigger>
@@ -220,11 +220,11 @@ const FullscreenDialog = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={onNumberedListToggle}
-                className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
-                aria-label="有序列表"
-              >
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={onNumberedListToggle}
+            className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors flex items-center justify-center"
+            aria-label="有序列表"
+          >
                 <ListOrdered size={16} />
               </button>
             </TooltipTrigger>
@@ -236,11 +236,11 @@ const FullscreenDialog = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={onHorizontalRuleInsert}
-                className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
-                aria-label="分割线"
-              >
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={onHorizontalRuleInsert}
+            className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors flex items-center justify-center"
+            aria-label="分割线"
+          >
                 <Minus size={16} />
               </button>
             </TooltipTrigger>
@@ -267,7 +267,7 @@ const FullscreenDialog = ({
                     }
                   }
                 }}
-                className="w-8 h-8 p-1 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-md transition-colors"
+                className="w-8 h-8 p-1 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-md transition-colors flex items-center justify-center"
                 aria-label="复制全文"
               >
                 <Copy size={16} />
@@ -283,10 +283,10 @@ const FullscreenDialog = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onClick={onClose}
-                className="w-8 h-8 p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
-                aria-label="退出全屏"
-              >
+              onClick={onClose}
+              className="w-8 h-8 p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors flex items-center justify-center"
+              aria-label="退出全屏"
+            >
                 <X size={16} />
               </button>
             </TooltipTrigger>

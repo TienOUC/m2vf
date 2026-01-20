@@ -182,13 +182,13 @@ const NodeToolbar = ({
       position={Position.Top}
       offset={20}
       isVisible={selected}
-      className="bg-white shadow-md rounded-full border border-gray-200 px-2 py-1 flex items-center gap-1"
+      className="bg-white shadow-sm rounded-full border border-neutral-200 px-2 py-1 flex items-center gap-1"
     >
       <Tooltip>
         <TooltipTrigger asChild>
           <button
             onClick={handleDelete}
-            className="w-8 h-8 p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
+            className="w-8 h-8 p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors flex items-center justify-center"
             aria-label="删除节点"
           >
             <Trash2 size={16} />
@@ -208,7 +208,7 @@ const NodeToolbar = ({
             <span>
               <button
                 onClick={handleReplace}
-                className={`w-8 h-8 p-1 rounded-md transition-colors ${type === 'image' && !hasImage ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-blue-500 hover:bg-blue-50'}`}
+                className={`w-8 h-8 p-1 rounded-md transition-colors ${type === 'image' && !hasImage ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-blue-500 hover:bg-blue-50'} flex items-center justify-center`}
                 aria-label="更换文件"
                 disabled={type === 'image' && !hasImage}
               >
@@ -229,7 +229,7 @@ const NodeToolbar = ({
             <span>
               <button
                 onClick={() => hasImage && onEditStart?.(nodeId)}
-                className={`w-8 h-8 p-1 rounded-md transition-colors ${!hasImage ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'}`}
+                className={`w-8 h-8 p-1 rounded-md transition-colors ${!hasImage ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'} flex items-center justify-center`}
                 aria-label="裁剪图片"
                 disabled={!hasImage}
               >
@@ -250,7 +250,7 @@ const NodeToolbar = ({
             <span>
               <button
                 onClick={() => hasImage && onEraseStart?.(nodeId)}
-                className={`w-8 h-8 p-1 rounded-md transition-colors ${!hasImage ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'}`}
+                className={`w-8 h-8 p-1 rounded-md transition-colors ${!hasImage ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'} flex items-center justify-center`}
                 aria-label="擦除"
                 disabled={!hasImage}
               >
@@ -271,7 +271,7 @@ const NodeToolbar = ({
             <span>
               <button
                 onClick={() => hasImage && onDownload?.(nodeId)}
-                className={`w-8 h-8 p-1 rounded-md transition-colors ${!hasImage ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-green-600 hover:bg-green-50'}`}
+                className={`w-8 h-8 p-1 rounded-md transition-colors ${!hasImage ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-green-600 hover:bg-green-50'} flex items-center justify-center`}
                 aria-label="下载图片"
                 disabled={!hasImage}
               >
@@ -292,7 +292,7 @@ const NodeToolbar = ({
             <span>
               <button
                 onClick={handleBackgroundRemoveClick}
-                className={`w-8 h-8 p-1 rounded-md transition-colors ${!hasImage ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'}`}
+                className={`w-8 h-8 p-1 rounded-md transition-colors ${!hasImage ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'} flex items-center justify-center`}
                 aria-label="抠图"
                 disabled={!hasImage}
               >
@@ -314,7 +314,7 @@ const NodeToolbar = ({
               <button
                 ref={colorPickerRef}
                 onClick={() => setColorPickerOpen(!colorPickerOpen)}
-                className="w-8 h-8 p-1 text-gray-500 hover:text-purple-500 hover:bg-purple-50  rounded-md transition-colors"
+                className="w-8 h-8 p-1 text-gray-500 hover:text-purple-500 hover:bg-purple-50  rounded-md transition-colors flex items-center justify-center"
                 aria-label="设置背景色"
               >
                 <Palette size={16} />
@@ -337,7 +337,7 @@ const NodeToolbar = ({
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => handleFontTypeChange('h1')}
-                className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h1' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
+                className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h1' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'} flex items-center justify-center`}
                 aria-label="H1标题"
               >
                 H1
@@ -353,7 +353,7 @@ const NodeToolbar = ({
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => handleFontTypeChange('h2')}
-                className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h2' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
+                className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h2' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'} flex items-center justify-center`}
                 aria-label="H2标题"
               >
                 H2
@@ -369,7 +369,7 @@ const NodeToolbar = ({
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => handleFontTypeChange('h3')}
-                className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h3' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
+                className={`w-8 h-8 p-1 text-sm font-bold rounded-md transition-colors ${fontType === 'h3' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'} flex items-center justify-center`}
                 aria-label="H3标题"
               >
                 H3
@@ -385,7 +385,7 @@ const NodeToolbar = ({
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => handleFontTypeChange('p')}
-                className={`w-8 h-8 p-1 text-sm rounded-md transition-colors ${fontType === 'p' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'}`}
+                className={`w-8 h-8 p-1 text-sm rounded-md transition-colors ${fontType === 'p' ? 'text-indigo-500 bg-indigo-50' : 'text-gray-500 hover:text-indigo-500 hover:bg-indigo-50'} flex items-center justify-center`}
                 aria-label="正文"
               >
                 P
@@ -408,7 +408,7 @@ const NodeToolbar = ({
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={handleBoldToggle}
-                className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
+                className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors flex items-center justify-center"
                 aria-label="加粗"
               >
                 <Bold size={16} />
@@ -425,7 +425,7 @@ const NodeToolbar = ({
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={handleItalicToggle}
-                className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
+                className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors flex items-center justify-center"
                 aria-label="斜体"
               >
                 <Italic size={16} />
@@ -442,7 +442,7 @@ const NodeToolbar = ({
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={handleBulletListToggle}
-                className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
+                className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors flex items-center justify-center"
                 aria-label="无序列表"
               >
                 <List size={16} />
@@ -459,7 +459,7 @@ const NodeToolbar = ({
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={handleNumberedListToggle}
-                className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
+                className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors flex items-center justify-center"
                 aria-label="有序列表"
               >
                 <ListOrdered size={16} />
@@ -476,7 +476,7 @@ const NodeToolbar = ({
               <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={handleHorizontalRuleInsert}
-                className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors"
+                className="w-8 h-8 p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors flex items-center justify-center"
                 aria-label="分割线"
               >
                 <Minus size={16} />
@@ -495,10 +495,10 @@ const NodeToolbar = ({
         <Tooltip>
           <TooltipTrigger asChild>
             <button
-              onClick={handleToggleFullscreen}
-              className="w-8 h-8 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
-              aria-label="全屏"
-            >
+                onClick={handleToggleFullscreen}
+                className="w-8 h-8 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors flex items-center justify-center"
+                aria-label="全屏"
+              >
               <Maximize size={16} />
             </button>
           </TooltipTrigger>
@@ -513,10 +513,10 @@ const NodeToolbar = ({
         <Tooltip>
           <TooltipTrigger asChild>
             <button
-              onClick={handleCopyText}
-              className={`w-8 h-8 p-1 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-md transition-colors ${copySuccess ? 'text-green-500' : ''}`}
-              aria-label="复制全文"
-            >
+                onClick={handleCopyText}
+                className={`w-8 h-8 p-1 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-md transition-colors ${copySuccess ? 'text-green-500' : ''} flex items-center justify-center`}
+                aria-label="复制全文"
+              >
               <Copy size={16} />
             </button>
           </TooltipTrigger>

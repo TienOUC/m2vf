@@ -62,7 +62,7 @@ export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
   return (
     <div
       ref={ref}
-      className="rounded-lg w-full h-full relative transition-colors duration-150 shadow-sm hover:shadow-md border border-gray-100"
+      className={`rounded-lg w-full h-full relative transition-colors duration-150 shadow-sm hover:shadow-md border border-neutral-200 group ${selected ? 'group-selected' : ''}`}
       style={{ 
         backgroundColor: backgroundColor || 'white',
         minWidth: '180px', 
@@ -103,7 +103,7 @@ export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
       />
 
       {/* 节点内容 */}
-      <div className="w-full h-full p-2 flex items-center justify-center">
+      <div className={`w-full h-full flex items-center justify-center ${nodeType === 'text' ? 'p-2' : ''}`}>
         {children}
       </div>
 

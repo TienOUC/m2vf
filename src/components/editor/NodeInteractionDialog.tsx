@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send } from 'lucide-react';
+import { Send, Hd, Ratio, Clock7, Proportions, ImageUpscale } from 'lucide-react';
 
 interface NodeInteractionDialogProps {
   isVisible: boolean;
@@ -80,7 +80,7 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
   const resolutions = [
     '1K',
     '2K',
-    '3K'
+    '4K'
   ];
   
   const aspectRatios = [
@@ -306,8 +306,9 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
         opacity: 1,
         transform: 'translateY(0) scale(1)',
         backgroundColor: 'white',
-        borderRadius: '8px',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+        borderRadius: 'var(--radius-lg)',
+        boxShadow: 'var(--shadow-md)',
+        border: '1px solid var(--color-neutral-200)'
       }}
     >
       {/* 首帧和尾帧图片缩略图 - 仅视频节点显示 */}
@@ -386,247 +387,249 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
       />
       
       {/* 按钮区域 */}
-      <div className="flex items-center justify-between p-4 bg-white" style={{ borderRadius: '0 0 8px 8px' }}>
-        {/* 左侧按钮组 */}
-        <div className="flex items-center gap-2">
-          {/* 模型选择按钮 */}
-          <div className="relative" ref={modelMenuRef}>
-            <button
-              onClick={handleModelMenuClick}
-              className="flex items-center gap-2 px-4 py-2 bg-white rounded-full hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              <span className="text-sm font-medium text-gray-700">{selectedModel}</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className={`w-4 h-4 text-gray-500 transition-transform ${isModelMenuOpen ? 'transform rotate-180' : ''}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+      <div className="p-4 bg-white" style={{ borderRadius: '0 0 8px 8px' }}>
+        <div className="flex items-center justify-between p-2 bg-[var(--color-neutral-100)] rounded-full">
+          {/* 左侧按钮组 */}
+          <div className="flex items-center">
+            {/* 模型选择按钮 */}
+            <div className="relative" ref={modelMenuRef}>
+              <button
+                onClick={handleModelMenuClick}
+                className={`flex items-center gap-1 px-4 py-2 rounded-full transition-colors focus:outline-none focus:ring-0 ${isModelMenuOpen ? 'bg-white' : ''} hover:bg-white`}
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            
-            {/* 模型选择下拉菜单 */}
-            {isModelMenuOpen && (
-              <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-1001">
-                {models.map((model) => (
-                  <button
-                    key={model}
-                    onClick={() => handleModelSelect(model)}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selectedModel === model ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
-                  >
-                    {model}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          
-          {/* 图片节点专属配置按钮 */}
-          {nodeType === 'image' && (
-            <>
-              {/* 分辨率按钮 */}
-              <div className="relative" ref={resolutionMenuRef}>
-                <button
-                  onClick={handleResolutionMenuClick}
-                  className="flex items-center gap-2 px-4 py-2 bg-white rounded-full hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                <span className="text-sm font-medium text-gray-700">{selectedModel}</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`w-4 h-4 text-gray-500 transition-transform ${isModelMenuOpen ? 'transform rotate-180' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  <span className="text-sm font-medium text-gray-700">{selectedResolution}</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`w-4 h-4 text-gray-500 transition-transform ${isResolutionMenuOpen ? 'transform rotate-180' : ''}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {/* 模型选择下拉菜单 */}
+              {isModelMenuOpen && (
+                <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-1001">
+                  {models.map((model) => (
+                      <button
+                        key={model}
+                        onClick={() => handleModelSelect(model)}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selectedModel === model ? 'bg-white text-blue-600' : 'text-gray-700'}`}
+                      >
+                        {model}
+                      </button>
+                    ))}
+                </div>
+              )}
+            </div>
+            
+            {/* 图片节点专属配置按钮 */}
+            {nodeType === 'image' && (
+              <>
+                {/* 分辨率按钮 */}
+                <div className="relative" ref={resolutionMenuRef}>
+                  <button
+                    onClick={handleResolutionMenuClick}
+                    className={`flex items-center gap-1 px-4 py-2 rounded-full transition-colors focus:outline-none focus:ring-0 ${isResolutionMenuOpen ? 'bg-white' : ''} hover:bg-white`}
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                
-                {/* 分辨率下拉菜单 */}
-                {isResolutionMenuOpen && (
-                  <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-1001">
-                    {resolutions.map((resolution) => (
+                    <Proportions size={16} className="text-gray-600" />                    <span className="text-sm font-medium text-gray-700">{selectedResolution}</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className={`w-4 h-4 text-gray-500 transition-transform ${isResolutionMenuOpen ? 'transform rotate-180' : ''}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  
+                  {/* 分辨率下拉菜单 */}
+                  {isResolutionMenuOpen && (
+                    <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-1001">
+                      {resolutions.map((resolution) => (
                       <button
                         key={resolution}
                         onClick={() => {
                           setSelectedResolution(resolution);
                           setIsResolutionMenuOpen(false);
                         }}
-                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selectedResolution === resolution ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selectedResolution === resolution ? 'bg-white text-blue-600' : 'text-gray-700'}`}
                       >
                         {resolution}
                       </button>
                     ))}
-                  </div>
-                )}
-              </div>
-              
-              {/* 宽高比按钮 */}
-              <div className="relative" ref={aspectRatioMenuRef}>
-                <button
-                  onClick={handleAspectRatioMenuClick}
-                  className="flex items-center gap-2 px-4 py-2 bg-white rounded-full hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                  <span className="text-sm font-medium text-gray-700">{selectedAspectRatio}</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`w-4 h-4 text-gray-500 transition-transform ${isAspectRatioMenuOpen ? 'transform rotate-180' : ''}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
+                    </div>
+                  )}
+                </div>
                 
-                {/* 宽高比下拉菜单 */}
-                {isAspectRatioMenuOpen && (
-                  <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-1001">
-                    {aspectRatios.map((ratio) => (
+                {/* 宽高比按钮 */}
+                <div className="relative" ref={aspectRatioMenuRef}>
+                  <button
+                    onClick={handleAspectRatioMenuClick}
+                    className={`flex items-center gap-1 px-4 py-2 rounded-full transition-colors focus:outline-none focus:ring-0 ${isAspectRatioMenuOpen ? 'bg-white' : ''} hover:bg-white`}
+                  >
+                    <ImageUpscale size={16} className="text-gray-600" />                    <span className="text-sm font-medium text-gray-700 ">{selectedAspectRatio}</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className={`w-4 h-4 text-gray-500 transition-transform ${isAspectRatioMenuOpen ? 'transform rotate-180' : ''}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  
+                  {/* 宽高比下拉菜单 */}
+                  {isAspectRatioMenuOpen && (
+                    <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-1001">
+                      {aspectRatios.map((ratio) => (
                       <button
                         key={ratio}
                         onClick={() => {
                           setSelectedAspectRatio(ratio);
                           setIsAspectRatioMenuOpen(false);
                         }}
-                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selectedAspectRatio === ratio ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selectedAspectRatio === ratio ? 'bg-white text-blue-600' : 'text-gray-700'}`}
                       >
                         {ratio}
                       </button>
                     ))}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-          
-          {/* 视频节点专属配置按钮 */}
-          {nodeType === 'video' && (
-            <>
-              {/* 清晰度按钮 */}
-              <div className="relative" ref={videoQualityMenuRef}>
-                <button
-                  onClick={handleVideoQualityMenuClick}
-                  className="flex items-center gap-2 px-4 py-2 bg-white rounded-full hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                  <span className="text-sm font-medium text-gray-700">{selectedVideoQuality}</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`w-4 h-4 text-gray-500 transition-transform ${isVideoQualityMenuOpen ? 'transform rotate-180' : ''}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+            
+            {/* 视频节点专属配置按钮 */}
+            {nodeType === 'video' && (
+              <>
+                {/* 清晰度按钮 */}
+                <div className="relative" ref={videoQualityMenuRef}>
+                  <button
+                    onClick={handleVideoQualityMenuClick}
+                    className={`flex items-center gap-1 px-4 py-2 rounded-full transition-colors focus:outline-none focus:ring-0 ${isVideoQualityMenuOpen ? 'bg-white' : ''} hover:bg-white`}
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                
-                {/* 清晰度下拉菜单 */}
-                {isVideoQualityMenuOpen && (
-                  <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-1001">
-                    {videoQualities.map((quality) => (
+                    <Hd size={16} className="text-gray-600" />                    <span className="text-sm font-medium text-gray-700 ">{selectedVideoQuality}</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className={`w-4 h-4 text-gray-500 transition-transform ${isVideoQualityMenuOpen ? 'transform rotate-180' : ''}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  
+                  {/* 清晰度下拉菜单 */}
+                  {isVideoQualityMenuOpen && (
+                    <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-1001">
+                      {videoQualities.map((quality) => (
                       <button
                         key={quality}
                         onClick={() => {
                           setSelectedVideoQuality(quality);
                           setIsVideoQualityMenuOpen(false);
                         }}
-                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selectedVideoQuality === quality ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selectedVideoQuality === quality ? 'bg-white text-blue-600' : 'text-gray-700'}`}
                       >
                         {quality}
                       </button>
                     ))}
-                  </div>
-                )}
-              </div>
-              
-              {/* 时长按钮 */}
-              <div className="relative" ref={videoDurationMenuRef}>
-                <button
-                  onClick={handleVideoDurationMenuClick}
-                  className="flex items-center gap-2 px-4 py-2 bg-white rounded-full hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                  <span className="text-sm font-medium text-gray-700">{selectedVideoDuration}</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`w-4 h-4 text-gray-500 transition-transform ${isVideoDurationMenuOpen ? 'transform rotate-180' : ''}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
+                    </div>
+                  )}
+                </div>
                 
-                {/* 时长下拉菜单 */}
-                {isVideoDurationMenuOpen && (
-                  <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-1001">
-                    {videoDurations.map((duration) => (
+                {/* 时长按钮 */}
+                <div className="relative" ref={videoDurationMenuRef}>
+                  <button
+                    onClick={handleVideoDurationMenuClick}
+                    className={`flex items-center gap-1 px-4 py-2 rounded-full transition-colors focus:outline-none focus:ring-0 ${isVideoDurationMenuOpen ? 'bg-white' : ''} hover:bg-white`}
+                  >
+                    <Clock7 size={16} className="text-gray-600" />                    <span className="text-sm font-medium text-gray-700 ">{selectedVideoDuration}</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className={`w-4 h-4 text-gray-500 transition-transform ${isVideoDurationMenuOpen ? 'transform rotate-180' : ''}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  
+                  {/* 时长下拉菜单 */}
+                  {isVideoDurationMenuOpen && (
+                    <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-1001">
+                      {videoDurations.map((duration) => (
                       <button
                         key={duration}
                         onClick={() => {
                           setSelectedVideoDuration(duration);
                           setIsVideoDurationMenuOpen(false);
                         }}
-                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selectedVideoDuration === duration ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selectedVideoDuration === duration ? 'bg-white text-blue-600' : 'text-gray-700'}`}
                       >
                         {duration}
                       </button>
                     ))}
-                  </div>
-                )}
-              </div>
-              
-              {/* 宽高比按钮 */}
-              <div className="relative" ref={videoAspectRatioMenuRef}>
-                <button
-                  onClick={handleVideoAspectRatioMenuClick}
-                  className="flex items-center gap-2 px-4 py-2 bg-white rounded-full hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                  <span className="text-sm font-medium text-gray-700">{selectedVideoAspectRatio}</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`w-4 h-4 text-gray-500 transition-transform ${isVideoAspectRatioMenuOpen ? 'transform rotate-180' : ''}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
+                    </div>
+                  )}
+                </div>
                 
-                {/* 宽高比下拉菜单 */}
-                {isVideoAspectRatioMenuOpen && (
-                  <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-1001">
-                    {videoAspectRatios.map((ratio) => (
+                {/* 宽高比按钮 */}
+                <div className="relative" ref={videoAspectRatioMenuRef}>
+                  <button
+                    onClick={handleVideoAspectRatioMenuClick}
+                    className={`flex items-center gap-1 px-4 py-2 rounded-full transition-colors focus:outline-none focus:ring-0 ${isVideoAspectRatioMenuOpen ? 'bg-white' : ''} hover:bg-white`}
+                  >
+                    <Ratio size={16} className="text-gray-600" />                    <span className="text-sm font-medium text-gray-700 ">{selectedVideoAspectRatio}</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className={`w-4 h-4 text-gray-500 transition-transform ${isVideoAspectRatioMenuOpen ? 'transform rotate-180' : ''}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  
+                  {/* 宽高比下拉菜单 */}
+                  {isVideoAspectRatioMenuOpen && (
+                    <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-1001">
+                      {videoAspectRatios.map((ratio) => (
                       <button
                         key={ratio}
                         onClick={() => {
                           setSelectedVideoAspectRatio(ratio);
                           setIsVideoAspectRatioMenuOpen(false);
                         }}
-                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selectedVideoAspectRatio === ratio ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selectedVideoAspectRatio === ratio ? 'bg-white text-blue-600' : 'text-gray-700'}`}
                       >
                         {ratio}
                       </button>
                     ))}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+          
+          {/* 发送按钮 */}
+          <button
+            onClick={handleSend}
+            disabled={!content.trim()}
+            className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 focus:outline-none focus:ring-0 ${content.trim() ? 'bg-blue-500 hover:bg-blue-600 hover:scale-105' : 'bg-gray-300 cursor-not-allowed'}`}
+          >
+            <Send size={20} className={`${content.trim() ? 'text-white' : 'text-gray-500'}`} />
+          </button>
         </div>
-        
-        {/* 发送按钮 */}
-        <button
-          onClick={handleSend}
-          disabled={!content.trim()}
-          className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${content.trim() ? 'bg-blue-500 hover:bg-blue-600 hover:scale-105 focus:ring-blue-500' : 'bg-gray-300 cursor-not-allowed focus:ring-gray-300'}`}
-        >
-          <Send size={20} className={`${content.trim() ? 'text-white' : 'text-gray-500'}`} />
-        </button>
       </div>
       
       {/* CSS 样式 */}

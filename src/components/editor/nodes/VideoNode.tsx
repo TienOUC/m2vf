@@ -83,10 +83,10 @@ function VideoNode({ data, id, selected }: NodeProps) {
       title="视频"
       nodeType="video"
     >
-      <NodeResizeControl className="group" style={controlStyle} minWidth={100} minHeight={50}>
-        <ResizeIcon className="absolute right-0 bottom-0" />
+      <NodeResizeControl className="group group-selected" style={controlStyle} minWidth={100} minHeight={50}>
+        <ResizeIcon className="absolute right-[-10px] bottom-[-10px]" />
       </NodeResizeControl>
-      <div className="absolute inset-0 p-2">
+      <div className="absolute inset-0">
         {/* 视频容器 */}
         <div ref={videoContainerRef} className="w-full h-full rounded-md" />
         
