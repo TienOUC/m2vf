@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { useAuthStore } from '@/lib/stores';
@@ -13,6 +13,7 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
@@ -40,7 +41,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar user={user} />
+      {pathname !== '/edit' && <Navbar user={user} />}
       <main className="flex-1 overflow-hidden">
         {children}
       </main>

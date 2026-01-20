@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useRef, useEffect, useMemo, useCallback, useState } from 'react';
-import { Add } from '@mui/icons-material';
+import { Add, ArrowBack } from '@mui/icons-material';
+import { useRouter } from 'next/navigation';
 import { 
   ReactFlow,
   Background,
@@ -38,6 +39,8 @@ export interface FlowCanvasProps {
 }
 
 const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
+  const router = useRouter();
+  
   // 确保React Flow组件能够正确获取尺寸信息
   React.useEffect(() => {
     // 强制重新计算布局
@@ -712,8 +715,35 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
 
   return (
     <>
-      {/* 为 ReactFlow 添加明确的高度和宽度设置 - 使用视口高度减去navbar高度（padding + content + border）*/}
-      <div style={{ width: '100%', height: 'calc(100vh - 70px)', position: 'relative', display: 'block' }}>
+      {/* 为 ReactFlow 添加明确的高度和宽度设置 - 编辑页面没有navbar，直接使用100vh */}
+      <div style={{ width: '100%', height: '100vh', position: 'relative', display: 'block' }}>
+        {/* 返回按钮 */}
+        <div 
+          style={{
+            position: 'absolute',
+            top: '20px',
+            left: '20px',
+            zIndex: 1000,
+            background: 'rgba(255, 255, 255, 0.9)',
+            borderRadius: '50%',
+            padding: '8px',
+            cursor: 'pointer',
+            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+            transition: 'all 0.2s ease'
+          }}
+          onClick={() => router.back()}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.1)';
+            e.currentTarget.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.2)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
+            e.currentTarget.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
+          }}
+        >
+          <ArrowBack sx={{ fontSize: 24, color: '#333' }} />
+        </div>
+        
         <ReactFlow
           nodes={nodeOperations.nodes}
           edges={nodeOperations.edges}
