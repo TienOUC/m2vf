@@ -7,23 +7,29 @@ import { VideoFile } from '@mui/icons-material';
 import { NodeBase } from './NodeBase';
 import { ResizeIcon } from '@/components/editor';
 import { ScanningAnimation } from '@/components/editor/ScanningAnimation';
+import { useVideoNodesStore } from '@/lib/stores/videoNodesStore';
 
 
 export interface VideoNodeData {
   label?: string;
-  videoUrl?: string;
   onDelete?: (nodeId: string) => void;
-  isLoading?: boolean;
   onGenerateVideo?: (nodeId: string, prompt: string, config: any) => void;
   onFirstLastFrameGenerate?: (nodeId: string) => void;
   onFirstFrameGenerate?: (nodeId: string) => void;
-  hasConnectedFrameNodes?: boolean;
 }
 
 function VideoNode({ data, id, selected }: NodeProps) {
   const nodeData = data as VideoNodeData;
   const [isMounted, setIsMounted] = useState(false);
-  const videoUrl = nodeData.videoUrl;
+  
+  // 从全局状态获取视频节点信息
+  const videoNodeState = useVideoNodesStore(state => state.getVideoNode(id));
+  const updateVideoNodeUrl = useVideoNodesStore(state => state.updateVideoNodeUrl);
+  
+  // 使用全局状态中的视频 URL 和加载状态
+  const videoUrl = videoNodeState?.videoUrl;
+  const isLoading = videoNodeState?.isLoading || false;
+  const hasConnectedFrameNodes = videoNodeState?.hasConnectedFrameNodes || false;
   
   // 确保组件完全挂载后再初始化播放器
   useEffect(() => {
@@ -116,13 +122,13 @@ function VideoNode({ data, id, selected }: NodeProps) {
         {!videoUrl && (
           <div className="absolute inset-0 flex items-center justify-center">
             {/* 显示loading状态 */}
-            {nodeData.isLoading ? (
+            {isLoading ? (
               <div className="w-full h-full">
                 <ScanningAnimation isActive={true} duration={1500} />
               </div>
             ) : (
               // 只有当没有连接的帧节点时，才显示生成选项
-              !nodeData.hasConnectedFrameNodes && (
+              !hasConnectedFrameNodes && (
                 <div className="w-full h-full flex flex-col items-start justify-center gap-2 p-4">
                   <button
                     onClick={handleFirstLastFrameGenerate}

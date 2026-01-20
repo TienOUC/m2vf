@@ -33,16 +33,29 @@ export const useEdgesStore = create(
       },
       
       setEdges: (newEdges: Edge[]) => {
-        set({ edges: newEdges });
+        // 过滤重复边 ID，保留最后一个出现的边
+        const edgeIdMap = new Map<string, Edge>();
+        newEdges.forEach(edge => {
+          edgeIdMap.set(edge.id, edge);
+        });
+        
+        // 如果发现重复边，记录警告
+        if (newEdges.length !== edgeIdMap.size) {
+          console.warn('发现重复边 ID，已自动去重');
+        }
+        
+        set({ edges: Array.from(edgeIdMap.values()) });
       },
       
       addEdge: (edge: Edge) => {
         set((state: EdgesState) => {
-          // 检查是否已存在相同的连线
+          // 检查是否已存在相同的连线 ID
           const edgeExists = state.edges.some(e => e.id === edge.id);
           if (!edgeExists) {
             return { edges: [...state.edges, edge] };
           }
+          // 如果边已存在，记录警告
+          console.warn(`边 ID ${edge.id} 已存在，避免重复添加`);
           return state;
         });
       },

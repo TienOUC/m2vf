@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { ImageNodeData } from '../types/editor/image';
+import { ImageNodeData } from '@/types/editor/image';
 
 // 图片节点在全局状态中的数据结构
 export interface ImageNodeState extends Omit<ImageNodeData, 'onDelete' | 'onReplace' | 'onEditStart' | 'onCropStart' | 'onImageUpdate' | 'onDownload' | 'onBackgroundRemove'> {

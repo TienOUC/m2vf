@@ -5,6 +5,7 @@ import { downloadImage } from '@/lib/utils/image';
 
 import { useTextNodesStore, TextNodeState } from '@/lib/stores/textNodesStore';
 import { useImageNodesStore, ImageNodeState } from '@/lib/stores/imageNodesStore';
+import { useVideoNodesStore, VideoNodeState } from '@/lib/stores/videoNodesStore';
 import { useEdgesStore } from '@/lib/stores/edgesStore';
 
 export interface UseNodeOperationsOptions {
@@ -231,6 +232,10 @@ export const useNodeOperations = (options: UseNodeOperationsOptions = {}): NodeO
       const imageNodesState = useImageNodesStore.getState();
       const persistedImageNodes = imageNodesState.imageNodes;
       
+      // 获取持久化的视频节点数据
+      const videoNodesState = useVideoNodesStore.getState();
+      const persistedVideoNodes = videoNodesState.videoNodes;
+      
       // 如果有持久化的文本节点，将它们转换为 React Flow 节点
       let textFlowNodes: Node[] = [];
       if (Object.keys(persistedTextNodes).length > 0) {
@@ -279,11 +284,27 @@ export const useNodeOperations = (options: UseNodeOperationsOptions = {}): NodeO
         }));
       }
       
+      // 如果有持久化的视频节点，将它们转换为 React Flow 节点
+      let videoFlowNodes: Node[] = [];
+      if (Object.keys(persistedVideoNodes).length > 0) {
+        videoFlowNodes = Object.values(persistedVideoNodes).map((videoNode) => ({
+          id: videoNode.id,
+          type: 'video',
+          position: videoNode.position || { x: 500, y: 100 }, // 使用保存的位置或默认位置
+          width: videoNode.width,
+          height: videoNode.height,
+          data: {
+            label: '视频节点',
+            onDelete: handleDelete,
+          },
+        }));
+      }
+      
       // 只在当前节点列表为空时添加持久化节点
       if (nodes.length === 0) {
         setNodes((prevNodes) => {
           // 确保不添加重复ID的节点
-          const uniqueNodes = [...textFlowNodes, ...imageFlowNodes].filter(newNode => 
+          const uniqueNodes = [...textFlowNodes, ...imageFlowNodes, ...videoFlowNodes].filter(newNode => 
             !prevNodes.some(existingNode => existingNode.id === newNode.id)
           );
           return [...prevNodes, ...uniqueNodes];
@@ -365,6 +386,34 @@ export const useNodeOperations = (options: UseNodeOperationsOptions = {}): NodeO
       
       if (Object.keys(imageUpdates).length > 0) {
         imageNodesStore.batchUpdateImageNodes(imageUpdates);
+      }
+      
+      // 处理视频节点
+      const videoNodes = nodes.filter(node => node.type === 'video');
+      
+      // 5. 删除全局存储中不存在于nodes数组中的视频节点
+      const videoNodesStore = useVideoNodesStore.getState();
+      const allVideoNodes = videoNodesStore.videoNodes;
+      for (const nodeId in allVideoNodes) {
+        if (!currentNodeIds.has(nodeId)) {
+          videoNodesStore.deleteVideoNode(nodeId);
+        }
+      }
+      
+      // 6. 批量更新全局状态中的视频节点位置、宽高
+      const videoUpdates: Record<string, Partial<VideoNodeState>> = {};
+      
+      videoNodes.forEach(node => {
+        // 只更新当前存在于UI中的节点，避免重新创建已删除的节点
+        videoUpdates[node.id] = {
+          position: node.position,
+          width: node.width,
+          height: node.height
+        };
+      });
+      
+      if (Object.keys(videoUpdates).length > 0) {
+        videoNodesStore.batchUpdateVideoNodes(videoUpdates);
       }
     }
   }, [nodes, isInitialized]);

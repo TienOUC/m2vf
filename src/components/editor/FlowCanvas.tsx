@@ -26,6 +26,7 @@ import { useNodeAddition } from '@/hooks/editor/useNodeAddition';
 import { useNodeCentering } from '@/hooks/editor/useNodeCentering';
 import { useBackgroundRemoval } from '@/hooks/editor/useBackgroundRemoval'; 
 import { useImageNodesStore } from '@/lib/stores/imageNodesStore';
+import { useVideoNodesStore } from '@/lib/stores/videoNodesStore';
 import { useEdgesStore } from '@/lib/stores/edgesStore';
 
 import FloatingMenu from '@/components/ui/FloatingMenu';
@@ -244,6 +245,10 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
         position: lastFramePos
       });
       
+      // 更新视频节点的连接状态到全局状态
+      const videoNodesStore = useVideoNodesStore.getState();
+      videoNodesStore.updateVideoNodeHasConnectedFrameNodes(videoNodeId, true);
+      
       // 更新边存储
       const edgesStore = useEdgesStore.getState();
       edgesStore.setEdges([...edgesStore.getAllEdges(), ...newEdges]);
@@ -331,6 +336,10 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
         imageUrl: undefined,
         position: firstFramePos
       });
+      
+      // 更新视频节点的连接状态到全局状态
+      const videoNodesStore = useVideoNodesStore.getState();
+      videoNodesStore.updateVideoNodeHasConnectedFrameNodes(videoNodeId, true);
       
       // 更新边存储
       const edgesStore = useEdgesStore.getState();
@@ -541,14 +550,10 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
         return;
       }
 
-      // 更新节点状态：清除旧视频、显示loading
-      nodeOperations.setNodes((prevNodes) =>
-        prevNodes.map((node) =>
-          node.id === selectedNode.id
-            ? { ...node, data: { ...node.data, isLoading: true, videoUrl: undefined } }
-            : node
-        )
-      );
+      // 更新全局状态：清除旧视频、显示loading
+      const videoNodesStore = useVideoNodesStore.getState();
+      videoNodesStore.updateVideoNodeUrl(selectedNode.id, undefined);
+      videoNodesStore.updateVideoNodeLoadingState(selectedNode.id, true);
 
       // 构建请求参数
       const requestParams = {
@@ -569,14 +574,9 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
         // 模拟生成的视频URL，添加时间戳参数确保每次URL都不同
         const mockVideoUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4?timestamp=' + Date.now();
 
-        // 更新节点数据，添加视频URL并关闭loading状态
-        nodeOperations.setNodes((prevNodes) =>
-          prevNodes.map((node) =>
-            node.id === selectedNode.id
-              ? { ...node, data: { ...node.data, videoUrl: mockVideoUrl, isLoading: false } }
-              : node
-          )
-        );
+        // 更新全局状态，添加视频URL并关闭loading状态
+        videoNodesStore.updateVideoNodeUrl(selectedNode.id, mockVideoUrl);
+        videoNodesStore.updateVideoNodeLoadingState(selectedNode.id, false);
       }, 3000);
     } 
     // 如果是图片节点，处理图片生成逻辑

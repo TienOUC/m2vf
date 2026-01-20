@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { TextNodeData } from '../types/editor/text';
+import { TextNodeData } from '@/types/editor/text';
 
 // 文本节点在全局状态中的数据结构
 export interface TextNodeState extends Omit<TextNodeData, 'onDelete' | 'onBackgroundColorChange' | 'getContent' | 'onContentChange' | 'getRichContent' | 'onRichContentChange' | 'onEditingChange' | 'onFontTypeChange'> {

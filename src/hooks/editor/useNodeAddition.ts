@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { Node, useReactFlow } from '@xyflow/react';
 import { useTextNodesStore } from '@/lib/stores/textNodesStore';
 import { useImageNodesStore } from '@/lib/stores/imageNodesStore';
+import { useVideoNodesStore } from '@/lib/stores/videoNodesStore';
 
 interface UseNodeAdditionProps {
   nodeId: number;
@@ -161,8 +162,9 @@ export const useNodeAddition = ({
       
       // 添加时间戳的最后4位，确保即使快速点击也能生成唯一ID
       const timestampSuffix = Date.now().toString().slice(-4);
+      const newNodeId = `node-${nodeId}-${timestampSuffix}`;
       const newNode = {
-        id: `node-${nodeId}-${timestampSuffix}`,
+        id: newNodeId,
         type: 'video',
         position: pos,
         data: { 
@@ -176,7 +178,27 @@ export const useNodeAddition = ({
         },
       };
 
-      setNodes((nds: Node[]) => nds.concat(newNode));
+      setNodes((nds: Node[]) => {
+        // 检查是否已经存在相同ID的节点，避免重复添加
+        if (!nds.some((node: Node) => node.id === newNode.id)) {
+          return nds.concat(newNode);
+        }
+        // 如果节点已存在，不添加并记录警告
+        console.warn(`节点ID ${newNode.id} 已存在，避免重复添加`);
+        return nds;
+      });
+      
+      // 然后在渲染完成后更新全局存储，避免在渲染过程中更新状态
+      setTimeout(() => {
+        useVideoNodesStore.getState().setVideoNode(newNodeId, {
+          id: newNodeId,
+          videoUrl: undefined,
+          isLoading: false,
+          hasConnectedFrameNodes: false,
+          position: pos
+        });
+      }, 0);
+      
       setNodeId((prevId: number) => prevId + 1);
     },
     [nodeId, setNodes, screenToFlowPosition, handleDelete, onFirstLastFrameGenerate, onFirstFrameGenerate, setNodeId]
