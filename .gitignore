@@ -38,6 +38,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# dev file
 /.trae/
 /docs
 /public
