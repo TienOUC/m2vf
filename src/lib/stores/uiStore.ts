@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { UIState } from '../types/store';
+import { UIState } from '@/lib/types/store';
 
 // UI状态store
 export const useUIStore = create<UIState>((set, get) => ({

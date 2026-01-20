@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { ProjectEditingState } from '../types/store';
+import { ProjectEditingState } from '@/lib/types/store';
 import { useProjectManagementStore } from './projectManagementStore';
 
 // 项目编辑store

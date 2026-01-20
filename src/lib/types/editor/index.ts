@@ -1,0 +1,3 @@
+export type { FabricCropHistoryRecord, ImageCropEditorOptions, Fabric, FabricObject, FabricCanvas, FabricImageEditorProps, CanvasRefs, EditorState, ImageDimensions, CropBoxConfig, MaskConfig, CropCoordinates } from './fabric';
+export type { ImageCropEditorInstance } from './image';
+export type { VideoNodeData } from './video';

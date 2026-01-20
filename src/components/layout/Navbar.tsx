@@ -1,11 +1,7 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import UserAvatar from './UserAvatar';
+import UserAvatar from '@/components/layout/UserAvatar';
 import { AutoAwesome, Edit } from '@mui/icons-material';
-import { ROUTES } from '@/lib/config/api.config';
-import { useUIStore } from '@/lib/stores';
 
 interface NavbarProps {
   user?: {
@@ -16,8 +12,6 @@ interface NavbarProps {
 }
 
 export default function Navbar({ user, onEditProject }: NavbarProps) {
-  const pathname = usePathname();
-  const { isSidebarOpen, setIsSidebarOpen } = useUIStore();
 
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">

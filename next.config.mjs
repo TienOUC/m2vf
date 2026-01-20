@@ -1,11 +1,22 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 生产环境下移除 console.log
   compiler: {
-    removeConsole: {
-      exclude: ['error', 'warn'], // 保留 console.error 和 console.warn
-    },
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'], 
+    } : false,
   },
+
+  // 图片配置，仅在开发环境允许picsum.photos域名
+  images: process.env.NODE_ENV === 'development' ? {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+        pathname: '/**',
+      },
+    ],
+  } : {},
+
 
   // 代理到后端，只在开发环境启用
   async rewrites() {

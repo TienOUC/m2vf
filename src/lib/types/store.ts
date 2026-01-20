@@ -83,10 +83,63 @@ export interface UIState {
   };
 }
 
+// 文本节点状态
+export interface TextNodeState {
+  id: string;
+  content?: string;
+  editorStateJson?: string;
+  backgroundColor?: string;
+  fontType?: 'h1' | 'h2' | 'h3' | 'p';
+  isEditing?: boolean;
+}
+
+// 文本节点管理状态
+export interface TextNodesState {
+  textNodes: Record<string, TextNodeState>;
+  getTextNode: (id: string) => TextNodeState | undefined;
+  setTextNode: (id: string, data: Partial<TextNodeState>) => void;
+  batchUpdateTextNodes: (updates: Record<string, Partial<TextNodeState>>) => void;
+  deleteTextNode: (id: string) => void;
+  clearAllTextNodes: () => void;
+  updateTextNodeContent: (id: string, content: string, editorStateJson?: string) => void;
+  updateTextNodeBackgroundColor: (id: string, color: string) => void;
+  updateTextNodeFontType: (id: string, fontType: 'h1' | 'h2' | 'h3' | 'p') => void;
+  updateTextNodeEditingState: (id: string, isEditing: boolean) => void;
+}
+
+// 图片节点状态
+export interface ImageNodeState {
+  id: string;
+  imageUrl?: string;
+  isLoading?: boolean;
+  isProcessing?: boolean;
+  processingProgress?: number;
+  error?: string;
+  position?: { x: number; y: number };
+  width?: number;
+  height?: number;
+}
+
+// 图片节点管理状态
+export interface ImageNodesState {
+  imageNodes: Record<string, ImageNodeState>;
+  getImageNode: (id: string) => ImageNodeState | undefined;
+  setImageNode: (id: string, data: Partial<ImageNodeState>) => void;
+  batchUpdateImageNodes: (updates: Record<string, Partial<ImageNodeState>>) => void;
+  deleteImageNode: (id: string) => void;
+  clearAllImageNodes: () => void;
+  updateImageNodeUrl: (id: string, imageUrl: string) => void;
+  updateImageNodeLoadingState: (id: string, isLoading: boolean) => void;
+  updateImageNodeProcessingState: (id: string, isProcessing: boolean, progress?: number) => void;
+  updateImageNodeError: (id: string, error?: string) => void;
+}
+
 // 组合所有状态类型
 export interface RootState {
   projectManagement: ProjectManagementState;
   projectEditing: ProjectEditingState;
   auth: AuthState;
   ui: UIState;
+  textNodes: TextNodesState;
+  imageNodes: ImageNodesState;
 }

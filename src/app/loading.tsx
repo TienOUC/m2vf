@@ -16,14 +16,14 @@ export default function Loading() {
           {/* 主加载动画 */}
           <div className="flex justify-center">
             <div className="relative">
-              {/* 外圈旋转动画 */}
-              <div className="w-16 h-16 border-4 border-blue-200 rounded-full"></div>
+              {/* 外圈旋转动画 - 飞书蓝 */}
+              <div className="w-16 h-16 border-4 border-blue-100 rounded-full"></div>
               <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
 
-              {/* 内圈旋转动画 */}
-              <div className="w-8 h-8 border-2 border-purple-200 rounded-full absolute top-4 left-4"></div>
+              {/* 内圈旋转动画 - 飞书青绿色 */}
+              <div className="w-8 h-8 border-2 border-cyan-100 rounded-full absolute top-4 left-4"></div>
               <div
-                className="w-8 h-8 border-2 border-purple-600 border-b-transparent rounded-full animate-spin absolute top-4 left-4"
+                className="w-8 h-8 border-2 border-cyan-500 border-b-transparent rounded-full animate-spin absolute top-4 left-4"
                 style={{ animationDirection: 'reverse' }}
               ></div>
             </div>

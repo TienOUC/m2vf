@@ -1,6 +1,6 @@
 // 编辑器相关工具函数和配置
 
-import { EditorTheme, EditorConfig } from '../types';
+import { EditorTheme, EditorConfig } from '@/lib/types';
 
 // 编辑器主题配置
 export const editorTheme: EditorTheme = {

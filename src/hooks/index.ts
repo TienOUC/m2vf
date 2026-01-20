@@ -1,10 +1,32 @@
-export { useNodeToolbar } from './useNodeToolbar';
-export { useNodeBase, useFileNodeBase } from './useNodeBase';
-export { useFileUpload } from './useFileUpload';
-export { useNodeAddition } from './useNodeAddition';
-export { useClickOutside } from './useClickOutside';
-export { useProjectManagement } from './useProjectManagement';
-export { useProjectEditing } from './useProjectEditing';
-export { useFontStyle } from './useFontStyle';
-export { useTextFormatting } from './useTextFormatting';
-export { useLexicalEditor } from './useLexicalEditor';
+// UI交互相关hooks
+export { useClickOutside, useFullscreen, useDebounce } from './ui';
+
+// 数据管理相关hooks
+export { useProjectManagement, useProjectEditing, useHistory } from './data';
+
+// 编辑器功能相关hooks
+export { 
+  useNodeBase, 
+  useFileNodeBase, 
+  useNodeOperations, 
+  usePaneInteractions, 
+  useNodeAddition, 
+  useNodeCentering 
+} from './editor';
+
+// 工具函数相关hooks
+export { 
+  useForm, 
+  useFileUpload, 
+  useImageLoader, 
+  useFontStyle, 
+  useLexicalEditor, 
+  useFabricCanvas, 
+  useCropOperations 
+} from './utils';
+
+// 节点相关hooks
+export { 
+  useTextNode,
+  useTextFormatting as useNodeTextFormatting
+} from './nodes';

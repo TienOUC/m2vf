@@ -7,11 +7,12 @@ import {
   TextFields,
   Image as ImageIcon,
   VideoFile,
-  Audiotrack,
+
   UploadFile,
   Collections
 } from '@mui/icons-material';
-import { FloatingMenu, MenuButton, SidebarButton, AssetDrawer } from '../common';
+import { FloatingMenu, MenuButton, SidebarButton } from '@/components/ui';
+import { AssetDrawer } from '@/components/forms';
 
 interface LeftSidebarProps {
   onAddClick?: () => void;
@@ -19,11 +20,8 @@ interface LeftSidebarProps {
   onAddTextNode?: () => void;
   onAddImageNode?: () => void;
   onAddVideoNode?: () => void;
-  onAddAudioNode?: () => void;
-
   onUploadImage?: () => void;
   onUploadVideo?: () => void;
-  onUploadAudio?: () => void;
   projectId?: number;
 }
 
@@ -33,10 +31,8 @@ export default function LeftSidebar({
   onAddTextNode,
   onAddImageNode,
   onAddVideoNode,
-  onAddAudioNode,
   onUploadImage,
   onUploadVideo,
-  onUploadAudio,
   projectId
 }: LeftSidebarProps) {
   const [showAddMenu, setShowAddMenu] = useState(false);
@@ -63,7 +59,7 @@ export default function LeftSidebar({
   return (
     <div>
     <div
-      className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm p-3 rounded-xl shadow-lg border border-gray-200 z-10 flex flex-col items-center gap-3"
+      className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm p-3 rounded-full shadow-lg border border-gray-200 z-10 flex flex-col items-center gap-3"
       // 阻止侧边栏容器上的点击事件冒泡
       onClick={(e) => e.stopPropagation()}
     >
@@ -73,7 +69,7 @@ export default function LeftSidebar({
           icon={<Add fontSize="small" />}
           title="添加"
           onClick={handleAddClick}
-          className="w-12 h-12 rounded-full bg-gray-200 hover:bg-gray-300 shadow-md"
+          className="w-10 h-10 rounded-full bg-gray-200 hover:bg-gray-300 shadow-md"
           animation="rotate"
         />
 
@@ -105,14 +101,6 @@ export default function LeftSidebar({
             label="视频"
             onClick={() => {
               onAddVideoNode?.();
-              closeAllMenus();
-            }}
-          />
-          <MenuButton
-            icon={<Audiotrack fontSize="small" />}
-            label="音频"
-            onClick={() => {
-              onAddAudioNode?.();
               closeAllMenus();
             }}
           />
@@ -164,14 +152,6 @@ export default function LeftSidebar({
             label="上传视频"
             onClick={() => {
               onUploadVideo?.();
-              closeAllMenus();
-            }}
-          />
-          <MenuButton
-            icon={<Audiotrack fontSize="small" />}
-            label="上传音频"
-            onClick={() => {
-              onUploadAudio?.();
               closeAllMenus();
             }}
           />
