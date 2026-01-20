@@ -177,7 +177,7 @@ const NodeToolbar = ({
       position={Position.Top}
       offset={20}
       isVisible={selected}
-      className="bg-white shadow-md rounded-full border border-gray-200 p-1 flex items-center gap-1"
+      className="bg-white shadow-md rounded-full border border-gray-200 px-2 py-1 flex items-center gap-1"
     >
       <Tooltip title="删除节点" placement="top">
         <button

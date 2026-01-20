@@ -24,7 +24,7 @@ export default function SidebarButton({
 
   return (
     <button
-      className={`p-3 rounded-lg text-gray-700 hover:bg-gray-200 transition-colors flex items-center justify-center group ${className}`}
+      className={`p-3 text-gray-700 hover:bg-gray-200 transition-colors flex items-center justify-center group ${className}`}
       title={title}
       onClick={onClick}
     >
