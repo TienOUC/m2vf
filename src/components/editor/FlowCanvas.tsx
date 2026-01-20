@@ -194,23 +194,10 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
       }
     };
 
-    // 添加新节点并更新视频节点状态
+    // 添加新节点
     nodeOperations.setNodes(prevNodes => {
-      // 更新视频节点，标记为已连接帧节点
-      const updatedNodes = prevNodes.map(node => {
-        if (node.id === videoNodeId && node.type === 'video' && node.data) {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              hasConnectedFrameNodes: true
-            }
-          };
-        }
-        return node;
-      });
       // 添加新的图片节点
-      return [...updatedNodes, firstFrameNode, lastFrameNode];
+      return [...prevNodes, firstFrameNode, lastFrameNode];
     });
 
     // 添加连接
@@ -237,17 +224,19 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
       imageNodesStore.setImageNode(firstFrameNodeId, {
         id: firstFrameNodeId,
         imageUrl: undefined,
-        position: firstFramePos
+        position: firstFramePos,
+        frameType: 'first'
       });
       imageNodesStore.setImageNode(lastFrameNodeId, {
         id: lastFrameNodeId,
         imageUrl: undefined,
-        position: lastFramePos
+        position: lastFramePos,
+        frameType: 'last'
       });
       
       // 更新视频节点的连接状态到全局状态
-      const videoNodesStore = useVideoNodesStore.getState();
-      videoNodesStore.updateVideoNodeHasConnectedFrameNodes(videoNodeId, true);
+      const videoNodesStore = useVideoNodesStore.getState() as any;
+      videoNodesStore.setVideoNode(videoNodeId, { hasConnectedFrameNodes: true });
       
       // 更新边存储
       const edgesStore = useEdgesStore.getState();
@@ -297,23 +286,10 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
       }
     };
 
-    // 添加新节点并更新视频节点状态
+    // 添加新节点
     nodeOperations.setNodes(prevNodes => {
-      // 更新视频节点，标记为已连接帧节点
-      const updatedNodes = prevNodes.map(node => {
-        if (node.id === videoNodeId && node.type === 'video' && node.data) {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              hasConnectedFrameNodes: true
-            }
-          };
-        }
-        return node;
-      });
       // 添加新的图片节点
-      return [...updatedNodes, firstFrameNode];
+      return [...prevNodes, firstFrameNode];
     });
 
     // 添加连接
@@ -334,12 +310,13 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
       imageNodesStore.setImageNode(firstFrameNodeId, {
         id: firstFrameNodeId,
         imageUrl: undefined,
-        position: firstFramePos
+        position: firstFramePos,
+        frameType: 'first'
       });
       
       // 更新视频节点的连接状态到全局状态
-      const videoNodesStore = useVideoNodesStore.getState();
-      videoNodesStore.updateVideoNodeHasConnectedFrameNodes(videoNodeId, true);
+      const videoNodesStore = useVideoNodesStore.getState() as any;
+      videoNodesStore.setVideoNode(videoNodeId, { hasConnectedFrameNodes: true });
       
       // 更新边存储
       const edgesStore = useEdgesStore.getState();
@@ -551,9 +528,11 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
       }
 
       // 更新全局状态：清除旧视频、显示loading
-      const videoNodesStore = useVideoNodesStore.getState();
-      videoNodesStore.updateVideoNodeUrl(selectedNode.id, undefined);
-      videoNodesStore.updateVideoNodeLoadingState(selectedNode.id, true);
+      const videoNodesStore = useVideoNodesStore.getState() as any;
+      videoNodesStore.setVideoNode(selectedNode.id, { 
+        videoUrl: undefined, 
+        isLoading: true 
+      });
 
       // 构建请求参数
       const requestParams = {
@@ -575,8 +554,10 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
         const mockVideoUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4?timestamp=' + Date.now();
 
         // 更新全局状态，添加视频URL并关闭loading状态
-        videoNodesStore.updateVideoNodeUrl(selectedNode.id, mockVideoUrl);
-        videoNodesStore.updateVideoNodeLoadingState(selectedNode.id, false);
+        videoNodesStore.setVideoNode(selectedNode.id, { 
+          videoUrl: mockVideoUrl, 
+          isLoading: false 
+        });
       }, 3000);
     } 
     // 如果是图片节点，处理图片生成逻辑

@@ -186,6 +186,7 @@ export const useImageNodesStore = create(
               position: node.position,
               width: node.width,
               height: node.height,
+              frameType: node.frameType, // 持久化首帧/尾帧标识
             },
           ])
         ),

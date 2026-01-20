@@ -273,6 +273,7 @@ export const useNodeOperations = (options: UseNodeOperationsOptions = {}): NodeO
           data: {
             label: '图片节点',
             imageUrl: imageNode.imageUrl,
+            frameType: imageNode.frameType,
             onDelete: handleDelete,
             onReplace: handleReplace,
             onImageUpdate: handleImageUpdate,

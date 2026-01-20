@@ -58,6 +58,7 @@ export const useImageNode = ({
           isProcessing: nodeData?.isProcessing || false,
           processingProgress: nodeData?.processingProgress || 0,
           error: nodeData?.error,
+          frameType: nodeData?.frameType,
         });
       }
     }, 0);

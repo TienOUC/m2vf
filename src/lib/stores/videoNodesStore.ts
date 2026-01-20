@@ -28,15 +28,6 @@ export interface VideoNodesState {
   
   // 清空所有节点
   clearAllVideoNodes: () => void;
-  
-  // 更新节点视频 URL
-  updateVideoNodeUrl: (id: string, videoUrl: string | undefined) => void;
-  
-  // 更新节点加载状态
-  updateVideoNodeLoadingState: (id: string, isLoading: boolean) => void;
-  
-  // 更新节点是否有连接的帧节点
-  updateVideoNodeHasConnectedFrameNodes: (id: string, hasConnected: boolean) => void;
 }
 
 // 创建视频节点状态管理 store
@@ -46,7 +37,8 @@ export const useVideoNodesStore = create(
       videoNodes: {},
       
       getVideoNode: (id: string) => {
-        return get().videoNodes[id];
+        const state = get() as VideoNodesState;
+        return state.videoNodes[id];
       },
       
       setVideoNode: (id: string, data: Partial<VideoNodeState>) => {
@@ -105,50 +97,14 @@ export const useVideoNodesStore = create(
       clearAllVideoNodes: () => {
         set({ videoNodes: {} });
       },
-      
-      updateVideoNodeUrl: (id: string, videoUrl: string | undefined) => {
-        set((state: VideoNodesState) => ({
-          videoNodes: {
-            ...state.videoNodes,
-            [id]: {
-              ...state.videoNodes[id],
-              videoUrl,
-            },
-          },
-        }));
-      },
-      
-      updateVideoNodeLoadingState: (id: string, isLoading: boolean) => {
-        set((state: VideoNodesState) => ({
-          videoNodes: {
-            ...state.videoNodes,
-            [id]: {
-              ...state.videoNodes[id],
-              isLoading,
-            },
-          },
-        }));
-      },
-      
-      updateVideoNodeHasConnectedFrameNodes: (id: string, hasConnected: boolean) => {
-        set((state: VideoNodesState) => ({
-          videoNodes: {
-            ...state.videoNodes,
-            [id]: {
-              ...state.videoNodes[id],
-              hasConnectedFrameNodes: hasConnected,
-            },
-          },
-        }));
-      },
     }),
     {
       name: 'm2v-flow-video-nodes', // localStorage 中的键名
       storage: createJSONStorage(() => localStorage), // Zustand 4.x版本的正确配置方式
-      partialize: (state: VideoNodesState): VideoNodesState => ({
+      partialize: (state: VideoNodesState) => ({
         // 只持久化必要的数据，排除方法和临时状态
         videoNodes: Object.fromEntries(
-          Object.entries(state.videoNodes).map(([id, node]) => [
+          Object.entries(state.videoNodes).map(([id, node]: [string, VideoNodeState]) => [
             id,
             {
               id: node.id,
@@ -161,15 +117,6 @@ export const useVideoNodesStore = create(
             },
           ])
         ),
-        // 方法不会被序列化，所以这里不需要包含
-        getVideoNode: (_id: string) => undefined,
-        setVideoNode: () => {},
-        batchUpdateVideoNodes: () => {},
-        deleteVideoNode: () => {},
-        clearAllVideoNodes: () => {},
-        updateVideoNodeUrl: () => {},
-        updateVideoNodeLoadingState: () => {},
-        updateVideoNodeHasConnectedFrameNodes: () => {},
       }),
     }
   )

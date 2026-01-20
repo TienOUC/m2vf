@@ -1,61 +1,31 @@
 'use client';
 
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useRef, useEffect} from 'react';
 import { NodeResizeControl } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { VideoFile } from '@mui/icons-material';
 import { NodeBase } from './NodeBase';
 import { ResizeIcon } from '@/components/editor';
 import { ScanningAnimation } from '@/components/editor/ScanningAnimation';
-import { useVideoNodesStore } from '@/lib/stores/videoNodesStore';
-
-
-export interface VideoNodeData {
-  label?: string;
-  onDelete?: (nodeId: string) => void;
-  onGenerateVideo?: (nodeId: string, prompt: string, config: any) => void;
-  onFirstLastFrameGenerate?: (nodeId: string) => void;
-  onFirstFrameGenerate?: (nodeId: string) => void;
-}
+import { useVideoNodesStore, type VideoNodesState } from '@/lib/stores/videoNodesStore';
+import type { VideoNodeData } from '@/lib/types/editor/video';
 
 function VideoNode({ data, id, selected }: NodeProps) {
   const nodeData = data as VideoNodeData;
-  const [isMounted, setIsMounted] = useState(false);
   
   // 从全局状态获取视频节点信息
-  const videoNodeState = useVideoNodesStore(state => state.getVideoNode(id));
-  const updateVideoNodeUrl = useVideoNodesStore(state => state.updateVideoNodeUrl);
+  const videoNodeState = useVideoNodesStore((state: VideoNodesState) => state.getVideoNode(id));
   
   // 使用全局状态中的视频 URL 和加载状态
   const videoUrl = videoNodeState?.videoUrl;
   const isLoading = videoNodeState?.isLoading || false;
   const hasConnectedFrameNodes = videoNodeState?.hasConnectedFrameNodes || false;
-  
-  // 确保组件完全挂载后再初始化播放器
-  useEffect(() => {
-    setIsMounted(true);
-    return () => {
-      setIsMounted(false);
-    };
-  }, []);
 
   // 简化视频播放器逻辑，使用原生video元素代替复杂的videojs初始化
   const videoContainerRef = useRef<HTMLDivElement>(null);
-  const [showVideo, setShowVideo] = useState(!!videoUrl);
 
   // 当videoUrl变化时更新视频源
   useEffect(() => {
-    if (!videoUrl) {
-      setShowVideo(false);
-      // 清除容器内容
-      if (videoContainerRef.current) {
-        videoContainerRef.current.innerHTML = '';
-      }
-      return;
-    }
-
-    setShowVideo(true);
-    
     // 确保容器存在
     if (!videoContainerRef.current) {
       return;
@@ -64,17 +34,19 @@ function VideoNode({ data, id, selected }: NodeProps) {
     // 清除容器内容
     videoContainerRef.current.innerHTML = '';
     
-    // 创建新的video元素
-    const newVideoElement = document.createElement('video');
-    newVideoElement.className = 'w-full h-full object-cover rounded-md';
-    newVideoElement.controls = true;
-    newVideoElement.src = videoUrl;
-    
-    // 添加到容器
-    videoContainerRef.current.appendChild(newVideoElement);
-    
-    // 尝试加载视频
-    newVideoElement.load();
+    if (videoUrl) {
+      // 创建新的video元素
+      const newVideoElement = document.createElement('video');
+      newVideoElement.className = 'w-full h-full object-cover rounded-md';
+      newVideoElement.controls = true;
+      newVideoElement.src = videoUrl;
+      
+      // 添加到容器
+      videoContainerRef.current.appendChild(newVideoElement);
+      
+      // 尝试加载视频
+      newVideoElement.load();
+    }
   }, [videoUrl]);
 
   // 处理首尾帧生成视频点击事件
