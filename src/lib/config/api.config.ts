@@ -30,30 +30,6 @@ export const API_ENDPOINTS = {
     SAVE: (id: string | number) => `/api/projects/${id}/workspace`,
   },
   
-  // 图片库管理相关
-  IMAGES: {
-    TREE: (projectId: number) => `/api/images/api/projects/${projectId}/folders/tree/`,
-    FOLDERS: (projectId: number) => `/api/images/api/projects/${projectId}/folders/`,
-    FOLDER_DETAIL: (projectId: number, folderId: number) => 
-      `/api/images/api/projects/${projectId}/folders/${folderId}/`,
-    UPLOAD_IMAGE: (projectId: number, folderId: number) => 
-      `/api/images/api/projects/${projectId}/folders/${folderId}/images/upload/`,
-    FOLDER_IMAGES: (projectId: number, folderId: number) => 
-      `/api/images/api/projects/${projectId}/folders/${folderId}/images/`,
-    IMAGE_DETAIL: (projectId: number, folderId: number, imageId: number) => 
-      `/api/images/api/projects/${projectId}/folders/${folderId}/images/${imageId}/detail/`,
-    IMAGE: (projectId: number, folderId: number, imageId: number) => 
-      `/api/images/api/projects/${projectId}/folders/${folderId}/images/${imageId}/`,
-    UPLOAD_VIDEO: (projectId: number, folderId: number | null) => 
-      folderId 
-        ? `/api/images/api/projects/${projectId}/folders/${folderId}/videos/upload/`
-        : `/api/images/api/projects/${projectId}/videos/upload/`,
-    FOLDER_VIDEOS: (projectId: number, folderId: number) => 
-      `/api/images/api/projects/${projectId}/folders/${folderId}/videos/`,
-    VIDEO: (projectId: number, folderId: number, videoId: number) => 
-      `/api/images/api/projects/${projectId}/folders/${folderId}/videos/${videoId}/`,
-  },
-  
   // 文档管理相关
   DOCUMENTS: {
     TREE: (projectId: number) => `/api/projects/${projectId}/documents/tree`,
@@ -68,12 +44,6 @@ export const API_ENDPOINTS = {
       `/api/projects/${projectId}/documents/nodes/${nodeId}/rename`,
     MOVE_NODE: (projectId: number, nodeId: number) => 
       `/api/projects/${projectId}/documents/nodes/${nodeId}/move`,
-    UPLOAD_DOCUMENT: (projectId: number, folderId: number | null) => 
-      folderId
-        ? `/api/images/api/projects/${projectId}/folders/${folderId}/documents/upload/`
-        : `/api/images/api/projects/${projectId}/documents/upload/`,
-    PROJECT_DOCUMENT: (projectId: number, folderId: number, documentId: number) => 
-      `/api/images/api/projects/${projectId}/folders/${folderId}/documents/${documentId}/`,
     ASSETS: (projectId: number, blobId: string, ext: string) => 
       `/api/projects/${projectId}/assets/${blobId}.${ext}`,
     ASSETS_BATCH: (projectId: number) => `/api/projects/${projectId}/assets/batch`,

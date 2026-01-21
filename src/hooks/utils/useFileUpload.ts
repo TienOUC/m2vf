@@ -1,5 +1,4 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { uploadProjectImage, uploadProjectVideo } from '@/lib/api/client/images';
 
 export function useFileUpload(acceptType: string, initialUrl?: string) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -19,38 +18,7 @@ export function useFileUpload(acceptType: string, initialUrl?: string) {
       setIsUploading(true);
       
       try {
-        // 模拟项目ID和文件夹ID
-        const projectId = 1;
-        const folderId = 1;
-        
-        // 根据文件类型调用不同的上传API
-        let response;
-        if (file.type.startsWith('video/')) {
-          response = await uploadProjectVideo(projectId, folderId, file, file.name);
-        } else {
-          response = await uploadProjectImage(projectId, folderId, file, file.name);
-        }
-        
-        if (response.ok) {
-          const data = await response.json();
-          
-          // 使用上传成功返回的URL
-          const uploadedUrl = data.data.url;
-          setFileUrl(uploadedUrl);
-          if (onFileSelected) onFileSelected(uploadedUrl);
-        } else {
-          // 如果上传失败，回退到本地Data URL
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            const result = event.target?.result as string;
-            setFileUrl(result);
-            if (onFileSelected) onFileSelected(result);
-          };
-          reader.readAsDataURL(file);
-        }
-      } catch (error) {
-        console.error('上传失败:', error);
-        // 上传失败时，使用本地Data URL作为备选
+        // 使用本地Data URL处理文件
         const reader = new FileReader();
         reader.onload = (event) => {
           const result = event.target?.result as string;
@@ -58,6 +26,8 @@ export function useFileUpload(acceptType: string, initialUrl?: string) {
           if (onFileSelected) onFileSelected(result);
         };
         reader.readAsDataURL(file);
+      } catch (error) {
+        console.error('文件处理失败:', error);
       } finally {
         setIsUploading(false);
       }

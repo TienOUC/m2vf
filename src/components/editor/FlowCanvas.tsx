@@ -244,9 +244,6 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
             onAddTextNode={addTextNode}
             onAddImageNode={addImageNode}
             onAddVideoNode={addVideoNode}
-            onUploadImage={handleUploadImage}
-            onUploadVideo={handleUploadVideo}
-            projectId={projectId ? parseInt(projectId) : undefined}
           />
 
           <DoubleClickMenu

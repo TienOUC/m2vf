@@ -31,7 +31,7 @@ export default function Navbar({ user, onEditProject }: NavbarProps) {
             编辑项目
           </button>
         )}
-        {user && <UserAvatar user={user} />}
+        {user && <UserAvatar user={user} menuPosition="bottom" />}
       </div>
     </header>
   );

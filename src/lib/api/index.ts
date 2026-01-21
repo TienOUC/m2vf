@@ -8,7 +8,6 @@ export * from './client/projects';
 export * from './client/ai';
 export * from './client/auth';
 export * from './client/documents';
-export * from './client/images';
 export * from './client/layers';
 export * from './client/workspace';
 

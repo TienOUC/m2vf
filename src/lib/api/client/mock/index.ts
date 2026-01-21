@@ -1,6 +1,4 @@
 // Mock 数据入口文件
-import { handleImageUploadMock } from './image';
-import { handleVideoUploadMock } from './video';
 import { handleBackgroundRemovalMock } from './background-removal';
 
 // Mock 处理器类型定义
@@ -8,8 +6,6 @@ export type MockHandler = (url: string, options: RequestInit) => Promise<Respons
 
 // Mock 处理器配置
 export const mockHandlers: MockHandler[] = [
-  handleImageUploadMock,
-  handleVideoUploadMock,
   handleBackgroundRemovalMock,
 ];
 

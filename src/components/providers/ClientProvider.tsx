@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/lib/stores';
 import Loading from '@/app/loading'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { MenuProvider } from '@/contexts/MenuContext'
 // 客户端Provider组件，用于初始化zustand store
 export default function ClientProvider({ children }: { children: React.ReactNode }) {
   const [authInitialized, setAuthInitialized] = useState(false);
@@ -30,5 +31,9 @@ export default function ClientProvider({ children }: { children: React.ReactNode
     );
   }
 
-  return <TooltipProvider>{children}</TooltipProvider>;
+  return (
+    <MenuProvider>
+      <TooltipProvider>{children}</TooltipProvider>
+    </MenuProvider>
+  );
 }
