@@ -54,6 +54,8 @@ export const useNodeAddition = ({
         id: newNodeId,
         type: 'text',
         position: pos,
+        width: 200,
+        height: 150,
         data: { 
           label: '文本节点',
           backgroundColor: '#ffffff',
@@ -118,6 +120,8 @@ export const useNodeAddition = ({
         id: newNodeId,
         type: 'image',
         position: pos,
+        width: 200,
+        height: 150,
         data: { 
           label: '图片节点',
           imageUrl: undefined, // 明确初始化为undefined，确保一致的状态
@@ -167,6 +171,8 @@ export const useNodeAddition = ({
         id: newNodeId,
         type: 'video',
         position: pos,
+        width: 200,
+        height: 150,
         data: { 
           label: '视频节点',
           onDelete: handleDelete,

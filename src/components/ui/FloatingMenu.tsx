@@ -6,7 +6,7 @@ import { useClickOutside } from '@/hooks/ui/useClickOutside';
 interface FloatingMenuProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
+  title?: string;
   children: ReactNode;
   position?: 'left' | 'right' | 'top' | 'bottom';
   width?: string;
@@ -40,9 +40,11 @@ export default function FloatingMenu({
       // 阻止菜单内部的点击事件冒泡，避免误关闭
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="p-2 bg-gray-100 rounded-t-lg">
-        <span className="text-xs font-medium text-gray-600">{title}</span>
-      </div>
+      {title && (
+        <div className="p-2 bg-gray-100 rounded-t-lg">
+          <span className="text-xs font-medium text-gray-600">{title}</span>
+        </div>
+      )}
       <div className="py-1">{children}</div>
     </div>
   );

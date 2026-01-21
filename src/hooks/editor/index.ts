@@ -3,4 +3,10 @@ export { useNodeOperations } from './useNodeOperations';
 export { usePaneInteractions } from './usePaneInteractions';
 export { useNodeAddition } from './useNodeAddition';
 export { useNodeCentering } from './useNodeCentering';
-export { useBackgroundRemoval } from './useBackgroundRemoval'; // 新增：导出背景移除hook
+export { useBackgroundRemoval } from './useBackgroundRemoval';
+export { useDialogPosition } from './useDialogPosition';
+export { useNodePosition } from './useNodePosition';
+export { useNodeConnection } from './useNodeConnection';
+export { useVideoNode } from './useVideoNode';
+export { useDialogSend } from './useDialogSend';
+export { useNodeDialog } from './useNodeDialog';

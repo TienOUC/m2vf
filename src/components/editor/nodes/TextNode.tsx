@@ -81,7 +81,7 @@ function TextNode(props: NodeProps) {
         getRichContent={(nodeId: string) => (data as TextNodeData)?.getRichContent?.(nodeId) ?? ''}
       >
         {!isFullscreenDialogOpen && (
-          <NodeResizeControl className="group group-selected" style={controlStyle} minWidth={100} minHeight={50}>
+          <NodeResizeControl className="group group-selected" style={controlStyle} minWidth={100} minHeight={75}>
             <ResizeIcon className="absolute right-[-10px] bottom-[-10px]" />
           </NodeResizeControl>
         )}

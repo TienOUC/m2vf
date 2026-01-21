@@ -71,11 +71,19 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
   const videoDurationMenuRef = useRef<HTMLDivElement>(null);
   const videoAspectRatioMenuRef = useRef<HTMLDivElement>(null);
   
-  const models = [
-    'Doubao',
-    'Qwen',
-    'Gemini'
-  ];
+  // 根据节点类型显示不同的模型选项
+  const getModelsForNodeType = (type: 'text' | 'image' | 'video') => {
+    switch (type) {
+      case 'text':
+        return ['Text Model 1', 'Text Model 2', 'Text Model 3'];
+      case 'image':
+        return ['Image Model 1', 'Image Model 2', 'Image Model 3'];
+      case 'video':
+        return ['Video Model 1', 'Video Model 2', 'Video Model 3'];
+      default:
+        return ['Default Model'];
+    }
+  };
   
   const resolutions = [
     '1K',
@@ -277,6 +285,29 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
     };
   }, [closeAllMenus]);
   
+  // 当节点类型变化或对话框重新打开时，重置输入内容和模型菜单状态
+  useEffect(() => {
+    if (isVisible) {
+      // 重置输入内容
+      setContent('');
+      setInputHeight(100);
+      
+      // 关闭所有菜单
+      closeAllMenus();
+      
+      // 根据节点类型重置默认模型
+      let defaultModel = 'Default Model';
+      if (nodeType === 'image') {
+        defaultModel = 'Image Model 1';
+      } else if (nodeType === 'video') {
+        defaultModel = 'Video Model 1';
+      } else if (nodeType === 'text') {
+        defaultModel = 'Text Model 1';
+      }
+      setSelectedModel(defaultModel);
+    }
+  }, [isVisible, nodeType, closeAllMenus]);
+  
   // 计算对话框的最终位置
   const calculateDialogPosition = useCallback(() => {
     const dialogWidth = 650;
@@ -412,7 +443,7 @@ const NodeInteractionDialog: React.FC<NodeInteractionDialogProps> = ({
               {/* 模型选择下拉菜单 */}
               {isModelMenuOpen && (
                 <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-1001">
-                  {models.map((model) => (
+                  {getModelsForNodeType(nodeType).map((model) => (
                       <button
                         key={model}
                         onClick={() => handleModelSelect(model)}

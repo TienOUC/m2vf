@@ -65,8 +65,8 @@ export const NodeBase = forwardRef<HTMLDivElement, BaseNodeProps>(({
       className={`rounded-lg w-full h-full relative transition-colors duration-150 shadow-sm hover:shadow-md border border-neutral-200 group ${selected ? 'group-selected' : ''}`}
       style={{ 
         backgroundColor: backgroundColor || 'white',
-        minWidth: '180px', 
-        minHeight: '120px' 
+        minWidth: '100px', 
+        minHeight: '75px' 
       }}
     >
       {/* 输入连接点 */}

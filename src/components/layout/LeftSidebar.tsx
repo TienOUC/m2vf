@@ -75,7 +75,6 @@ export default function LeftSidebar({
         <FloatingMenu
           isOpen={showAddMenu}
           onClose={closeAllMenus}
-          title="添加节点"
           position="right"
           width="w-48"
         >
@@ -118,7 +117,6 @@ export default function LeftSidebar({
         <FloatingMenu
           isOpen={showAssetMenu}
           onClose={closeAllMenus}
-          title="资产库"
           position="right"
           width="w-48"
         >
