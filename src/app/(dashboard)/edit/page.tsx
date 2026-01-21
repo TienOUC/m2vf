@@ -6,8 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import FlowCanvas from '@/components/editor/FlowCanvas';
 import ProjectEditModal from '@/components/projects/ProjectEditModal';
 import { 
-  useProjectEditingStore,
-  useProjectManagementStore
+  useProjectEditingStore
 } from '@/lib/stores';
 
 export default function EditPage() {

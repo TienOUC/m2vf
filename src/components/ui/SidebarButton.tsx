@@ -8,6 +8,7 @@ interface SidebarButtonProps {
   onClick: () => void;
   className?: string;
   animation?: 'rotate' | 'scale';
+  selected?: boolean;
 }
 
 export default function SidebarButton({
@@ -15,7 +16,8 @@ export default function SidebarButton({
   title,
   onClick,
   className = '',
-  animation = 'rotate'
+  animation = 'rotate',
+  selected = false
 }: SidebarButtonProps) {
   const animationClasses = {
     rotate: 'group-hover:rotate-45',
@@ -24,7 +26,7 @@ export default function SidebarButton({
 
   return (
     <button
-      className={`p-3 text-gray-700 hover:bg-gray-200 transition-colors flex items-center justify-center group ${className}`}
+      className={`w-10 h-10 text-gray-700 hover:bg-gray-200 transition-colors flex items-center justify-center group rounded-full ${selected ? 'bg-blue-100' : ''} ${className}`}
       title={title}
       onClick={onClick}
     >

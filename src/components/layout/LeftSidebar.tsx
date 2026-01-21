@@ -8,10 +8,13 @@ import {
   Image,
   Video,
   Upload,
-  Images
+  Images,
+  Box
 } from 'lucide-react';
 import { FloatingMenu, MenuButton, SidebarButton } from '@/components/ui';
 import { AssetDrawer } from '@/components/forms';
+import UserAvatar from './UserAvatar';
+import { useAuthStore } from '@/lib/stores';
 
 interface LeftSidebarProps {
   onAddClick?: () => void;
@@ -34,6 +37,7 @@ export default function LeftSidebar({
   onUploadVideo,
   projectId
 }: LeftSidebarProps) {
+  const { user } = useAuthStore();
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [showAssetMenu, setShowAssetMenu] = useState(false);
   const [showAssetDrawer, setShowAssetDrawer] = useState(false);
@@ -58,17 +62,17 @@ export default function LeftSidebar({
   return (
     <div>
     <div
-      className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm p-3 rounded-full shadow-lg border border-neutral-200 z-10 flex flex-col items-center gap-3"
+      className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm p-1.5 rounded-full shadow-lg border border-neutral-200 z-10 flex flex-col items-center gap-1.5 w-[54px]"
       // 阻止侧边栏容器上的点击事件冒泡
       onClick={(e) => e.stopPropagation()}
     >
       {/* 添加按钮 */}
       <div className="relative">
         <SidebarButton
-          icon={<Plus size={16} />}
+          icon={<Plus size={20} />}
           title="添加"
           onClick={handleAddClick}
-          className="w-10 h-10 rounded-full bg-gray-200 hover:bg-gray-300 shadow-md"
+          className="rounded-full bg-gray-200 hover:bg-gray-300 shadow-md"
           animation="rotate"
         />
 
@@ -105,10 +109,13 @@ export default function LeftSidebar({
         </FloatingMenu>
       </div>
 
+      {/* 分割线 */}
+      <div className="w-8 h-px bg-neutral-200"></div>
+
       {/* 资产库按钮 */}
       <div className="relative">
         <SidebarButton
-          icon={<FolderOpen size={16} />}
+          icon={<FolderOpen size={20} />}
           title="资产库"
           onClick={handleAssetClick}
           animation="scale"
@@ -153,6 +160,24 @@ export default function LeftSidebar({
             }}
           />
         </FloatingMenu>
+      </div>
+
+      {/* Box按钮 */}
+      <SidebarButton
+        icon={<Box size={20} />}
+        title="Box"
+        onClick={() => {
+          alert('Box功能即将实现');
+        }}
+        animation="scale"
+      />
+
+      {/* 分割线 */}
+      <div className="w-8 h-px bg-neutral-200"></div>
+
+      {/* 底部用户头像 */}
+      <div className="mt-auto">
+        {user && <UserAvatar user={user} menuOffsetY={10} />}
       </div>
     </div>
     
