@@ -222,6 +222,32 @@ const NodeToolbar = ({
         </Tooltip>
       )}
       
+      {/* 下载按钮 - 仅对图片节点显示 */}
+      {type === 'image' && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span>
+              <button
+                onClick={() => hasImage && onDownload?.(nodeId)}
+                className={`w-8 h-8 p-1 rounded-md transition-colors ${!hasImage ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-green-600 hover:bg-green-50'} flex items-center justify-center`}
+                aria-label="下载图片"
+                disabled={!hasImage}
+              >
+                <Download size={16} />
+              </button>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{!hasImage ? "请先上传图片" : "下载图片"}</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
+      
+      {/* 垂直分割线 */}
+      {type === 'image' && (
+        <div className="w-px h-6 bg-gray-200 mx-1" />
+      )}
+      
       {/* 裁剪按钮 - 仅对图片节点显示 */}
       {type === 'image' && (
         <Tooltip>
@@ -260,27 +286,6 @@ const NodeToolbar = ({
           </TooltipTrigger>
           <TooltipContent>
             <p>{!hasImage ? "请先上传图片" : "擦除"}</p>
-          </TooltipContent>
-        </Tooltip>
-      )}
-      
-      {/* 下载按钮 - 仅对图片节点显示 */}
-      {type === 'image' && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span>
-              <button
-                onClick={() => hasImage && onDownload?.(nodeId)}
-                className={`w-8 h-8 p-1 rounded-md transition-colors ${!hasImage ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-green-600 hover:bg-green-50'} flex items-center justify-center`}
-                aria-label="下载图片"
-                disabled={!hasImage}
-              >
-                <Download size={16} />
-              </button>
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{!hasImage ? "请先上传图片" : "下载图片"}</p>
           </TooltipContent>
         </Tooltip>
       )}

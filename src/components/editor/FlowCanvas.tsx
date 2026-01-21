@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useMemo, useCallback, useState } from 'react';
-import { Plus, ArrowLeft } from 'lucide-react';
+import { Plus, CornerUpLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { 
   ReactFlow,
@@ -715,14 +715,13 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
 
   return (
     <>
-      {/* 为 ReactFlow 添加明确的高度和宽度设置 - 编辑页面没有navbar，直接使用100vh */}
       <div style={{ width: '100%', height: '100vh', position: 'relative', display: 'block' }}>
         {/* 返回按钮 */}
         <div 
           style={{
             position: 'absolute',
-            top: '20px',
-            left: '20px',
+            top: '15px',
+            left: '15px',
             zIndex: 1000,
             background: 'rgba(255, 255, 255, 0.9)',
             borderRadius: '50%',
@@ -741,7 +740,7 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
             e.currentTarget.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
           }}
         >
-          <ArrowLeft size={24} color="#333" />
+          <CornerUpLeft size={20} color="#333" />
         </div>
         
         <ReactFlow
