@@ -23,6 +23,8 @@ export const metadata: Metadata = {
   }
 };
 
+import GlobalLoading from '@/components/ui/GlobalLoading';
+
 export default function RootLayout({
   children
 }: Readonly<{
@@ -35,6 +37,7 @@ export default function RootLayout({
       >
         <ClientProvider>
           {children}
+          <GlobalLoading />
         </ClientProvider>
       </body>
     </html>

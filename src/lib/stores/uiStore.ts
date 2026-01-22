@@ -6,6 +6,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   isSidebarOpen: true,
   isMobileMenuOpen: false,
   isDarkMode: false,
+  isGlobalLoading: false,
   loadingMessage: null,
   message: {
     text: '',
@@ -18,6 +19,8 @@ export const useUIStore = create<UIState>((set, get) => ({
   setIsMobileMenuOpen: (open) => set({ isMobileMenuOpen: open }),
   
   setIsDarkMode: (darkMode) => set({ isDarkMode: darkMode }),
+  
+  setGlobalLoading: (isLoading, message = null) => set({ isGlobalLoading: isLoading, loadingMessage: message }),
   
   setLoadingMessage: (message) => set({ loadingMessage: message }),
   

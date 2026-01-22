@@ -11,6 +11,7 @@ import CreateProjectModal from '@/components/projects/CreateProjectModal';
 import ProjectCard from '@/components/projects/ProjectCard';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import Message from '@/components/ui/Message';
+import Loading from '@/app/loading';
 
 interface Project {
   id: number;
@@ -125,7 +126,6 @@ export default function ProjectsPage() {
   const handleEditProjectInfo = async (projectId: number, name: string, description: string) => {
     try {
       await updateProject(projectId, { name, description });
-      await fetchProjects(pagination.page, pagination.pageSize);
       
       setToast({
         message: `项目 "${name}" 更新成功`,
@@ -147,6 +147,9 @@ export default function ProjectsPage() {
   
   return (
     <>
+      {/* Loading组件放在根级别，确保全屏居中 */}
+      {isProjectLoading && <Loading />}
+      
       {/* 主内容区域容器 */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 主内容区域 */}
@@ -167,22 +170,6 @@ export default function ProjectsPage() {
           </div>
 
           {/* 项目列表 */}
-          {isProjectLoading && (
-            <div className="fixed inset-0 flex items-center justify-center z-[1000] bg-background bg-opacity-70">
-              <div className="relative w-16 h-16">
-                {/* 外圈旋转动画 */}
-                <div className="w-16 h-16 border-4 border-primary-200 rounded-full"></div>
-                <div className="w-16 h-16 border-4 border-primary-600 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
-                
-                {/* 内圈旋转动画 */}
-                <div className="w-8 h-8 border-2 border-secondary-200 rounded-full absolute top-4 left-4"></div>
-                <div 
-                  className="w-8 h-8 border-2 border-secondary-600 border-b-transparent rounded-full animate-spin absolute top-4 left-4"
-                  style={{ animationDirection: 'reverse' }}
-                ></div>
-              </div>
-            </div>
-          )}
           {!isProjectLoading && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {projects.map((project) => (

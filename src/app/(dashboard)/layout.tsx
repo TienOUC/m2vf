@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { useAuthStore } from '@/lib/stores';
 import { ROUTES } from '@/lib/config/api.config';
+import Loading from '@/app/loading';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -14,29 +15,24 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, isLoading } = useAuthStore();
 
   useEffect(() => {
-    if (!isAuthenticated || !user) {
+    // 只有在认证检查完成后，才处理未认证情况
+    if (!isLoading && !isAuthenticated || !user) {
       console.warn('用户未认证，跳转到登录页');
       router.replace(`${ROUTES.LOGIN}?redirect=${window.location.pathname}${window.location.search}`);
     }
-  }, [router, isAuthenticated, user]);
+  }, [router, isAuthenticated, user, isLoading]);
 
+  // 认证检查过程中显示loading，不显示认证失败提示
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  // 认证检查完成且未认证，直接重定向，不显示错误提示
   if (!isAuthenticated) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-neutral-50">
-        <div className="text-center">
-          <p className="text-red-600 text-lg mb-4">认证失败，请重新登录</p>
-          <button 
-            onClick={() => router.replace(`${ROUTES.LOGIN}?redirect=${window.location.pathname}${window.location.search}`)}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            前往登录
-          </button>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (

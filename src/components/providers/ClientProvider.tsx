@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/lib/stores';
-import Loading from '@/app/loading'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { MenuProvider } from '@/contexts/MenuContext'
 // 客户端Provider组件，用于初始化zustand store
@@ -24,13 +23,8 @@ export default function ClientProvider({ children }: { children: React.ReactNode
     initializeAuth();
   }, []);
 
-  // 在认证状态初始化完成前显示加载状态
-  if (!authInitialized) {
-    return (
-      <Loading />
-    );
-  }
-
+  // 认证初始化非常快，不需要显示loading
+  // 直接渲染子组件，避免与Next.js内置loading冲突
   return (
     <MenuProvider>
       <TooltipProvider>{children}</TooltipProvider>

@@ -24,7 +24,7 @@ export interface ProjectManagementState {
   error: string | null;
   success: string | null;
   pagination: PaginationInfo;
-  fetchProjects: (page?: number, pageSize?: number) => Promise<any>;
+  fetchProjects: (page?: number, pageSize?: number, setLoading?: boolean) => Promise<any>;
   createProject: (projectData: { name: string; description: string }) => Promise<any>;
   deleteProject: (projectName: string) => Promise<any>;
   getProjectDetail: (projectId: string | number) => Promise<any>;
@@ -52,6 +52,7 @@ export interface ProjectEditingState {
 // 用户认证状态
 export interface AuthState {
   isAuthenticated: boolean;
+  isLoading: boolean;
   setIsAuthenticated: (isAuthenticated: boolean) => void;
   user: any | null;
   setUser: (user: any) => void;
@@ -72,7 +73,9 @@ export interface UIState {
   setIsMobileMenuOpen: (open: boolean) => void;
   isDarkMode: boolean;
   setIsDarkMode: (darkMode: boolean) => void;
+  isGlobalLoading: boolean;
   loadingMessage: string | null;
+  setGlobalLoading: (isLoading: boolean, message?: string | null) => void;
   setLoadingMessage: (message: string | null) => void;
   showMessage: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
   hideMessage: () => void;

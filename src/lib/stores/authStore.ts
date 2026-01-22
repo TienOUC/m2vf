@@ -6,6 +6,7 @@ import { saveTokens, clearTokens, getAccessToken, getRefreshToken } from '@/lib/
 // 用户认证store
 export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: false,
+  isLoading: true, // 添加loading状态，用于处理认证检查过程
   user: null,
   accessToken: null,
   refreshToken: null,
@@ -63,6 +64,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   
   checkAuthStatus: () => {
+    set({ isLoading: true }); // 开始认证检查，设置loading状态
+    
     const accessToken = getAccessToken();
     const refreshToken = getRefreshToken();
     const user = localStorage.getItem('user');
@@ -76,7 +79,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           isAuthenticated: true,
           accessToken: accessToken,
           refreshToken: refreshToken || null,
-          user: user ? JSON.parse(user) : null
+          user: user ? JSON.parse(user) : null,
+          isLoading: false // 认证检查完成，关闭loading状态
         });
       } else {
         // Token 格式无效，清除认证状态
@@ -84,7 +88,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           isAuthenticated: false,
           accessToken: null,
           refreshToken: null,
-          user: null
+          user: null,
+          isLoading: false // 认证检查完成，关闭loading状态
         });
         clearTokens();
       }
@@ -94,7 +99,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isAuthenticated: false,
         accessToken: null,
         refreshToken: null,
-        user: null
+        user: null,
+        isLoading: false // 认证检查完成，关闭loading状态
       });
     }
   }

@@ -23,8 +23,10 @@ export const useProjectManagementStore = create<ProjectManagementState>((set, ge
     totalPages: 0,
   },
   
-  fetchProjects: async (page = 1, pageSize = 20) => {
-    set({ isLoading: true, error: null });
+  fetchProjects: async (page = 1, pageSize = 20, setLoading = true) => {
+    if (setLoading) {
+      set({ isLoading: true, error: null });
+    }
     
     try {
       const response = await getProjectsAPI({ page, pageSize });
@@ -105,7 +107,7 @@ export const useProjectManagementStore = create<ProjectManagementState>((set, ge
         if (apiResponse.success === true) {
           // 重新获取项目列表以包含新创建的项目
           const { page, pageSize } = get().pagination;
-          await get().fetchProjects(page, pageSize);
+          await get().fetchProjects(page, pageSize, false);
           set({ success: '项目创建成功！' });
           return apiResponse.data;
         } else {
@@ -137,7 +139,7 @@ export const useProjectManagementStore = create<ProjectManagementState>((set, ge
         if (apiResponse.success === true) {
           // 重新获取项目列表以移除已删除的项目
           const { page, pageSize } = get().pagination;
-          await get().fetchProjects(page, pageSize);
+          await get().fetchProjects(page, pageSize, false);
           set({ success: '项目删除成功！' });
           return true;
         } else {
@@ -198,7 +200,7 @@ export const useProjectManagementStore = create<ProjectManagementState>((set, ge
         if (apiResponse.success === true) {
           // 重新获取项目列表以包含更新的项目
           const { page, pageSize } = get().pagination;
-          await get().fetchProjects(page, pageSize);
+          await get().fetchProjects(page, pageSize, false);
           set({ success: '项目更新成功！' });
           return apiResponse.data;
         } else {
