@@ -99,7 +99,7 @@ export const useVideoNodesStore = create(
       },
     }),
     {
-      name: 'm2v-flow-video-nodes', // localStorage 中的键名
+      name: 'reelay-flow-video-nodes', // localStorage 中的键名
       storage: createJSONStorage(() => localStorage), // Zustand 4.x版本的正确配置方式
       partialize: (state: VideoNodesState) => ({
         // 只持久化必要的数据，排除方法和临时状态

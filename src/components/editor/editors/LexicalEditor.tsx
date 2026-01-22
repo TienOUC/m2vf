@@ -5,7 +5,7 @@ import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { ClearEditorPlugin } from '@lexical/react/LexicalClearEditorPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
-import { M2VFlowLexicalEditorProps as M2VFlowLexicalEditorPropsType } from '@/lib/types';
+import { ReelayFlowLexicalEditorProps as ReelayFlowLexicalEditorPropsType } from '@/lib/types/editor';
 import { defaultEditorConfig } from '@/lib/utils/editor';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useEffect, useRef } from 'react';
@@ -115,7 +115,7 @@ function EditorInitPlugin({ onInit }: { onInit?: (editor: LexicalEditor) => void
   return null;
 }
 
-export function M2VFlowLexicalEditor({
+export function ReelayFlowLexicalEditor({
   initialContent = '',
   initialEditorState,
   onChange,
@@ -124,7 +124,7 @@ export function M2VFlowLexicalEditor({
   fontColor = 'gray-700',
   onInit,
   readOnly = false
-}: M2VFlowLexicalEditorPropsType & {
+}: ReelayFlowLexicalEditorPropsType & {
   onInit?: (editor: LexicalEditor) => void;
   readOnly?: boolean;
 }) {

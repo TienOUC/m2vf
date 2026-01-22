@@ -20,7 +20,7 @@ export default function ClickMenu({
   width = 'w-48',
   useDefaultStyles = true,
   menuId
-}: HoverMenuProps) {
+}: ClickMenuProps) {
   const { activeMenuId, setActiveMenuId } = useMenuContext();
   const isOpen = activeMenuId === menuId;
   const menuRef = useRef<HTMLDivElement>(null);

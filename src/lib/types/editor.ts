@@ -44,7 +44,7 @@ export interface EditorConfig {
 }
 
 // 编辑器属性类型定义
-export interface M2VFlowLexicalEditorProps {
+export interface ReelayFlowLexicalEditorProps {
   initialContent?: string;
   onChange?: (editorState: EditorState, editor: LexicalEditor) => void;
   darkMode?: boolean;

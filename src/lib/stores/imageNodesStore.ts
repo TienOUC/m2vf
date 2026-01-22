@@ -169,7 +169,7 @@ export const useImageNodesStore = create(
       },
     }),
     {
-      name: 'm2v-flow-image-nodes', // localStorage 中的键名
+      name: 'reelay-flow-image-nodes', // localStorage 中的键名
       storage: createJSONStorage(() => localStorage), // Zustand 4.x版本的正确配置方式
       partialize: (state: ImageNodesState): ImageNodesState => ({
         // 只持久化必要的数据，排除方法和临时状态

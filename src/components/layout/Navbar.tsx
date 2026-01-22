@@ -14,10 +14,11 @@ interface NavbarProps {
 export default function Navbar({ user, onEditProject }: NavbarProps) {
 
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+    <header className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-4">
+      <div className="max-w-7xl mx-auto flex justify-between items-center py-4">
       <div className="flex items-center space-x-3">
         <Sparkles className="h-8 w-8 text-blue-500" />
-        <h1 className="text-xl font-bold text-gray-900">M2VF</h1>
+        <h1 className="text-xl font-bold text-gray-900">Reelay</h1>
         
       </div>
 
@@ -32,6 +33,7 @@ export default function Navbar({ user, onEditProject }: NavbarProps) {
           </button>
         )}
         {user && <UserAvatar user={user} menuPosition="bottom" />}
+      </div>
       </div>
     </header>
   );

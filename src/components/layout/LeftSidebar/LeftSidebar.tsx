@@ -24,7 +24,7 @@ export default function LeftSidebar(props: LeftSidebarProps) {
                 position="right"
                 width={button.menuWidth}
                 menuContent={button.menu}
-                useDefaultMenuStyles={button.useDefaultMenuStyles}
+                useDefaultStyles={button.useDefaultMenuStyles}
                 menuId={button.id}
               >
                 <SidebarButton

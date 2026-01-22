@@ -15,9 +15,9 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: 'M2VF - AI智能生成视频',
+  title: 'Reelay【立画】 - AI智能生成视频',
   description:
-    '一款强大的AI工作流编排工具，帮助您轻松创建和管理复杂的多模态工作流程',
+    'Reelay【立画】是一款强大的AI视频生成与工作流编排工具，帮助您轻松创建和管理复杂的多模态工作流程',
   icons: {
     icon: '/favicon.ico'
   }

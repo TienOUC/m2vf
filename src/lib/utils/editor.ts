@@ -50,7 +50,7 @@ export const editorTheme: EditorTheme = {
 
 // 默认编辑器配置
 export const defaultEditorConfig: EditorConfig = {
-  namespace: 'M2VFlowEditor',
+  namespace: 'ReelayFlowEditor',
   theme: editorTheme,
   onError: (error: Error) => {
     console.error('Lexical错误:', error);

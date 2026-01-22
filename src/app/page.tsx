@@ -9,10 +9,10 @@ export default function HomePage() {
         {/* 欢迎语部分 */}
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-neutral-900 mb-6 leading-tight">
-            <span className="block text-primary-600">M2VF</span>
+            <span className="block text-primary-600">Reelay【立画】</span>
           </h1>
           <p className="text-xl md:text-2xl text-neutral-700 max-w-3xl mx-auto leading-relaxed">
-            图文智能生成视频，让你的创意实现更便捷
+            AI智能生成视频，让你的创意实现更便捷
           </p>
         </div>
 
