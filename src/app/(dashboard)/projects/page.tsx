@@ -7,7 +7,9 @@ import { ROUTES } from '@/lib/config/api.config';
 import {
   useProjectManagementStore
 } from '@/lib/stores';
-import Paginator from '@/components/ui/Paginator';
+import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext, PaginationEllipsis } from '@/components/ui/pagination';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuRadioGroup, DropdownMenuRadioItem } from '@/components/ui/dropdown-menu';
+import { Check } from 'lucide-react';
 import CreateProjectModal from '@/components/projects/CreateProjectModal';
 import ProjectCard from '@/components/projects/ProjectCard';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
@@ -206,14 +208,82 @@ export default function ProjectsPage() {
           )}
 
           {/* 分页器 */}
-          <div className="mt-12">
-            <Paginator
-              pagination={pagination}
-              goToPage={goToPage}
-              goToNextPage={goToNextPage}
-              goToPrevPage={goToPrevPage}
-              setPageSize={setPageSize}
-            />
+          <div className="fixed bottom-0 left-0 right-0 bg-background border-input py-3 z-[10]">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-4 flex justify-between items-center">
+              <span className="text-sm text-foreground">
+                共 {pagination.total} 条
+              </span>
+              <div className="flex items-center space-x-4">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationPrevious onClick={goToPrevPage} disabled={pagination.page === 1} />
+                    
+                    {/* 页码按钮 */}
+                    {pagination.totalPages <= 1 ? (
+                      <PaginationItem data-active={pagination.page === 1} onClick={() => goToPage(1)}>
+                        1
+                      </PaginationItem>
+                    ) : pagination.totalPages <= 5 ? (
+                      Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
+                        <PaginationItem key={page} data-active={pagination.page === page} onClick={() => goToPage(page)}>
+                          {page}
+                        </PaginationItem>
+                      ))
+                    ) : (
+                      <>
+                        <PaginationItem data-active={pagination.page === 1} onClick={() => goToPage(1)}>
+                          1
+                        </PaginationItem>
+                        
+                        {pagination.page > 3 && <PaginationEllipsis />}
+                        
+                        {/* 显示当前页及其前后各一页 */}
+                        {Array.from({ length: Math.min(3, pagination.totalPages - 2) }, (_, i) => {
+                          const startPage = Math.max(2, pagination.page - 1);
+                          return startPage + i;
+                        }).map((page) => (
+                          <PaginationItem key={page} data-active={pagination.page === page} onClick={() => goToPage(page)}>
+                            {page}
+                          </PaginationItem>
+                        ))}
+                        
+                        {pagination.page < pagination.totalPages - 2 && <PaginationEllipsis />}
+                        
+                        <PaginationItem data-active={pagination.page === pagination.totalPages} onClick={() => goToPage(pagination.totalPages)}>
+                          {pagination.totalPages}
+                        </PaginationItem>
+                      </>
+                    )}
+                    
+                    <PaginationNext onClick={goToNextPage} disabled={pagination.page === pagination.totalPages} />
+                  </PaginationContent>
+                </Pagination>
+                
+                {/* 每页显示条数选择 */}
+                <div className="flex items-center">
+                  <span className="text-sm text-foreground mr-2">每页</span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-3 py-1 w-20">
+                      {pagination.pageSize}
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuRadioGroup value={String(pagination.pageSize)} onValueChange={(value) => setPageSize(Number(value))}>
+                        <DropdownMenuRadioItem value="20">
+                          20
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="40">
+                          40
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="60">
+                          60
+                        </DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <span className="text-sm text-foreground ml-2">条</span>
+                </div>
+              </div>
+            </div>
           </div>
         </main>
       </div>

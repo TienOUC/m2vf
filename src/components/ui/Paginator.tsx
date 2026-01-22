@@ -1,4 +1,6 @@
 import React from 'react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuRadioGroup, DropdownMenuRadioItem } from './dropdown-menu';
+import { Check } from 'lucide-react';
 
 interface Pagination {
   page: number;
@@ -142,15 +144,24 @@ const Paginator: React.FC<PaginatorProps> = ({
         
         <div className="flex items-center ml-4">
           <span className="text-sm text-foreground mr-2">每页</span>
-          <select
-            value={pagination.pageSize}
-            onChange={(e) => setPageSize(Number(e.target.value))}
-            className="border border-neutral-300 rounded text-sm px-2 py-1 h-8 bg-background text-foreground focus:ring-0 focus:outline-none"
-          >
-            <option value={20}>20</option>
-            <option value={40}>40</option>
-            <option value={60}>60</option>
-          </select>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-3 py-1 w-20">
+              {pagination.pageSize}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuRadioGroup value={String(pagination.pageSize)} onValueChange={(value) => setPageSize(Number(value))}>
+                <DropdownMenuRadioItem value="20">
+                  20
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="40">
+                  40
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="60">
+                  60
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <span className="text-sm text-foreground ml-2">条</span>
         </div>
       </div>
