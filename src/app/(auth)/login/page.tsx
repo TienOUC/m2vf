@@ -7,7 +7,14 @@ import { validateLoginCredential, validatePassword } from '@/lib/utils/validatio
 import { ROUTES } from '@/lib/config/api.config';
 import { useForm } from '@/hooks/utils/useForm';
 import { useAuthStore } from '@/lib/stores';
-import { Mail, Lock } from 'lucide-react';
+import { SquareUserRound } from 'lucide-react';
+
+import { AuthLayout } from '@/components/auth/AuthLayout';
+import { AuthHeader } from '@/components/auth/AuthHeader';
+import { AuthFooter } from '@/components/auth/AuthFooter';
+import { FormErrorMessage } from '@/components/auth/FormErrorMessage';
+import { PasswordInput } from '@/components/auth/PasswordInput';
+import { SubmitButton } from '@/components/auth/SubmitButton';
 
 interface LoginFormValues {
   credential: string;
@@ -44,62 +51,41 @@ export default function LoginPage() {
     onSubmit: async (values) => {
       setError('');
       
-      // 准备登录凭据
       const credentials = {
         credential: values.credential,
         password: values.password
       };
       
       try {
-        console.log('正在发送登录请求...', credentials);
         const response = await login(credentials);
         
-        console.log('登录响应:', response);
-        
         if (response.access_token) {
-          // 登录成功，跳转到目标页面
           setError('');
-          
-          // 使用 replace 而不是 push，避免用户点击后退时回到登录页
           router.replace(redirectTo);
         } else {
-          // 根据后端返回的错误信息提供更具体的错误提示
           let errorMessage = response.message || '登录失败，请检查凭证';
           
-          if (
-            response.message?.includes('email') ||
-            response.message?.includes('Email')
-          ) {
+          if (response.message?.includes('email') || response.message?.includes('Email')) {
             errorMessage = '邮箱或手机号不存在或格式错误';
-          } else if (
-            response.message?.includes('password') ||
-            response.message?.includes('Password')
-          ) {
+          } else if (response.message?.includes('password') || response.message?.includes('Password')) {
             errorMessage = '密码错误';
-          } else if (
-            response.message?.includes('invalid') ||
-            response.message?.includes('Invalid')
-          ) {
+          } else if (response.message?.includes('invalid') || response.message?.includes('Invalid')) {
             errorMessage = '邮箱、手机号或密码错误';
           }
           
           setError(errorMessage);
         }
-      } catch (err: any) {
-        console.error('登录请求错误:', err);
-        
+      } catch (err: unknown) {
         let errorMessage = '网络请求失败，请稍后重试';
+        const error = err as { message?: string };
         
-        if (err.message?.includes('超时')) {
+        if (error.message?.includes('超时')) {
           errorMessage = '请求超时，请检查网络连接';
-        } else if (
-          err.message?.includes('401') ||
-          err.message?.includes('未授权')
-        ) {
+        } else if (error.message?.includes('401') || error.message?.includes('未授权')) {
           errorMessage = '邮箱、手机号或密码错误';
-        } else if (err.message?.includes('400')) {
+        } else if (error.message?.includes('400')) {
           errorMessage = '请求参数错误，请检查输入格式';
-        } else if (err.message?.includes('500')) {
+        } else if (error.message?.includes('500')) {
           errorMessage = '服务器内部错误，请稍后重试';
         }
         
@@ -108,165 +94,107 @@ export default function LoginPage() {
     }
   });
 
-  // 创建适配器函数用于处理输入事件
-
-  // 获取跳转目标，默认为项目管理页面
   const redirectTo = searchParams.get('redirect') || ROUTES.PROJECTS;
 
-  // 组件加载时检查是否已登录
   useEffect(() => {
     if (isAuthenticated) {
-      // 如果已经认证，跳转到目标页面
-      // 使用 Promise 确保在当前执行栈完成后执行，避免与页面加载时的其他重定向冲突
       Promise.resolve().then(() => {
         router.replace(redirectTo);
       });
     }
   }, [router, redirectTo, isAuthenticated]);
 
-  return (
+  const leftContent = (
     <>
-          {/* 标题部分 */}
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-neutral-900 mb-2">
+      <div className="mb-8">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 via-orange-100 to-rose-100 flex items-center justify-center shadow-lg">
+          <svg viewBox="0 0 24 24" className="w-6 h-6 text-amber-600/80" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M12 3v2M12 19v2M5.64 5.64l1.41 1.41M16.95 16.95l1.41 1.41M3 12h2M19 12h2M5.64 18.36l1.41-1.41M16.95 7.05l1.41-1.41" />
+          </svg>
+        </div>
+      </div>
+      <h1 className="text-4xl font-light tracking-tight mb-4 text-gray-900">
+        欢迎回来
+      </h1>
+      <p className="text-lg max-w-md text-gray-600">
+        登录您的账户，继续探索 AI 创作的无限可能
+      </p>
+    </>
+  );
+
+  return (
+    <AuthLayout leftContent={leftContent} gradient="login">
+      <AuthHeader />
+      
+      <div className="flex-1 flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-md">
+          <div className="lg:hidden mb-10 text-center">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 via-orange-100 to-rose-100 flex items-center justify-center shadow-lg mx-auto mb-4">
+              <svg viewBox="0 0 24 24" className="w-6 h-6 text-amber-600/80" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M12 3v2M12 19v2M5.64 5.64l1.41 1.41M16.95 16.95l1.41 1.41M3 12h2M19 12h2M5.64 18.36l1.41-1.41M16.95 7.05l1.41-1.41" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-light text-gray-900">
               欢迎回来
-            </h2>
+            </h1>
           </div>
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* 错误提示 */}
-            {error && (
-              <div className="p-4 rounded-lg bg-red-50 border border-red-200">
-                <p className="text-sm text-red-700 text-center">
-                  {error.includes('网络') ||
-                  error.includes('超时') ||
-                  error.includes('服务器') ? (
-                    <>
-                      <span className="font-medium">系统提示：</span>
-                      {error}
-                      <br />
-                      <span className="text-xs text-red-600 mt-1 block">
-                        请检查网络连接或联系管理员
-                      </span>
-                    </>
-                  ) : (
-                    error
-                  )}
-                </p>
-              </div>
-            )}
+          <h2 className="text-2xl font-light tracking-tight mb-2 hidden lg:block text-gray-900">
+            登录
+          </h2>
+          <AuthFooter isLogin={true} />
 
-            {/* 表单输入 */}
-            <div className="space-y-4">
-              <div>
-                <label
-                  htmlFor="credential"
-                  className="block text-sm font-medium text-neutral-700 mb-2"
-                >
-                  邮箱或手机号
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
-                  <input
-                    id="credential"
-                    name="credential"
-                    type="text"
-                    autoComplete="username"
-                    required
-                    className="w-full pl-10 pr-4 py-3 bg-white border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors placeholder-neutral-400"
-                    placeholder="请输入邮箱地址或手机号"
-                    value={values.credential}
-                    onBlur={() => handleBlur('credential')}
-                    onChange={(e) => handleChange('credential', e.target.value)}
-                  />
-                </div>
-                {touched.credential && errors.credential && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {errors.credential}
-                  </p>
-                )}
-              </div>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {error && <FormErrorMessage message={error} />}
 
-              <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-neutral-700 mb-2"
-                >
-                  密码
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autoComplete="current-password"
-                    required
-                    className="w-full pl-10 pr-4 py-3 bg-white border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors placeholder-neutral-400"
-                    placeholder="请输入密码"
-                    value={values.password}
-                    onBlur={() => handleBlur('password')}
-                    onChange={(e) => handleChange('password', e.target.value)}
-                  />
-                </div>
-                {touched.password && errors.password && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {errors.password}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* 登录按钮 */}
             <div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full flex items-center justify-center bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? (
-                  <span className="flex items-center justify-center">
-                    <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    登录中...
-                  </span>
-                ) : (
-                  <>
-                    <span>立即登录</span>
-                  </>
-                )}
-              </button>
+              <label className="block text-[13px] font-medium mb-2 text-gray-700">
+                邮箱或手机号
+              </label>
+              <div className="relative">
+                <SquareUserRound className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                <input
+                  id="credential"
+                  name="credential"
+                  type="text"
+                  autoComplete="username"
+                  required
+                  className="w-full rounded-xl pl-11 pr-4 py-3.5 text-[14px] bg-white border border-neutral-200 text-gray-900 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-300 transition-colors"
+                  placeholder="请输入邮箱地址或手机号"
+                  value={values.credential}
+                  onBlur={() => handleBlur('credential')}
+                  onChange={(e) => handleChange('credential', e.target.value)}
+                />
+              </div>
+              {touched.credential && errors.credential && (
+                <p className="mt-1 text-sm text-destructive">{errors.credential}</p>
+              )}
             </div>
 
-            {/* 注册链接 */}
-            <div className="text-center text-sm">
-              <span className="text-neutral-600">还没有账户？</span>
-              <Link
-                href="/register"
-                className="font-medium text-primary-600 hover:text-primary-500 ml-1 transition-colors"
-              >
-                立即注册
+            <PasswordInput
+              id="password"
+              name="password"
+              value={values.password}
+              onChange={(e) => handleChange('password', e.target.value)}
+              onBlur={() => handleBlur('password')}
+              error={errors.password}
+              touched={touched.password}
+            />
+
+            <div className="flex justify-end">
+              <Link href="/forgot-password" className="text-[13px] text-gray-500 hover:text-gray-700 transition-colors">
+                忘记密码？
               </Link>
             </div>
+
+            <SubmitButton disabled={isLoading} isLoading={isLoading}>
+              登录
+            </SubmitButton>
           </form>
-    </>
+        </div>
+      </div>
+    </AuthLayout>
   );
 }
