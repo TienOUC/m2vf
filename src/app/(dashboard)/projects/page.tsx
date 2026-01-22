@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Search, Plus } from 'lucide-react';
 import { ROUTES } from '@/lib/config/api.config';
 import {
   useProjectManagementStore
@@ -151,27 +152,48 @@ export default function ProjectsPage() {
       {isProjectLoading && <Loading />}
       
       {/* 主内容区域容器 */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 主内容区域 */}
-        <div className="flex justify-between items-center mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-4 py-10">
+        {/* 页面头部 */}
+        <header className="mb-10">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <div>
               <h1 className="text-3xl font-bold text-foreground">项目管理</h1>
-              <p className="text-neutral-600 mt-2">管理您的所有项目</p>
+              <p className="text-muted-foreground mt-2">管理您的所有项目</p>
             </div>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              新建项目
-            </button>
+            <div className="w-full sm:w-64">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="搜索项目名称"
+                  className="w-full px-4 py-2.5 pl-10 border border-input rounded-xl bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+                />
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                  <Search className="w-5 h-5" />
+                </div>
+              </div>
+            </div>
           </div>
+        </header>
 
+        {/* 主内容区域 */}
+        <main>
           {/* 项目列表 */}
           {!isProjectLoading && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 transition-all duration-300">
+              {/* 新建项目空白卡片 */}
+              <div 
+                onClick={() => setShowCreateModal(true)}
+                className="bg-card rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border  flex flex-col items-center justify-center h-[200px] cursor-pointer  group"
+              >
+                <div className="flex flex-col items-center justify-center text-center">
+                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
+                    <Plus className="w-6 h-6 text-primary" />
+                  </div>
+                  <p className="text-foreground font-medium">新建项目</p>
+                </div>
+              </div>
+              
+              {/* 项目卡片列表 */}
               {projects.map((project) => (
                 <ProjectCard 
                   key={project.id} 
@@ -183,32 +205,17 @@ export default function ProjectsPage() {
             </div>
           )}
 
-          {projects.length === 0 && !isProjectLoading && (
-            <div className="text-center py-12">
-              <div className="mx-auto w-24 h-24 bg-neutral-100 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-12 h-12 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-medium text-foreground mb-1">暂无项目</h3>
-              <p className="text-neutral-500 mb-6">您还没有创建任何项目，点击下方按钮创建一个新项目</p>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
-              >
-                创建第一个项目
-              </button>
-            </div>
-          )}
-
           {/* 分页器 */}
-          <Paginator
-            pagination={pagination}
-            goToPage={goToPage}
-            goToNextPage={goToNextPage}
-            goToPrevPage={goToPrevPage}
-            setPageSize={setPageSize}
-          />
+          <div className="mt-12">
+            <Paginator
+              pagination={pagination}
+              goToPage={goToPage}
+              goToNextPage={goToNextPage}
+              goToPrevPage={goToPrevPage}
+              setPageSize={setPageSize}
+            />
+          </div>
+        </main>
       </div>
 
       {/* 创建项目模态框 */}
@@ -228,7 +235,7 @@ export default function ProjectsPage() {
       <ConfirmDialog
         isOpen={deleteConfirmProject !== null}
         title="删除项目"
-        message={`确定要删除项目 "${deleteConfirmProject || ''}" 吗？此操作无法撤销。`}
+        message={`确定要删除项目 "${deleteConfirmProject || ''}" 吗？删除后无法恢复。`}
         confirmText="确认删除"
         cancelText="取消"
         onConfirm={handleConfirmDelete}
