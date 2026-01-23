@@ -1,0 +1,5 @@
+export { HeroBadge } from './HeroBadge'
+export { HeroTitle } from './HeroTitle'
+export { HeroCTA } from './HeroCTA'
+export { HeroVisual } from './HeroVisual'
+export { HeroSection } from './HeroSection'

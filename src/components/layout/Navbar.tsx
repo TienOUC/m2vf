@@ -14,8 +14,8 @@ interface NavbarProps {
 export default function Navbar({ user, onEditProject }: NavbarProps) {
 
   return (
-    <header className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-4">
-      <div className="max-w-7xl mx-auto flex justify-between items-center py-4">
+    <header className="bg-white px-4 sm:px-6 lg:px-4 h-[70px] box-border">
+      <div className="max-w-7xl mx-auto flex justify-between items-center h-full">
       <div className="flex items-center space-x-3">
         <Sparkles className="h-8 w-8 text-blue-500" />
         <h1 className="text-xl font-bold text-gray-900">Reelay</h1>
