@@ -37,7 +37,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {(pathname !== '/edit' && pathname !== '/3d') && <Navbar user={user} />}
+      {(pathname !== '/edit' && pathname !== '/3d') && <Navbar isLoggedIn={!!user} username={user?.name} />}
       <main className="flex-1 overflow-hidden">
         {children}
       </main>

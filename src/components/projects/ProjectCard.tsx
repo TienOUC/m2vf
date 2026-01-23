@@ -1,8 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ProjectEditModal from '@/components/projects/ProjectEditModal';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Sparkles } from 'lucide-react';
 import { useProjectEditingStore } from '@/lib/stores';
+
+const cardGradients = [
+  'bg-gradient-to-br from-emerald-400/30 via-teal-300/20 to-cyan-400/25',
+  'bg-gradient-to-br from-amber-300/35 via-orange-200/25 to-rose-300/30',
+  'bg-gradient-to-br from-stone-300/30 via-amber-200/20 to-yellow-300/25',
+  'bg-gradient-to-br from-sky-300/30 via-indigo-200/20 to-violet-300/25',
+];
+
+const getRandomGradientIndex = (id: number) => {
+  return id % cardGradients.length;
+};
 
 interface Project {
   id: number;
@@ -14,7 +24,7 @@ interface Project {
 
 interface ProjectCardProps {
   project: Project;
-  onEdit: (projectId: number) => void; // 这个现在用于点击卡片时跳转到编辑页面
+  onEdit: (projectId: number) => void;
   onDelete: (projectName: string) => void;
 }
 
@@ -40,21 +50,18 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
     const descElement = descRef.current;
     
     if (titleElement) {
-      // 检查标题是否溢出
       setShowTitleTooltip(titleElement.scrollWidth > titleElement.clientWidth);
     }
     
     if (descElement) {
-      // 检查描述是否溢出，对于line-clamp-4，我们需要特殊处理
-      // 创建一个临时元素来获取完整文本的高度
       const tempElement = document.createElement('div');
       tempElement.style.position = 'absolute';
       tempElement.style.visibility = 'hidden';
       tempElement.style.whiteSpace = 'normal';
       tempElement.style.wordWrap = 'break-word';
       tempElement.style.width = `${descElement.clientWidth}px`;
-      tempElement.style.fontSize = '14px'; // text-sm
-      tempElement.style.lineHeight = '1.4'; // typical line height for text-sm
+      tempElement.style.fontSize = '14px';
+      tempElement.style.lineHeight = '1.4';
       tempElement.style.padding = '0';
       tempElement.style.margin = '0';
       tempElement.innerHTML = descElement.innerHTML;
@@ -63,11 +70,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
       const fullHeight = tempElement.offsetHeight;
       document.body.removeChild(tempElement);
       
-      // 计算4行文本的高度（近似）
       const lineHeight = parseFloat(window.getComputedStyle(descElement).lineHeight);
       const approxFourLineHeight = lineHeight * 4;
       
-      // 检查实际显示高度与4行文本高度的比较
       const isOverflowing = fullHeight > approxFourLineHeight;
       setShowDescTooltip(isOverflowing);
     }
@@ -77,7 +82,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
     try {
       await updateProjectInfo(project.id);
       setShowEditModal(false);
-      resetForm(); // 重置表单状态
+      resetForm();
     } catch (error) {
       console.error('更新项目信息失败:', error);
     }
@@ -85,7 +90,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
   
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // 设置当前项目信息到store
     setProjectName(project.name);
     setProjectDescription(project.description);
     setShowEditModal(true);
@@ -96,33 +100,29 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
     onDelete(project.name);
   };
   
+  const gradientIndex = getRandomGradientIndex(project.id);
+  const randomGradient = cardGradients[gradientIndex];
+
   return (
     <>
       <div 
-        className="relative bg-card rounded-xl shadow-md hover:shadow-lg transition-shadow p-4 border border-border flex flex-col h-[200px] group cursor-pointer overflow-hidden"
+        className={`relative rounded-xl shadow-md hover:shadow-lg transition-shadow p-4 border border-border flex flex-col h-[200px] group cursor-pointer overflow-hidden ${randomGradient}`}
         onClick={() => onEdit(project.id)}
       >
-        {/* 图标背景层 */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <Sparkles className="text-muted" size={140} />
-        </div>
-        
-        {/* 内容层 */}
         <div className="relative z-10 flex flex-col h-full">
           <div className="flex-1 flex flex-col">
-            {/* 项目标题和操作按钮区域 */}
             <div className="flex justify-between items-start mb-4">
               {showTitleTooltip ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <h3 ref={titleRef} className="text-xl font-bold text-card-foreground truncate flex-1 cursor-default">{project.name}</h3>
+                    <h3 ref={titleRef} className="text-xl font-bold text-foreground truncate flex-1 cursor-default">{project.name}</h3>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>{project.name}</p>
                   </TooltipContent>
                 </Tooltip>
               ) : (
-                <h3 ref={titleRef} className="text-xl font-bold text-card-foreground truncate flex-1 cursor-default">{project.name}</h3>
+                <h3 ref={titleRef} className="text-xl font-bold text-foreground truncate flex-1 cursor-default">{project.name}</h3>
               )}
               <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
@@ -146,24 +146,22 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
               </div>
             </div>
             
-            {/* 项目描述区域 */}
             <div className="flex-1 mb-4">
               {showDescTooltip ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <p ref={descRef} className="text-card-foreground text-sm line-clamp-4 cursor-default">{project.description}</p>
+                    <p ref={descRef} className="text-foreground text-sm line-clamp-4 cursor-default">{project.description}</p>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>{project.description}</p>
                   </TooltipContent>
                 </Tooltip>
               ) : (
-                <p ref={descRef} className="text-card-foreground text-sm line-clamp-4 cursor-default">{project.description}</p>
+                <p ref={descRef} className="text-foreground text-sm line-clamp-4 cursor-default">{project.description}</p>
               )}
             </div>
           </div>
           
-          {/* 底部信息区域 */}
           <div className="pt-4 border-t border-border">
             <div className="text-xs text-muted-foreground space-y-1">
               <p className="flex items-center">
@@ -189,7 +187,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
         projectDescription={projectDescription}
         onClose={() => {
           setShowEditModal(false);
-          resetForm(); // 关闭模态框时重置表单
+          resetForm();
         }}
         onSave={handleSaveProject}
         onProjectNameChange={setProjectName}

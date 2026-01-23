@@ -5,7 +5,7 @@ import { HeroVisual } from './HeroVisual'
 
 export function HeroSection() {
   return (
-    <section className="max-w-[1400px] mx-auto px-6 pt-16 pb-12 min-h-[calc(100vh-70px)] flex flex-col">
+    <section className="max-w-[1440px] mx-auto py-16 pb-12 min-h-[calc(100vh-70px)] flex flex-col box-border">
       <div className="flex flex-col items-center text-center">
         <HeroBadge />
         <HeroTitle />

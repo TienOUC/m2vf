@@ -154,7 +154,7 @@ export default function ProjectsPage() {
       {isProjectLoading && <Loading />}
       
       {/* 主内容区域容器 */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-4 py-10">
+      <div className="max-w-[1440px] mx-auto py-10 box-border">
         {/* 页面头部 */}
         <header className="mb-10">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
@@ -208,8 +208,8 @@ export default function ProjectsPage() {
           )}
 
           {/* 分页器 */}
-          <div className="fixed bottom-0 left-0 right-0 bg-background border-input py-3 z-[10]">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-4 flex justify-between items-center">
+          <div className="fixed bottom-0 left-0 right-0 bg-background border-input py-3 z-[10] px-20 box-border">
+            <div className="max-w-[1440px] mx-auto w-full flex justify-between items-center">
               <span className="text-sm text-foreground">
                 共 {pagination.total} 条
               </span>

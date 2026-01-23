@@ -1,39 +1,39 @@
 'use client';
 
-import UserAvatar from '@/components/layout/UserAvatar';
-import { Sparkles, Pencil } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { Logo } from '@/components/navbar/Logo';
+import { NavMenu } from '@/components/navbar/NavMenu';
+import { BellButton } from '@/components/navbar/BellButton';
+import { ThemeToggle } from '@/components/navbar/ThemeToggle';
+import { UserMenu } from '@/components/navbar/UserMenu';
 
+// Main Navbar Component
 interface NavbarProps {
-  user?: {
-    name: string;
-    email: string;
-  } | null;
-  onEditProject?: () => void;
+  isLoggedIn?: boolean;
+  username?: string;
 }
 
-export default function Navbar({ user, onEditProject }: NavbarProps) {
-
+export default function Navbar({ isLoggedIn = false, username = '' }: NavbarProps) {
+  const pathname = usePathname();
+  
+  const navItems = [
+    { href: '/', label: '首页' },
+    { href: '/projects', label: '项目空间' },
+  ];
+  
   return (
-    <header className="bg-white px-4 sm:px-6 lg:px-4 h-[70px] box-border">
-      <div className="max-w-7xl mx-auto flex justify-between items-center h-full">
-      <div className="flex items-center space-x-3">
-        <Sparkles className="h-8 w-8 text-blue-500" />
-        <h1 className="text-xl font-bold text-gray-900">Reelay</h1>
+    <header className="w-full h-[70px] flex justify-between items-center px-20 box-border">
+      <div className="flex justify-between items-center w-full max-w-[1440px] mx-auto">
+        <div className="flex items-center gap-3">
+          <Logo />
+          <NavMenu navItems={navItems} currentPath={pathname} />
+        </div>
         
-      </div>
-
-      <div className="flex items-center space-x-4">
-        {onEditProject && (
-          <button
-            onClick={onEditProject}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Pencil className="mr-2 h-4 w-4" />
-            编辑项目
-          </button>
-        )}
-        {user && <UserAvatar user={user} menuPosition="bottom" />}
-      </div>
+        <div className="flex items-center gap-2.5">
+          <BellButton />
+          <ThemeToggle />
+          <UserMenu isLoggedIn={isLoggedIn} username={username} />
+        </div>
       </div>
     </header>
   );
