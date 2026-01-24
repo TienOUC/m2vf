@@ -6,12 +6,17 @@ const nextConfig = {
     } : false,
   },
 
-  // 图片配置，仅在开发环境允许picsum.photos域名
+  // 图片配置，仅在开发环境允许外部图片域名
   images: process.env.NODE_ENV === 'development' ? {
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'picsum.photos',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'test-videos.co.uk',
         pathname: '/**',
       },
     ],

@@ -80,7 +80,7 @@ export const useBackgroundRemoval = ({
             // 模拟后端处理延迟
             await new Promise(resolve => setTimeout(resolve, 1000));
             // 返回模拟结果
-            processedImageUrl = '/test-images/cat-no-bg.png';
+            processedImageUrl = 'https://picsum.photos/800/600?cat-no-bg';
           } else {
             // 调用真实的API
             processedImageUrl = await removeImageBackground(originalNode.data.imageUrl as string);

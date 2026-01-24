@@ -152,6 +152,8 @@ export const useNodeAddition = ({
       }, 0);
       
       setNodeId((prevId: number) => prevId + 1);
+      
+      return newNode;
     },
     [nodeId, setNodes, screenToFlowPosition, handleDelete, handleImageUpdate, onEditStart, onCropStart, handleDownload, handleBackgroundRemove, setNodeId]
   );
@@ -206,6 +208,8 @@ export const useNodeAddition = ({
       }, 0);
       
       setNodeId((prevId: number) => prevId + 1);
+      
+      return newNode;
     },
     [nodeId, setNodes, screenToFlowPosition, handleDelete, onFirstLastFrameGenerate, onFirstFrameGenerate, setNodeId]
   );

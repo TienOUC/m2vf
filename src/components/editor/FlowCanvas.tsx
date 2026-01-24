@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect, useMemo, useCallback } from 'react';
+import React, { useRef, useEffect, useMemo, useCallback, useState } from 'react';
 import { 
   ReactFlow,
   Background,
@@ -13,8 +13,11 @@ import { MousePointerClick } from 'lucide-react';
 import '@xyflow/react/dist/style.css';
 
 import { TextNode, ImageNode, VideoNode, FabricImageEditor, NodeInteractionDialog } from '@/components/editor';
+import { useVideoNodesStore } from '@/lib/stores/videoNodesStore';
 import LeftSidebar from '@/components/layout/LeftSidebar';
 import { BackButton, DoubleClickMenu, NodeGenerator } from './FlowCanvas/index';
+import { ChatPanel } from './ChatPanel';
+import { ChatButton } from './chat/ChatButton';
 import { 
   useNodeOperations, 
   usePaneInteractions, 
@@ -46,6 +49,9 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
   }, []);
   const reactFlowInstance = useReactFlow();
   const { screenToFlowPosition } = reactFlowInstance;
+  
+  // State for chat panel
+  const [isChatOpen, setIsChatOpen] = useState(true);
 
   const centerNode = useNodeCentering(reactFlowInstance);
   
@@ -224,6 +230,67 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
           zoomOnDoubleClick={false}
           proOptions={{ hideAttribution: true }}
           style={{ width: '100%', height: '100%' }}
+          // 添加拖拽相关事件处理
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            
+            try {
+              const mediaData = e.dataTransfer.getData('application/relay-media');
+              if (mediaData) {
+                const parsedData = JSON.parse(mediaData);
+                const { type, url } = parsedData;
+                
+                // 获取画布上的位置
+                const rect = e.currentTarget.getBoundingClientRect();
+                const position = {
+                  x: e.clientX - rect.left,
+                  y: e.clientY - rect.top
+                };
+                
+                // 根据媒体类型创建对应的节点
+                if (type === 'image' && url) {
+                  // 转换为画布坐标系
+                  const flowPosition = screenToFlowPosition({
+                    x: e.clientX,
+                    y: e.clientY
+                  });
+                  
+                  // 创建图片节点
+                  const newImageNode = addImageNode(flowPosition);
+                  
+                  // 立即更新图片URL
+                  setTimeout(() => {
+                    nodeOperations.handleImageUpdate?.(newImageNode?.id || '', url);
+                  }, 0);
+                } else if (type === 'video' && url) {
+                  // 转换为画布坐标系
+                  const flowPosition = screenToFlowPosition({
+                    x: e.clientX,
+                    y: e.clientY
+                  });
+                  
+                  // 创建视频节点
+                  const newVideoNode = addVideoNode(flowPosition);
+                  
+                  // 更新视频节点的URL到全局状态
+                  if (newVideoNode?.id) {
+                    setTimeout(() => {
+                      useVideoNodesStore.getState().setVideoNode(newVideoNode.id, {
+                        videoUrl: url,
+                        isLoading: false
+                      });
+                    }, 0);
+                  }
+                }
+              }
+            } catch (error) {
+              console.error('处理拖拽媒体文件时出错:', error);
+            }
+          }}
         >
           <Background
             variant={BackgroundVariant.Dots}
@@ -292,6 +359,15 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
             />
           </div>
         </div>
+      )}
+      
+      <ChatPanel
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+      />
+      
+      {!isChatOpen && (
+        <ChatButton onClick={() => setIsChatOpen(true)} isOpen={false} />
       )}
     </>
   );

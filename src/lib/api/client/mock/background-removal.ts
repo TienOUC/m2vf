@@ -16,16 +16,16 @@ export interface BackgroundRemovalMockConfig {
 export const backgroundRemovalMockConfig: BackgroundRemovalMockConfig = {
   testCases: [
     {
-      inputImageUrl: '/test-images/cat.jpeg',
-      outputImageUrl: '/test-images/cat-no-bg.png'
+      inputImageUrl: 'https://picsum.photos/800/600?cat1',
+      outputImageUrl: 'https://picsum.photos/800/600?cat1-no-bg'
     },
     {
-      inputImageUrl: '/test-images/test.jpg',
-      outputImageUrl: '/test-images/cat-no-bg.png'
+      inputImageUrl: 'https://picsum.photos/800/600?cat2',
+      outputImageUrl: 'https://picsum.photos/800/600?cat2-no-bg'
     },
     {
-      inputImageUrl: '/test-images/test_1.jpg',
-      outputImageUrl: '/test-images/cat-no-bg.png'
+      inputImageUrl: 'https://picsum.photos/800/600?cat3',
+      outputImageUrl: 'https://picsum.photos/800/600?cat3-no-bg'
     }
   ]
 };

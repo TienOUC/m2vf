@@ -21,7 +21,7 @@ export const mockApiService = {
     await new Promise(resolve => setTimeout(resolve, 3000));
     
     // 模拟生成的视频URL
-    return 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4?timestamp=' + Date.now();
+    return `https://placehold.co/1280x720/CCCCCC/999999.mp4?text=Generated+Video&timestamp=${Date.now()}`;
   },
   
   // 生成图片
