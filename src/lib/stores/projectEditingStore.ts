@@ -47,6 +47,7 @@ export const useProjectEditingStore = create<ProjectEditingState>((set, get) => 
         name: projectName,
         description: projectDescription
       });
+      
       return result;
     } catch (err: any) {
       const error = err.message || '更新项目信息失败';

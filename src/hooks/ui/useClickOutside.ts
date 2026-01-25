@@ -16,8 +16,18 @@ export function useClickOutside(
     if (!isActive) return;
 
     const handleClickOutside = (event: MouseEvent) => {
+      // 检查点击事件是否来自DropdownMenu相关元素或对话框元素
+      const target = event.target as HTMLElement;
+      const isDropdownMenu = target.closest('[data-radix-dropdown-menu-content], [data-radix-dropdown-menu-trigger]');
+      const isDialog = target.closest('.fixed.inset-0');
+      
+      // 如果是DropdownMenu相关元素或对话框元素，不关闭菜单
+      if (isDropdownMenu || isDialog) {
+        return;
+      }
+      
       const isOutside = refs.every((ref) => {
-        return ref.current === null || !ref.current.contains(event.target as Node);
+        return ref.current === null || !ref.current.contains(target);
       });
 
       if (isOutside) {

@@ -5,17 +5,9 @@ import { FolderOpen, Search, Image as ImageIcon, Video as VideoIcon, Box as BoxI
 import { cn } from '@/lib/utils'
 import { useClickOutside } from '@/hooks/ui/useClickOutside'
 
-interface Asset {
-  id: number
-  type: 'image' | 'video'
-  name: string
-  url: string
-}
-
-// 从统一的 Mock 管理入口导入数据
-import { MOCK_ASSETS as MOCK_ASSETS_DATA } from '@/lib/mock';
-
-const MOCK_ASSETS: Asset[] = MOCK_ASSETS_DATA
+// 从统一的Mock数据管理中导入类型和数据
+import { MOCK_ASSETS } from '@/lib/mock';
+import { Asset } from '@/lib/mock/assetMockData';
 
 const AssetIcon = ({ type }: { type: Asset['type'] }) => {
   switch (type) {
@@ -29,7 +21,7 @@ const AssetIcon = ({ type }: { type: Asset['type'] }) => {
 }
 
 interface AssetSelectMenuProps {
-  onSelect: (asset: Asset) => void
+  onSelect: (asset: Omit<Asset, 'type'> & { type: 'image' | 'video' }) => void
   onClose: () => void
 }
 
@@ -60,7 +52,8 @@ export function AssetSelectMenu({ onSelect, onClose }: AssetSelectMenuProps) {
       setError(null)
       // 模拟API调用或处理
       await new Promise(resolve => setTimeout(resolve, 500))
-      onSelect(asset)
+      // 添加类型断言，因为我们已经过滤掉了3d类型的资产
+      onSelect(asset as Omit<Asset, 'type'> & { type: 'image' | 'video' })
       onClose()
     } catch (err) {
       setError('资产选择失败，请重试')

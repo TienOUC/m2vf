@@ -8,13 +8,13 @@ import {
   useProjectManagementStore
 } from '@/lib/stores';
 import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext, PaginationEllipsis } from '@/components/ui/pagination';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuRadioGroup, DropdownMenuRadioItem } from '@/components/ui/dropdown-menu';
-import { Check } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuRadioGroup, DropdownMenuRadioItem } from '@/components/ui/dropdown-menu';
 import CreateProjectModal from '@/components/projects/CreateProjectModal';
 import ProjectCard from '@/components/projects/ProjectCard';
-import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import Message from '@/components/ui/Message';
 import Loading from '@/app/loading';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 interface Project {
   id: number;
@@ -30,9 +30,11 @@ export default function ProjectsPage() {
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectDescription, setNewProjectDescription] = useState('');
   const [deleteConfirmProject, setDeleteConfirmProject] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  // 使用toast hook
+  const { toast } = useToast();
   
   const {
     projects,
@@ -62,28 +64,25 @@ export default function ProjectsPage() {
     resetMessages();
     setIsCreating(true);
     
+    const projectName = newProjectName;
+    const projectDescription = newProjectDescription;
+    
     try {
       await createProjectAPI({
-        name: newProjectName,
-        description: newProjectDescription
+        name: projectName,
+        description: projectDescription
       });
       
       setNewProjectName('');
       setNewProjectDescription('');
       setShowCreateModal(false);
       
-      setToast({
-        message: `项目 "${newProjectName}" 创建成功`,
-        type: 'success'
-      });
+      toast({ title: '成功', description: `项目 "${projectName}" 创建成功`, variant: 'default' });
     } catch (error) {
       console.error('创建项目错误:', error);
       
       // 显示错误消息
-      setToast({
-        message: '项目创建失败',
-        type: 'error'
-      });
+      toast({ title: '错误', description: '项目创建失败', variant: 'destructive' });
     } finally {
       setIsCreating(false);
     }
@@ -100,17 +99,11 @@ export default function ProjectsPage() {
       try {
         await deleteProjectAPI(deleteConfirmProject);
         
-        setToast({
-          message: `项目 "${deleteConfirmProject}" 删除成功`,
-          type: 'success'
-        });
+        toast({ title: '成功', description: `项目 "${deleteConfirmProject}" 删除成功`, variant: 'default' });
       } catch (error) {
         console.error('删除项目错误:', error);
         
-        setToast({
-          message: '项目删除失败',
-          type: 'error'
-        });
+        toast({ title: '错误', description: '项目删除失败', variant: 'destructive' });
       } finally {
         setDeleteConfirmProject(null);
         setIsDeleting(false);
@@ -127,20 +120,15 @@ export default function ProjectsPage() {
   };
 
   const handleEditProjectInfo = async (projectId: number, name: string, description: string) => {
+    const projectName = name;
     try {
-      await updateProject(projectId, { name, description });
+      await updateProject(projectId, { name: projectName, description });
       
-      setToast({
-        message: `项目 "${name}" 更新成功`,
-        type: 'success'
-      });
+      toast({ title: '成功', description: `项目 "${projectName}" 更新成功`, variant: 'default' });
     } catch (error) {
       console.error('更新项目信息失败:', error);
       
-      setToast({
-        message: '更新项目信息失败',
-        type: 'error'
-      });
+      toast({ title: '错误', description: '更新项目信息失败', variant: 'destructive' });
     }
   };
 
@@ -150,8 +138,8 @@ export default function ProjectsPage() {
   
   return (
     <>
-      {/* Loading组件放在根级别，确保全屏居中 */}
-      {isProjectLoading && <Loading />}
+      {/* Loading组件只在初始加载项目列表时显示 */}
+      {isProjectLoading && projects.length === 0 && <Loading />}
       
       {/* 主内容区域容器 */}
       <div className="max-w-[1440px] mx-auto py-10 box-border">
@@ -302,26 +290,44 @@ export default function ProjectsPage() {
       />
       
       {/* 删除确认对话框 */}
-      <ConfirmDialog
-        isOpen={deleteConfirmProject !== null}
-        title="删除项目"
-        message={`确定要删除项目 "${deleteConfirmProject || ''}" 吗？删除后无法恢复。`}
-        confirmText="确认删除"
-        cancelText="取消"
-        onConfirm={handleConfirmDelete}
-        onCancel={handleCancelDelete}
-        isConfirming={isDeleting}
-      />
+      <Dialog open={deleteConfirmProject !== null} onOpenChange={(open) => !open && handleCancelDelete()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>删除项目</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground">
+              确定要删除项目 "{deleteConfirmProject || ''}" 吗？删除后无法恢复。
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={handleCancelDelete}
+              disabled={isDeleting}
+            >
+              取消
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <div className="inline-flex items-center gap-1">
+                  <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                  <span>删除中...</span>
+                </div>
+              ) : (
+                '确认删除'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       
-      {/* Message消息提示 */}
-      {toast && (
-        <Message
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
+
     </>
   );
 }

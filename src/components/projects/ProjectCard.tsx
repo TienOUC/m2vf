@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import ProjectEditModal from '@/components/projects/ProjectEditModal';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useProjectEditingStore } from '@/lib/stores';
+import { useToast } from '@/hooks/use-toast';
 
 const cardGradients = [
   'bg-gradient-to-br from-emerald-400/30 via-teal-300/20 to-cyan-400/25',
@@ -39,6 +40,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
   } = useProjectEditingStore();
   
   const [showEditModal, setShowEditModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
   
   const titleRef = useRef<HTMLHeadingElement>(null);
   const descRef = useRef<HTMLParagraphElement>(null);
@@ -79,12 +82,29 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
   }, [project.name, project.description]);
 
   const handleSaveProject = async () => {
+    setIsLoading(true);
     try {
       await updateProjectInfo(project.id);
       setShowEditModal(false);
       resetForm();
+      
+      // 显示成功toast
+      toast({
+        title: '成功',
+        description: `项目 "${projectName}" 更新成功`,
+        variant: 'default'
+      });
     } catch (error) {
       console.error('更新项目信息失败:', error);
+      
+      // 显示错误toast
+      toast({
+        title: '错误',
+        description: '更新项目信息失败',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -192,6 +212,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
         onSave={handleSaveProject}
         onProjectNameChange={setProjectName}
         onProjectDescriptionChange={setProjectDescription}
+        isLoading={isLoading}
       />
     </>
   );

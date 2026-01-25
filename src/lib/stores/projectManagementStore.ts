@@ -24,10 +24,6 @@ export const useProjectManagementStore = create<ProjectManagementState>((set, ge
   },
   
   fetchProjects: async (page = 1, pageSize = 20, setLoading = true) => {
-    if (setLoading) {
-      set({ isLoading: true, error: null });
-    }
-    
     try {
       const response = await getProjectsAPI({ page, pageSize });
       
@@ -44,7 +40,7 @@ export const useProjectManagementStore = create<ProjectManagementState>((set, ge
               total: data.count,
               totalPages: Math.ceil(data.count / pageSize),
             },
-            isLoading: false
+            isLoading: setLoading ? false : false
           });
           return data;
         } 
@@ -62,7 +58,7 @@ export const useProjectManagementStore = create<ProjectManagementState>((set, ge
                 total: apiData.pagination.total,
                 totalPages: apiData.pagination.totalPages,
               },
-              isLoading: false
+              isLoading: setLoading ? false : false
             });
             return apiData;
           } else {
@@ -74,7 +70,7 @@ export const useProjectManagementStore = create<ProjectManagementState>((set, ge
                 total: Array.isArray(apiData) ? apiData.length : 0,
                 totalPages: 1,
               },
-              isLoading: false
+              isLoading: setLoading ? false : false
             }));
             return apiData;
           }
@@ -95,8 +91,6 @@ export const useProjectManagementStore = create<ProjectManagementState>((set, ge
   },
 
   createProject: async (projectData) => {
-    set({ isLoading: true, error: null });
-    
     try {
       const response = await createProjectAPI(projectData);
       
@@ -116,19 +110,15 @@ export const useProjectManagementStore = create<ProjectManagementState>((set, ge
       } else {
         const errorData = await response.json().catch(() => ({}));
         const error = new Error(errorData.message || `创建项目失败: ${response.status}`);
-        set({ error: error.message, isLoading: false });
         throw error;
       }
     } catch (err: any) {
       const error = err.message || '创建项目时发生错误';
-      set({ error, isLoading: false });
       throw new Error(error);
     }
   },
 
   deleteProject: async (projectName) => {
-    set({ isLoading: true, error: null });
-    
     try {
       const response = await deleteProjectAPI(projectName);
       
@@ -148,19 +138,15 @@ export const useProjectManagementStore = create<ProjectManagementState>((set, ge
       } else {
         const errorData = await response.json().catch(() => ({}));
         const error = new Error(errorData.message || `删除项目失败: ${response.status}`);
-        set({ error: error.message, isLoading: false });
         throw error;
       }
     } catch (err: any) {
       const error = err.message || '删除项目时发生错误';
-      set({ error, isLoading: false });
       throw new Error(error);
     }
   },
 
   getProjectDetail: async (projectId) => {
-    set({ isLoading: true, error: null });
-    
     try {
       const response = await getProjectDetailAPI(projectId);
       
@@ -169,7 +155,6 @@ export const useProjectManagementStore = create<ProjectManagementState>((set, ge
         
         // 检查是否为标准化的成功响应
         if (apiResponse.success === true) {
-          set({ isLoading: false });
           return apiResponse.data;
         } else {
           throw new Error(apiResponse.error?.message || '获取项目详情失败：响应格式错误');
@@ -177,12 +162,10 @@ export const useProjectManagementStore = create<ProjectManagementState>((set, ge
       } else {
         const errorData = await response.json().catch(() => ({}));
         const error = new Error(errorData.message || `获取项目详情失败: ${response.status}`);
-        set({ error: error.message, isLoading: false });
         throw error;
       }
     } catch (err: any) {
       const error = err.message || '获取项目详情时发生错误';
-      set({ error, isLoading: false });
       throw new Error(error);
     }
   },
@@ -201,7 +184,7 @@ export const useProjectManagementStore = create<ProjectManagementState>((set, ge
           // 重新获取项目列表以包含更新的项目
           const { page, pageSize } = get().pagination;
           await get().fetchProjects(page, pageSize, false);
-          set({ success: '项目更新成功！' });
+          set({ success: '项目更新成功！', isLoading: false });
           return apiResponse.data;
         } else {
           throw new Error(apiResponse.error?.message || '更新项目失败：响应格式错误');

@@ -42,14 +42,11 @@ export const MOCK_CHAT_MESSAGES: ChatMessage[] = [
   },
 ];
 
+// 从统一的资产Mock数据管理中导入
+import { ASSET_MOCK_DATA } from './assetMockData';
+
 // 资产选择菜单的 Mock 数据
-export const MOCK_ASSETS = [
-  { id: 0, type: 'image', name: 'Texture_00.png', url: 'https://picsum.photos/300/200' },
-  { id: 1, type: 'video', name: 'Render_seq_01.mp4', url: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4' },
-  { id: 2, type: 'image', name: 'Background_02.jpg', url: 'https://picsum.photos/300/200' },
-  { id: 3, type: 'video', name: 'Animation_03.mp4', url: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4' },
-  { id: 4, type: 'image', name: 'Character_04.png', url: 'https://picsum.photos/300/200' }
-];
+export const MOCK_ASSETS = ASSET_MOCK_DATA.filter(asset => asset.type !== '3d');
 
 // 统一的 Mock 配置接口
 export const mock = {

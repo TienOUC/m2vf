@@ -24,6 +24,7 @@ export const metadata: Metadata = {
 };
 
 import GlobalLoading from '@/components/ui/GlobalLoading';
+import { Toaster } from '@/components/ui/toaster';
 
 export default function RootLayout({
   children
@@ -38,6 +39,7 @@ export default function RootLayout({
         <ClientProvider>
           {children}
           <GlobalLoading />
+          <Toaster />
         </ClientProvider>
       </body>
     </html>
