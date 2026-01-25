@@ -188,8 +188,8 @@ export const updateMaskClipPath = (canvas: FabricCanvas | null, cropBox: FabricO
   maskLayer.setCoords();
   maskLayer.set({ dirty: true });
   
-  // 立即重绘画布，确保所有更新同步显示
-  canvas.renderAll();
+  // 移除内部的 renderAll，由调用者控制渲染时机，避免双重渲染和闪烁
+  // canvas.renderAll();
 };
 
 export const addImageToCanvas = (fabric: Fabric, canvas: FabricCanvas, imageUrl: string, callback?: (img: FabricObject) => void): void => {

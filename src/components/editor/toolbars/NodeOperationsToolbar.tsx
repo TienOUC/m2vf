@@ -1,4 +1,4 @@
-import { X, Check } from 'lucide-react';
+import { X, Check, RotateCcw } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useState } from 'react';
@@ -9,13 +9,15 @@ interface ToolbarProps {
   onCrop: () => void;
   currentAspectRatio?: number | null;
   onAspectRatioChange?: (aspectRatio: number | null) => void;
+  onReset?: () => void;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
   onCancel,
   onCrop,
   currentAspectRatio = null,
-  onAspectRatioChange
+  onAspectRatioChange,
+  onReset
 }) => {
   // 宽高比下拉菜单状态
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -114,6 +116,22 @@ const Toolbar: React.FC<ToolbarProps> = ({
             <X size={16} />
           </button>
           
+          {/* 重置按钮 */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={onReset}
+                className="flex items-center justify-center w-10 h-10 bg-black rounded-full text-white hover:bg-gray-800 transition-colors"
+                aria-label="重置"
+              >
+                <RotateCcw size={14} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent style={{ zIndex: 100000 }} portal={false}>
+              <p>重置裁剪框</p>
+            </TooltipContent>
+          </Tooltip>
+          
           {/* 宽高比选择下拉菜单 */}
           <Tooltip>
             <TooltipTrigger asChild>
@@ -129,6 +147,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
                 <DropdownMenuContent
                   className="bg-[#111] border border-[#333] rounded-lg"
                   align="center"
+                  style={{ zIndex: 100000 }}
+                  portal={false}
                 >
                   {ASPECT_RATIOS.map((ratio) => (
                     <DropdownMenuItem
@@ -142,7 +162,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                 </DropdownMenuContent>
               </DropdownMenu>
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent style={{ zIndex: 100000 }}>
               <p>宽高比</p>
             </TooltipContent>
           </Tooltip>

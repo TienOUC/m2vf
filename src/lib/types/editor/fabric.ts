@@ -14,6 +14,8 @@ export interface FabricObject {
   set: (options: Record<string, unknown>) => void;
   get: <T = unknown>(key: string) => T | undefined;
   getBoundingRect: (absolute?: boolean) => { left: number; top: number; width: number; height: number };
+  getScaledWidth: () => number;
+  getScaledHeight: () => number;
   setCoords: () => void;
   left?: number;
   top?: number;
@@ -48,7 +50,7 @@ export interface FabricCanvas {
 // 组件属性接口
 export interface FabricImageEditorProps {
   imageUrl: string;
-  onCropComplete: (croppedImageUrl: string) => void;
+  onCropComplete: (croppedImageBlob: Blob) => void;
   onCancel: () => void;
 }
 

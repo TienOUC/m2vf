@@ -203,10 +203,27 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
     []
   );
 
-  const handleCropComplete = useCallback((croppedImageUrl: string) => {
+  const handleCropComplete = useCallback(async (croppedImageBlob: Blob) => {
     if (cropOperations.croppingNode) {
-      nodeOperations.handleImageUpdate(cropOperations.croppingNode.id, croppedImageUrl);
-      cropOperations.setCroppingNode(null);
+      try {
+        // 模拟上传过程，实际项目中应替换为真实的上传 API
+        // const formData = new FormData();
+        // formData.append('file', croppedImageBlob);
+        // const response = await fetch('/api/upload', { method: 'POST', body: formData });
+        // const { url } = await response.json();
+        
+        // 临时方案：创建本地 Blob URL
+        // 注意：这种 URL 在页面刷新后会失效，但作为演示或纯前端应用是可行的
+        // 如果需要持久化，必须上传到对象存储（S3/OSS）
+        const newImageUrl = URL.createObjectURL(croppedImageBlob);
+        
+        // 更新节点
+        nodeOperations.handleImageUpdate(cropOperations.croppingNode.id, newImageUrl);
+        cropOperations.setCroppingNode(null);
+      } catch (error) {
+        console.error('Failed to upload cropped image:', error);
+        alert('裁剪图片上传失败，请重试');
+      }
     }
   }, [nodeOperations.handleImageUpdate, cropOperations.setCroppingNode, cropOperations.croppingNode]);
 

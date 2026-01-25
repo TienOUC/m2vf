@@ -83,9 +83,9 @@ export const calculateCropCoordinates = (image: FabricObject | null, cropBox: Fa
   // 获取裁剪框的变换信息
   const cropBoxLeft = cropBox.left || 0;
   const cropBoxTop = cropBox.top || 0;
-  // 裁剪框的缩放只是UI效果，不影响实际裁剪尺寸
-  const cropBoxWidth = cropBox.width || 0;
-  const cropBoxHeight = cropBox.height || 0;
+  // 裁剪框的缩放只是UI效果，但为了计算准确，需要考虑scale
+  const cropBoxWidth = (cropBox.width || 0) * (cropBox.scaleX || 1);
+  const cropBoxHeight = (cropBox.height || 0) * (cropBox.scaleY || 1);
 
   // 计算裁剪框相对于图片左上角的坐标（考虑图片的缩放和位置）
   // 裁剪框在画布坐标系中的坐标需要转换为相对于图片的坐标
@@ -110,7 +110,7 @@ export const calculateCropCoordinates = (image: FabricObject | null, cropBox: Fa
   };
 };
 
-export const performCrop = (imageUrl: string, coordinates: CropCoordinates): Promise<string> => {
+export const performCrop = (imageUrl: string, coordinates: CropCoordinates): Promise<Blob> => {
   return new Promise((resolve, reject) => {
     // 验证裁剪参数
     if (coordinates.cropWidth <= 0 || coordinates.cropHeight <= 0) {
@@ -145,8 +145,13 @@ export const performCrop = (imageUrl: string, coordinates: CropCoordinates): Pro
           coordinates.cropHeight
         );
 
-        const croppedImageUrl = tempCanvas.toDataURL('image/png');
-        resolve(croppedImageUrl);
+        tempCanvas.toBlob((blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error('Failed to create blob from canvas'));
+          }
+        }, 'image/png');
       } catch (error) {
         reject(new Error(`Failed to draw image: ${error instanceof Error ? error.message : 'Unknown error'}`));
       }

@@ -14,7 +14,8 @@ export type AspectRatioOption = {
 
 // 预设宽高比
 export const ASPECT_RATIOS: AspectRatioOption[] = [
-  { label: '原图比例', value: null, width: 0, height: 0 },
+  { label: '自由比例', value: null, width: 0, height: 0 },
+  { label: '原图比例', value: -1, width: 0, height: 0 }, // -1 代表原图比例
   { label: '1:1', value: 1, width: 1, height: 1 },
   { label: '4:3', value: 4/3, width: 4, height: 3 },
   { label: '3:4', value: 3/4, width: 3, height: 4 },
