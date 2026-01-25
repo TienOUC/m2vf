@@ -19,7 +19,8 @@ export function useClickOutside(
       // 检查点击事件是否来自DropdownMenu相关元素或对话框元素
       const target = event.target as HTMLElement;
       const isDropdownMenu = target.closest('[data-radix-dropdown-menu-content], [data-radix-dropdown-menu-trigger]');
-      const isDialog = target.closest('.fixed.inset-0');
+      // 兼容 Radix UI Dialog Content (role="dialog") 和 Overlay (.fixed.inset-0)
+      const isDialog = target.closest('.fixed.inset-0') || target.closest('[role="dialog"]') || target.closest('[role="alertdialog"]');
       
       // 如果是DropdownMenu相关元素或对话框元素，不关闭菜单
       if (isDropdownMenu || isDialog) {
