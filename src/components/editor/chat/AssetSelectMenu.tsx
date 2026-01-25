@@ -13,9 +13,9 @@ interface Asset {
 }
 
 // 从统一的 Mock 管理入口导入数据
-import { mock } from '@/lib/mock';
+import { MOCK_ASSETS as MOCK_ASSETS_DATA } from '@/lib/mock';
 
-const MOCK_ASSETS: Asset[] = mock.data.assets
+const MOCK_ASSETS: Asset[] = MOCK_ASSETS_DATA
 
 const AssetIcon = ({ type }: { type: Asset['type'] }) => {
   switch (type) {

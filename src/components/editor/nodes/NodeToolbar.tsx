@@ -1,10 +1,13 @@
 import { NodeToolbar as ReactFlowNodeToolbar, Position } from '@xyflow/react';
-import { Image, Video, Palette, Copy, Bold, Italic, List, ListOrdered, Minus, Maximize, Trash2, Crop, Brush, Download, Sparkles } from 'lucide-react';
+import { Image, Video, Palette, Copy, Bold, Italic, List, ListOrdered, Minus, Maximize, Trash2, Crop, Brush, Download, Sparkles, BringToFront } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { memo, useState, useRef, useCallback } from 'react';
 import { useClickOutside } from '@/hooks';
 
 import { copyToClipboard, copyRichTextToClipboard } from '@/lib/utils/text';
+import { useChatFilesStore } from '@/lib/stores/chatFilesStore';
+import { useImageNodesStore } from '@/lib/stores/imageNodesStore';
+import { useVideoNodesStore } from '@/lib/stores/videoNodesStore';
 
 export interface NodeToolbarProps {
   nodeId: string;
@@ -120,7 +123,13 @@ const NodeToolbar = ({
   };
 
   const [copySuccess, setCopySuccess] = useState(false);
+  const [transferSuccess, setTransferSuccess] = useState(false);
   
+  const { addChatFile } = useChatFilesStore();
+  const { getImageNode } = useImageNodesStore();
+  const { getVideoNode } = useVideoNodesStore();
+  
+  // 处理复制文本
   const handleCopyText = async () => {
     if (type === 'text' && getContent) {
       const plain = getContent(nodeId);
@@ -133,6 +142,35 @@ const NodeToolbar = ({
         setTimeout(() => setCopySuccess(false), 2000); // 2秒后重置状态
       } else {
         console.error('复制失败');
+      }
+    }
+  };
+  
+  // 处理图片/视频节点转移到聊天输入
+  const handleTransfer = () => {
+    if (type === 'image') {
+      const imageNode = getImageNode(nodeId);
+      if (imageNode && imageNode.imageUrl) {
+        addChatFile({
+          file: null,
+          thumbnailUrl: imageNode.imageUrl,
+          type: 'image',
+          url: imageNode.imageUrl
+        });
+        setTransferSuccess(true);
+        setTimeout(() => setTransferSuccess(false), 2000);
+      }
+    } else if (type === 'video') {
+      const videoNode = getVideoNode(nodeId);
+      if (videoNode && videoNode.videoUrl) {
+        addChatFile({
+          file: null,
+          thumbnailUrl: videoNode.videoUrl, // 视频使用视频URL作为缩略图，实际项目中可能需要提取视频帧
+          type: 'video',
+          url: videoNode.videoUrl
+        });
+        setTransferSuccess(true);
+        setTimeout(() => setTransferSuccess(false), 2000);
       }
     }
   };
@@ -307,6 +345,27 @@ const NodeToolbar = ({
           </TooltipTrigger>
           <TooltipContent>
             <p>{!hasImage ? "请先上传图片" : "抠图"}</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
+      
+      {/* Transfer按钮 - 仅对图片和视频节点显示 */}
+      {(type === 'image' || type === 'video') && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span>
+              <button
+                onClick={handleTransfer}
+                className={`w-8 h-8 p-1 rounded-md transition-colors ${(type === 'image' && !hasImage) ? 'text-gray-300 cursor-not-allowed' : transferSuccess ? 'text-green-500' : 'text-gray-500 hover:text-primary hover:bg-primary/10'} flex items-center justify-center`}
+                aria-label="添加到对话"
+                disabled={type === 'image' && !hasImage}
+              >
+                <BringToFront size={16} />
+              </button>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{transferSuccess ? "已添加到对话" : "添加到对话"}</p>
           </TooltipContent>
         </Tooltip>
       )}

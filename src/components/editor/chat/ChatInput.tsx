@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { 
   Paperclip, 
   Box, Send, Sparkles as SparklesIcon,
@@ -16,6 +16,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { AssetSelectMenu } from './AssetSelectMenu';
 import { ModelSelector } from '../ModelSelector';
+import { useChatFilesStore, ChatFile } from '@/lib/stores/chatFilesStore';
+import { generateId } from '@/lib/utils/id';
 
 interface ChatInputProps {
   input: string;
@@ -52,22 +54,32 @@ export function ChatInput({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [showAssetMenu, setShowAssetMenu] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<Array<{
-    id: string;
-    file: File;
-    thumbnailUrl: string;
-    type: 'image' | 'video';
-  }>>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<Array<ChatFile>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // 从全局状态获取聊天文件
+  const { chatFiles, clearChatFiles } = useChatFilesStore();
+  
+  // 监听全局聊天文件变化，将新文件添加到本地状态
+  useEffect(() => {
+    if (chatFiles.length > 0) {
+      const newFiles = chatFiles.map(file => ({
+        id: file.id,
+        file: file.file,
+        thumbnailUrl: file.thumbnailUrl,
+        type: file.type,
+        url: file.url
+      }));
+      
+      setUploadedFiles(prev => [...prev, ...newFiles]);
+      // 清空全局状态，避免重复添加
+      clearChatFiles();
+    }
+  }, [chatFiles, clearChatFiles]);
 
   // 处理本地文件上传
   const handleLocalUpload = () => {
     fileInputRef.current?.click();
-  };
-
-  // 生成唯一ID
-  const generateId = () => {
-    return Math.random().toString(36).substr(2, 9);
   };
 
   // 提取视频第一帧作为缩略图
@@ -102,12 +114,7 @@ export function ChatInput({
       setUploadError(null);
       
       try {
-        const newFiles: Array<{
-          id: string;
-          file: File;
-          thumbnailUrl: string;
-          type: 'image' | 'video';
-        }> = [];
+        const newFiles: Array<ChatFile> = [];
         
         // 处理每个文件
         for (let i = 0; i < files.length; i++) {
@@ -118,20 +125,24 @@ export function ChatInput({
           
           if (isImage || isVideo) {
             let thumbnailUrl: string;
+            let url: string;
             
             if (isImage) {
-              // 图片文件直接生成缩略图URL
+              // 图片文件直接生成缩略图URL和临时URL
               thumbnailUrl = URL.createObjectURL(file);
+              url = thumbnailUrl; // 本地文件临时使用object URL作为url
             } else {
               // 视频文件提取第一帧
               thumbnailUrl = await extractVideoThumbnail(file);
+              url = URL.createObjectURL(file); // 本地视频临时使用object URL作为url
             }
             
             newFiles.push({
               id,
               file,
               thumbnailUrl,
-              type: isImage ? 'image' : 'video'
+              type: isImage ? 'image' : 'video',
+              url
             });
           }
         }
@@ -175,7 +186,8 @@ export function ChatInput({
         id: generateId(),
         file: mockFile,
         thumbnailUrl: asset.url,
-        type: asset.type
+        type: asset.type,
+        url: asset.url
       };
       
       setUploadedFiles(prev => [...prev, newFile]);
@@ -194,9 +206,18 @@ export function ChatInput({
     setUploadedFiles(prev => {
       const fileToDelete = prev.find(file => file.id === id);
       if (fileToDelete) {
-        // 释放URL对象
-        if (fileToDelete.type === 'image') {
+        // 释放URL对象 - 只释放本地创建的对象URL，不释放远程URL
+        if (fileToDelete.file) {
+          // 释放缩略图URL
           URL.revokeObjectURL(fileToDelete.thumbnailUrl);
+          // 释放视频文件的URL（如果是视频且URL是object URL）
+          if (fileToDelete.type === 'video') {
+            try {
+              URL.revokeObjectURL(fileToDelete.url);
+            } catch (e) {
+              // 忽略无效URL的错误
+            }
+          }
         }
       }
       return prev.filter(file => file.id !== id);
@@ -253,7 +274,7 @@ export function ChatInput({
                   {file.type === 'image' ? (
                     <img
                       src={file.thumbnailUrl}
-                      alt={file.file.name}
+                      alt={file.file ? file.file.name : `file-${file.id}`}
                       className="w-full h-full object-cover"
                       loading="eager"
                     />
@@ -261,7 +282,7 @@ export function ChatInput({
                     <div className="relative w-full h-full">
                       <img
                         src={file.thumbnailUrl}
-                        alt={file.file.name}
+                        alt={file.file ? file.file.name : `file-${file.id}`}
                         className="w-full h-full object-cover"
                         loading="eager"
                       />
@@ -277,7 +298,7 @@ export function ChatInput({
                 
                 {/* 文件名显示 */}
                 <div className="mt-1 text-xs text-muted-foreground truncate w-[60px] text-center">
-                  {file.file.name}
+                  {file.file ? file.file.name : file.url ? file.url.split('/').pop() || `file-${file.id}` : `file-${file.id}`}
                 </div>
                 
                 {/* 删除按钮 */}
