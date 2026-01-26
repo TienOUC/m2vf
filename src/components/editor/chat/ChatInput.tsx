@@ -28,6 +28,7 @@ interface ChatInputProps {
   onSelectModel: (model: AIModel) => void;
   isAgentMode?: boolean;
   onToggleMode?: (isAgentMode: boolean) => void;
+  onCancel?: () => void;
 }
 
 export function ChatInput({ 
@@ -38,7 +39,8 @@ export function ChatInput({
   onSend, 
   onSelectModel,
   isAgentMode: externalIsAgentMode,
-  onToggleMode
+  onToggleMode,
+  onCancel
 }: ChatInputProps) {
   const [showModelSelector, setShowModelSelector] = useState(false);
   const [isAgentMode, setIsAgentMode] = useState(externalIsAgentMode || false);
@@ -408,18 +410,33 @@ export function ChatInput({
                 theme="light"
               />
             </div>
-            <Button 
-              variant={input.trim() && !isGenerating ? "default" : "secondary"}
-              size="icon"
-              onClick={onSend}
-              disabled={!input.trim() || isGenerating}
-              className={`w-8 h-8 ml-1 rounded-lg ${input.trim() && !isGenerating
-                  ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                  : 'bg-muted text-muted-foreground cursor-not-allowed'}`}
-              aria-label="发送消息"
-            >
-              <Send className="w-3 h-3" fill="currentColor" />
-            </Button>
+            {isGenerating ? (
+              <Button 
+                variant="secondary"
+                size="icon"
+                onClick={onCancel}
+                className={`w-8 h-8 ml-1 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90`}
+                aria-label="取消生成"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </Button>
+            ) : (
+              <Button 
+                variant={input.trim() ? "default" : "secondary"}
+                size="icon"
+                onClick={onSend}
+                disabled={!input.trim()}
+                className={`w-8 h-8 ml-1 rounded-lg ${input.trim()
+                    ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                    : 'bg-muted text-muted-foreground cursor-not-allowed'}`}
+                aria-label="发送消息"
+              >
+                <Send className="w-3 h-3" fill="currentColor" />
+              </Button>
+            )}
           </div>
         </div>
       </div>

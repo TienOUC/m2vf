@@ -11,9 +11,10 @@ import { useChatState } from './chat/useChatState'
 interface ChatPanelProps {
   isOpen: boolean
   onClose: () => void
+  projectId: string | null
 }
 
-export function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
+export function ChatPanel({ isOpen, onClose, projectId }: ChatPanelProps) {
   const {
     messages,
     input,
@@ -21,10 +22,12 @@ export function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
     isGenerating,
     generationProgress,
     isAgentMode,
+    error,
     setIsAgentMode,
     setInput,
     setSelectedModel,
     handleSend,
+    cancelGeneration,
   } = useChatState();
 
   return (
@@ -45,7 +48,15 @@ export function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
         </Button>
       )}
       
-      <ChatHeader messages={messages} />
+      <ChatHeader messages={messages} projectId={projectId} />
+      
+      {/* 错误消息显示 */}
+      {error && (
+        <div className="p-3 bg-destructive/10 text-destructive text-sm border-b border-border">
+          {error}
+        </div>
+      )}
+      
       <ChatMessages 
         messages={messages} 
         isGenerating={isGenerating} 
@@ -60,6 +71,7 @@ export function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
         onSelectModel={setSelectedModel} 
         isAgentMode={isAgentMode} 
         onToggleMode={setIsAgentMode} 
+        onCancel={cancelGeneration}
       />
     </div>
   )

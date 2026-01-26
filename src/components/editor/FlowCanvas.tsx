@@ -408,6 +408,7 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
       <ChatPanel
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}
+        projectId={projectId}
       />
       
       {!isChatOpen && (

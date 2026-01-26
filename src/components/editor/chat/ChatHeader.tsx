@@ -4,10 +4,32 @@ import { useState, useRef } from 'react';
 import { History } from 'lucide-react';
 import type { ChatMessage } from '@/lib/types/studio';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { HistoryDialog } from './HistoryDialog';
+import { getSessions } from '@/lib/api/client/sessions';
 
 interface ChatHeaderProps {
   messages: ChatMessage[];
+  projectId: string | null;
+}
+
+interface SessionItem {
+  id: string;
+  title: string;
+  created_at: number;
+  updated_at: number;
+  last_message_at: number;
+  message_count: number;
+  project_id: string;
+  status: number;
+  config: {
+    max_tokens: number;
+    model: string;
+    system_prompt: string;
+    temperature: number;
+    thinking_mode: boolean;
+    web_search: boolean;
+  };
 }
 
 interface HistoryItem {
@@ -17,24 +39,34 @@ interface HistoryItem {
   type: 'image' | 'video' | 'text' | '3d';
 }
 
-// Mock历史记录数据
-const mockHistory: HistoryItem[] = [
-  { id: '1', name: '樱花小猫设计', timestamp: new Date('2026-01-23T14:30:00'), type: 'image' },
-  { id: '2', name: '梦幻场景创作', timestamp: new Date('2026-01-23T13:15:00'), type: '3d' },
-  { id: '3', name: '科技感界面', timestamp: new Date('2026-01-22T16:45:00'), type: 'image' },
-  { id: '4', name: '自然风景生成', timestamp: new Date('2026-01-22T10:20:00'), type: 'video' },
-  { id: '5', name: '产品展示视频', timestamp: new Date('2026-01-21T15:30:00'), type: 'video' },
-  { id: '6', name: '文本内容生成', timestamp: new Date('2026-01-21T09:15:00'), type: 'text' },
-  { id: '7', name: '建筑设计方案', timestamp: new Date('2026-01-20T14:45:00'), type: '3d' },
-  { id: '8', name: 'Logo设计', timestamp: new Date('2026-01-20T11:20:00'), type: 'image' },
-];
-
-export function ChatHeader({ messages }: ChatHeaderProps) {
+export function ChatHeader({ messages, projectId }: ChatHeaderProps) {
   const [showHistory, setShowHistory] = useState(false);
+  const [sessions, setSessions] = useState<SessionItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const chatTitle = messages.length > 0 
     ? `${messages[0].content.slice(0, 16)}...` 
     : '新对话';
   const historyButtonRef = useRef<HTMLButtonElement>(null);
+  
+  // 处理点击历史按钮事件
+  const handleHistoryClick = async () => {
+    setShowHistory(!showHistory);
+    if (!showHistory && projectId) {
+      // 仅当展开历史记录且有projectId时才请求数据
+      setIsLoading(true);
+      try {
+        const response = await getSessions(projectId, {
+          page: 1,
+          page_size: 10
+        }) as any;
+        setSessions(response.list || []);
+      } catch (error) {
+        console.error('获取会话列表失败:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
 
   return (
     <div className="h-10 flex items-center justify-between px-3 border-b border-border bg-background relative">
@@ -42,21 +74,37 @@ export function ChatHeader({ messages }: ChatHeaderProps) {
         {chatTitle}
       </span>
       
-      <Button
-        ref={historyButtonRef}
-        onClick={() => setShowHistory(!showHistory)}
-        variant="ghost"
-        size="icon"
-        className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-accent hover:text-accent-foreground"
-        aria-label="查看对话历史"
-      >
-        <History className="w-3 h-3 text-muted-foreground" />
-      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            ref={historyButtonRef}
+            onClick={handleHistoryClick}
+            variant="ghost"
+            size="icon"
+            className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-accent hover:text-accent-foreground"
+            aria-label="查看对话历史"
+          >
+            {isLoading ? (
+              <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <History className="w-3 h-3 text-muted-foreground" />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>查看对话历史</p>
+        </TooltipContent>
+      </Tooltip>
       
       <HistoryDialog 
         isOpen={showHistory}
         onClose={() => setShowHistory(false)}
-        items={mockHistory}
+        items={sessions.map(session => ({
+          id: session.id,
+          name: session.title,
+          timestamp: new Date(session.last_message_at * 1000),
+          type: 'text' // 默认类型，实际应用中可以根据会话内容类型设置
+        }))}
         triggerRef={historyButtonRef}
       />
     </div>

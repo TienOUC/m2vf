@@ -12,6 +12,7 @@ export * from './client/assets';
 export * from './client/edges';
 export * from './client/sessions';
 export * from './client/shares';
+export * from './client/chat';
 
 // 共享类型定义
 export * from './shared/types';

@@ -64,8 +64,17 @@ export const API_ENDPOINTS = {
   // 会话管理相关
   SESSIONS: {
     LIST: '/v1/sessions',
+    CREATE: '/v1/sessions',
     DETAIL: (id: string | number) => `/v1/sessions/${id}`,
+    UPDATE: (id: string | number) => `/v1/sessions/${id}`,
+    DELETE: (id: string | number) => `/v1/sessions/${id}`,
     MESSAGES: (id: string | number) => `/v1/sessions/${id}/messages`,
+    STREAM_CHAT: (id: string | number) => `/v1/sessions/${id}/stream-chat`,
+  },
+  
+  // 聊天相关
+  CHAT: {
+    STREAM: '/v1/chat/stream',
   },
   
   // 分享管理相关
