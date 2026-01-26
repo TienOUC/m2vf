@@ -17,12 +17,14 @@ export interface FabricObject {
   getScaledWidth: () => number;
   getScaledHeight: () => number;
   setCoords: () => void;
+  clone: (callback: (cloned: FabricObject) => void) => void;
   left?: number;
   top?: number;
   width?: number;
   height?: number;
   scaleX?: number;
   scaleY?: number;
+  type?: string;
   on: (event: string, callback: (e: FabricEvent) => void) => void;
   off: (event: string, callback?: (e: FabricEvent) => void) => void;
   clipPath?: {
@@ -42,15 +44,33 @@ export interface FabricCanvas {
   sendObjectToBack: (object: FabricObject) => void;
   bringObjectToFront: (object: FabricObject) => void;
   setDimensions: (dimensions: { width: number; height: number }) => void;
+  toJSON: () => any;
+  loadFromJSON: (json: any, callback: () => void) => void;
+  getObjects: () => FabricObject[];
+  on: (event: string, callback: (e: any) => void) => void;
+  off: (event: string, callback?: (e: any) => void) => void;
+  __eventListeners?: Record<string, ((e: any) => void)[]>;
   upperCanvasEl?: HTMLCanvasElement;
   width: number;
   height: number;
+  isDrawingMode?: boolean;
+  freeDrawingBrush?: {
+    width: number;
+    color: string;
+  };
 }
 
 // 组件属性接口
 export interface FabricImageEditorProps {
   imageUrl: string;
   onCropComplete: (croppedImageBlob: Blob) => void;
+  onCancel: () => void;
+}
+
+// Fabric擦除编辑器属性接口
+export interface FabricEraseEditorProps {
+  imageUrl: string;
+  onSave: (newImageUrl: string) => void;
   onCancel: () => void;
 }
 

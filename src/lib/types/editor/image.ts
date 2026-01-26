@@ -6,6 +6,7 @@ export interface ImageNodeData {
   onReplace?: (nodeId: string) => void;
   onEditStart?: (nodeId: string) => void;
   onCropStart?: (nodeId: string, imageUrl: string) => void;
+  onEraseStart?: (nodeId: string, imageUrl: string) => void;
   onImageUpdate?: (nodeId: string, imageUrl: string) => void;
   onDownload?: (nodeId: string) => void;
   onBackgroundRemove?: (nodeId: string) => void;

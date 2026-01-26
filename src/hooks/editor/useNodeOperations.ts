@@ -11,11 +11,12 @@ import { useEdgesStore } from '@/lib/stores/edgesStore';
 export interface UseNodeOperationsOptions {
   onEditStart?: (nodeId: string) => void;
   onCropStart?: (nodeId: string, imageUrl: string) => void;
+  onEraseStart?: (nodeId: string, imageUrl: string) => void;
   onBackgroundRemove?: (nodeId: string) => void;
 }
 
 export const useNodeOperations = (options: UseNodeOperationsOptions = {}): NodeOperations => {
-  const { onEditStart = () => {}, onCropStart = () => {}, onBackgroundRemove = () => {} } = options;
+  const { onEditStart = () => {}, onCropStart = () => {}, onEraseStart = () => {}, onBackgroundRemove = () => {} } = options;
   // 使用类型断言来解决 React Flow 的类型推断问题
   const [nodes, _setNodes, onNodesChange] = useNodesState([] as Node[]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([] as Edge[]);
@@ -280,6 +281,7 @@ export const useNodeOperations = (options: UseNodeOperationsOptions = {}): NodeO
             onDownload: handleDownload,
             onEditStart: onEditStart,
             onCropStart: onCropStart,
+            onEraseStart: onEraseStart,
             onBackgroundRemove: onBackgroundRemove,
           },
         }));
@@ -324,7 +326,7 @@ export const useNodeOperations = (options: UseNodeOperationsOptions = {}): NodeO
       // 标记初始化完成
       setIsInitialized(true);
     }
-  }, [setNodes, setEdges, handleDelete, handleBackgroundColorChange, handleFontTypeChange, handleEditingChange, handleReplace, handleImageUpdate, handleDownload, isInitialized, nodes.length, edges.length, onEditStart, onCropStart, onBackgroundRemove]);
+  }, [setNodes, setEdges, handleDelete, handleBackgroundColorChange, handleFontTypeChange, handleEditingChange, handleReplace, handleImageUpdate, handleDownload, isInitialized, nodes.length, edges.length, onEditStart, onCropStart, onEraseStart, onBackgroundRemove]);
 
 
 

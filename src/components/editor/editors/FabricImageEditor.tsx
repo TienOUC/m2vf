@@ -7,7 +7,7 @@ import { useEnhancedCropHistory } from '@/hooks/utils/useEnhancedCropHistory';
 import { createCanvas, createCropBox, createMask, updateMaskClipPath, destroyCanvas } from '@/lib/utils/fabric';
 import { calculateCropBoxPosition, calculateCropCoordinates, performCrop } from '@/lib/utils/fabric/crop';
 import type { FabricImageEditorProps, FabricCanvas, FabricObject, ImageCropEditorOptions } from '@/lib/types/editor/fabric';
-import { EditorContainer, NodeOperationsToolbar, LoadingState, ErrorState } from '@/components/editor';
+import { EditorContainer, CropOperationsToolbar, LoadingState, ErrorState } from '@/components/editor';
 
 const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropComplete, onCancel }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -49,13 +49,17 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
   // 使用增强的历史记录管理（仅用于保存状态）
   const {
     saveHistory: saveCropHistory,
-    setInitialState
+    setInitialState,
+    undo,
+    redo,
+    canUndo,
+    canRedo
   } = useEnhancedCropHistory({
     maxHistorySteps: 20,
     autoSave: true,
     saveDelay: 300
   });
-  
+
   // 默认配置，使用useMemo缓存避免每次重新渲染
   const defaultOptions = useMemo<ImageCropEditorOptions>(() => ({
     imageUrl,
@@ -177,6 +181,62 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
       cropBox.setCoords();
     }
   }, [defaultOptions.minCropSize]);
+  
+  // 处理撤销操作
+  const handleUndo = useCallback(() => {
+    if (!fabricCanvasRef.current || !cropBoxRef.current || !imageRef.current) return;
+    
+    const result = undo();
+    if (result) {
+      // 恢复状态到画布
+      const { cropBox: cropBoxState } = result;
+      const cropBox = cropBoxRef.current;
+      const canvas = fabricCanvasRef.current;
+      const img = imageRef.current;
+      
+      // 应用裁剪框状态
+      cropBox.set(cropBoxState);
+      cropBox.setCoords();
+      
+      // 确保裁剪框在合法范围内
+      constrainCropBox(cropBox, img);
+      
+      // 更新遮罩
+      if (maskRef.current) {
+        updateMaskClipPath(canvas, cropBox, maskRef.current);
+      }
+      
+      canvas.renderAll();
+    }
+  }, [undo, constrainCropBox, updateMaskClipPath]);
+
+  // 处理重做操作
+  const handleRedo = useCallback(() => {
+    if (!fabricCanvasRef.current || !cropBoxRef.current || !imageRef.current) return;
+    
+    const result = redo();
+    if (result) {
+      // 恢复状态到画布
+      const { cropBox: cropBoxState } = result;
+      const cropBox = cropBoxRef.current;
+      const canvas = fabricCanvasRef.current;
+      const img = imageRef.current;
+      
+      // 应用裁剪框状态
+      cropBox.set(cropBoxState);
+      cropBox.setCoords();
+      
+      // 确保裁剪框在合法范围内
+      constrainCropBox(cropBox, img);
+      
+      // 更新遮罩
+      if (maskRef.current) {
+        updateMaskClipPath(canvas, cropBox, maskRef.current);
+      }
+      
+      canvas.renderAll();
+    }
+  }, [redo, constrainCropBox, updateMaskClipPath]);
   
   // 处理宽高比变化
   const handleAspectRatioChange = useCallback((aspectRatio: number | null) => {
@@ -588,12 +648,16 @@ const FabricImageEditor: React.FC<FabricImageEditorProps> = ({ imageUrl, onCropC
   return (
     <div className="w-full h-full flex flex-col items-center justify-center bg-transparent">
       <EditorContainer canvasRef={canvasRef} />
-      <NodeOperationsToolbar
+      <CropOperationsToolbar
         onCancel={onCancel}
         onCrop={handleCrop}
         currentAspectRatio={currentAspectRatio}
         onAspectRatioChange={handleAspectRatioChange}
         onReset={handleReset}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+        canUndo={canUndo()}
+        canRedo={canRedo()}
       />
     </div>
   );

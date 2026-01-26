@@ -17,6 +17,7 @@ interface UseNodeAdditionProps {
   onEditingChange?: (nodeId: string, editing: boolean) => void;
   onEditStart?: (nodeId: string) => void;
   onCropStart?: (nodeId: string, imageUrl: string) => void;
+  onEraseStart?: (nodeId: string, imageUrl: string) => void;
   onFirstLastFrameGenerate?: (nodeId: string) => void;
   onFirstFrameGenerate?: (nodeId: string) => void;
 }
@@ -32,6 +33,7 @@ export const useNodeAddition = ({
   onEditingChange, 
   onEditStart, 
   onCropStart, 
+  onEraseStart,
   handleDownload, 
   handleBackgroundRemove, 
   onFirstLastFrameGenerate, 
@@ -134,6 +136,7 @@ export const useNodeAddition = ({
           // 添加裁剪功能相关回调
           ...(onEditStart && { onEditStart }),
           ...(onCropStart && { onCropStart }),
+          ...(onEraseStart && { onEraseStart }),
           // 添加抠图功能相关回调
           ...(handleBackgroundRemove && { onBackgroundRemove: handleBackgroundRemove }),
         },
@@ -155,7 +158,7 @@ export const useNodeAddition = ({
       
       return newNode;
     },
-    [nodeId, setNodes, screenToFlowPosition, handleDelete, handleImageUpdate, onEditStart, onCropStart, handleDownload, handleBackgroundRemove, setNodeId]
+    [nodeId, setNodes, screenToFlowPosition, handleDelete, handleImageUpdate, onEditStart, onCropStart, onEraseStart, handleDownload, handleBackgroundRemove, setNodeId]
   );
 
   // 添加视频节点函数

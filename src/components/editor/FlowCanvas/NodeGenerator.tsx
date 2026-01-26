@@ -14,6 +14,7 @@ interface NodeGeneratorProps {
   handleDownload: (nodeId: string) => void;
   handleEditStart: (nodeId: string) => void;
   handleCropStart: (nodeId: string, imageUrl: string) => void;
+  handleEraseStart: (nodeId: string, imageUrl: string) => void;
   handleBackgroundRemove: (nodeId: string) => void;
   nodeId: number;
   setNodeId: (nodeId: number | ((prevId: number) => number)) => void;
@@ -28,6 +29,7 @@ const NodeGenerator: React.FC<NodeGeneratorProps> = ({
   handleDownload,
   handleEditStart,
   handleCropStart,
+  handleEraseStart,
   handleBackgroundRemove,
   nodeId,
   setNodeId
@@ -74,6 +76,7 @@ const NodeGenerator: React.FC<NodeGeneratorProps> = ({
         },
         onEditStart: handleEditStart,
         onCropStart: handleCropStart,
+        onEraseStart: handleEraseStart,
         onBackgroundRemove: handleBackgroundRemove,
         // 添加首尾帧标识
         frameType: 'first' as const
@@ -96,6 +99,7 @@ const NodeGenerator: React.FC<NodeGeneratorProps> = ({
         },
         onEditStart: handleEditStart,
         onCropStart: handleCropStart,
+        onEraseStart: handleEraseStart,
         onBackgroundRemove: handleBackgroundRemove,
         // 添加首尾帧标识
         frameType: 'last' as const
@@ -153,7 +157,7 @@ const NodeGenerator: React.FC<NodeGeneratorProps> = ({
 
     // 更新nodeId，确保后续节点ID唯一
     setNodeId(prevId => prevId + 1);
-  }, [nodes, setNodes, setEdges, handleDelete, handleImageUpdate, handleDownload, handleEditStart, handleCropStart, handleBackgroundRemove, nodeId, setNodeId]);
+  }, [nodes, setNodes, setEdges, handleDelete, handleImageUpdate, handleDownload, handleEditStart, handleCropStart, handleEraseStart, handleBackgroundRemove, nodeId, setNodeId]);
 
   // 处理首帧生成视频事件
   const handleFirstFrameGenerate = useCallback((videoNodeId: string) => {
@@ -188,6 +192,7 @@ const NodeGenerator: React.FC<NodeGeneratorProps> = ({
         },
         onEditStart: handleEditStart,
         onCropStart: handleCropStart,
+        onEraseStart: handleEraseStart,
         onBackgroundRemove: handleBackgroundRemove,
         // 添加首帧标识
         frameType: 'first' as const
@@ -233,7 +238,7 @@ const NodeGenerator: React.FC<NodeGeneratorProps> = ({
 
     // 更新nodeId，确保后续节点ID唯一
     setNodeId(prevId => prevId + 1);
-  }, [nodes, setNodes, setEdges, handleDelete, handleImageUpdate, handleDownload, handleEditStart, handleCropStart, handleBackgroundRemove, nodeId, setNodeId]);
+  }, [nodes, setNodes, setEdges, handleDelete, handleImageUpdate, handleDownload, handleEditStart, handleCropStart, handleEraseStart, handleBackgroundRemove, nodeId, setNodeId]);
 
   // 更新ref中的回调函数
   useEffect(() => {

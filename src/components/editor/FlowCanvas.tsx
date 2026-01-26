@@ -12,7 +12,7 @@ import {
 import { MousePointerClick } from 'lucide-react';
 import '@xyflow/react/dist/style.css';
 
-import { TextNode, ImageNode, VideoNode, FabricImageEditor, NodeInteractionDialog } from '@/components/editor';
+import { TextNode, ImageNode, VideoNode, FabricImageEditor, FabricEraseEditor, NodeInteractionDialog } from '@/components/editor';
 import { useVideoNodesStore } from '@/lib/stores/videoNodesStore';
 import LeftSidebar from '@/components/layout/LeftSidebar';
 import { BackButton, DoubleClickMenu, NodeGenerator } from './FlowCanvas/index';
@@ -31,6 +31,7 @@ import {
   useNodeDialog
 } from '@/hooks/editor';
 import { useCropOperations } from '@/hooks/utils/useCropOperations';
+import { useEraseOperations } from '@/hooks/utils/useEraseOperations';
 
 export interface FlowCanvasProps {
   projectId: string | null;
@@ -56,10 +57,12 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
   const centerNode = useNodeCentering(reactFlowInstance);
   
   const cropOperations = useCropOperations(centerNode);
+  const eraseOperations = useEraseOperations(centerNode);
   
   const callbacksRef = useRef({
     onEditStart: cropOperations.handleEditStart,
     onCropStart: cropOperations.handleCropStart,
+    onEraseStart: eraseOperations.handleEraseStart,
     onBackgroundRemove: (nodeId: string) => {}
   });
 
@@ -68,6 +71,7 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
   const nodeOperations = useNodeOperations({
     onEditStart: (nodeId: string) => callbacksRef.current.onEditStart(nodeId),
     onCropStart: (nodeId: string, imageUrl: string) => callbacksRef.current.onCropStart(nodeId, imageUrl),
+    onEraseStart: (nodeId: string, imageUrl: string) => callbacksRef.current.onEraseStart(nodeId, imageUrl),
     onBackgroundRemove: (nodeId: string) => callbacksRef.current.onBackgroundRemove(nodeId)
   });
 
@@ -87,9 +91,10 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
     callbacksRef.current = {
       onEditStart: cropOperations.handleEditStart,
       onCropStart: cropOperations.handleCropStart,
+      onEraseStart: eraseOperations.handleEraseStart,
       onBackgroundRemove: handleBackgroundRemove
     };
-  }, [cropOperations.handleEditStart, cropOperations.handleCropStart, handleBackgroundRemove]);
+  }, [cropOperations.handleEditStart, cropOperations.handleCropStart, eraseOperations.handleEraseStart, handleBackgroundRemove]);
   
   const nodesRef = useRef(nodeOperations.nodes);
   useEffect(() => {
@@ -110,6 +115,7 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
     handleDownload: nodeOperations.handleDownload,
     handleEditStart: cropOperations.handleEditStart,
     handleCropStart: cropOperations.handleCropStart,
+    handleEraseStart: eraseOperations.handleEraseStart,
     handleBackgroundRemove: handleBackgroundRemove
   });
 
@@ -128,6 +134,7 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
     onEditingChange: nodeOperations.handleEditingChange,
     onEditStart: cropOperations.handleEditStart,
     onCropStart: cropOperations.handleCropStart,
+    onEraseStart: eraseOperations.handleEraseStart,
     handleDownload: nodeOperations.handleDownload,
     handleBackgroundRemove: handleBackgroundRemove,
     onFirstLastFrameGenerate: (id) => handleFirstLastFrameGenerateRef.current?.(id),
@@ -226,6 +233,13 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
       }
     }
   }, [nodeOperations.handleImageUpdate, cropOperations.setCroppingNode, cropOperations.croppingNode]);
+
+  const handleEraseComplete = useCallback(async (newImageUrl: string) => {
+    if (eraseOperations.erasingNode) {
+        nodeOperations.handleImageUpdate(eraseOperations.erasingNode.id, newImageUrl);
+        eraseOperations.setErasingNode(null);
+    }
+  }, [nodeOperations.handleImageUpdate, eraseOperations.setErasingNode, eraseOperations.erasingNode]);
 
   return (
     <>
@@ -350,6 +364,7 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
         handleDownload={nodeOperations.handleDownload}
         handleEditStart={cropOperations.handleEditStart}
         handleCropStart={cropOperations.handleCropStart}
+        handleEraseStart={eraseOperations.handleEraseStart}
         handleBackgroundRemove={handleBackgroundRemove}
         nodeId={nodeId}
         setNodeId={setNodeId}
@@ -378,6 +393,18 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
         </div>
       )}
       
+      {eraseOperations.erasingNode && (
+        <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="w-full h-full flex flex-col items-center justify-center p-4">
+            <FabricEraseEditor
+              imageUrl={eraseOperations.erasingNode.imageUrl}
+              onSave={(newImageUrl) => handleEraseComplete(newImageUrl)}
+              onCancel={() => eraseOperations.setErasingNode(null)}
+            />
+          </div>
+        </div>
+      )}
+
       <ChatPanel
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}

@@ -22,7 +22,8 @@ function ImageNode({ data, id, selected }: NodeProps) {
     fileInputRef,
     handleButtonClick,
     handleImageSelect,
-    handleEditStart
+    handleEditStart,
+    handleEraseStart
   } = useImageNode({
     data: nodeData as ImageNodeData,
     id: id as string,
@@ -31,6 +32,7 @@ function ImageNode({ data, id, selected }: NodeProps) {
     onReplace: nodeData.onReplace,
     onEditStart: nodeData.onEditStart,
     onCropStart: nodeData.onCropStart,
+    onEraseStart: nodeData.onEraseStart,
     onImageUpdate: nodeData.onImageUpdate,
     onDownload: nodeData.onDownload,
     onBackgroundRemove: nodeData.onBackgroundRemove
@@ -44,6 +46,7 @@ function ImageNode({ data, id, selected }: NodeProps) {
       nodeType="image"
       onReplace={handleButtonClick}
       onEditStart={handleEditStart}
+      onEraseStart={handleEraseStart}
       onDownload={nodeData?.onDownload}
       onBackgroundRemove={nodeData?.onBackgroundRemove}
       hasImage={!!imageUrl}

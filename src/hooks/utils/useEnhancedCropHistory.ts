@@ -78,9 +78,47 @@ export const useEnhancedCropHistory = ({
     return true;
   }, []);
 
+  /**
+   * 撤销操作
+   */
+  const undo = useCallback(() => {
+    if (historyIndexRef.current <= 0) return null;
+
+    historyIndexRef.current--;
+    return historyRef.current[historyIndexRef.current];
+  }, []);
+
+  /**
+   * 重做操作
+   */
+  const redo = useCallback(() => {
+    if (historyIndexRef.current >= historyRef.current.length - 1) return null;
+
+    historyIndexRef.current++;
+    return historyRef.current[historyIndexRef.current];
+  }, []);
+
+  /**
+   * 检查是否可以撤销
+   */
+  const canUndo = useCallback(() => {
+    return historyIndexRef.current > 0;
+  }, []);
+
+  /**
+   * 检查是否可以重做
+   */
+  const canRedo = useCallback(() => {
+    return historyIndexRef.current < historyRef.current.length - 1;
+  }, []);
+
   return {
     // 只保留实际使用的功能
     saveHistory: debouncedSaveHistory,
-    setInitialState
+    setInitialState,
+    undo,
+    redo,
+    canUndo,
+    canRedo
   };
 };

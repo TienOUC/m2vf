@@ -1,5 +1,5 @@
 import { NodeToolbar as ReactFlowNodeToolbar, Position } from '@xyflow/react';
-import { Image, Video, Palette, Copy, Bold, Italic, List, ListOrdered, Minus, Maximize, Trash2, Crop, Brush, Download, Sparkles, BringToFront } from 'lucide-react';
+import { Image, Video, Palette, Copy, Bold, Italic, List, ListOrdered, Minus, Maximize, Trash2, Crop, Eraser, Download, Sparkles, BringToFront } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { memo, useState, useRef, useCallback } from 'react';
 import { useClickOutside } from '@/hooks';
@@ -318,7 +318,7 @@ const NodeToolbar = ({
                 aria-label="擦除"
                 disabled={!hasImage}
               >
-                <Brush size={16} />
+                <Eraser size={16} />
               </button>
             </span>
           </TooltipTrigger>

@@ -17,6 +17,7 @@ interface UseVideoNodeProps {
   handleDownload: (nodeId: string) => void;
   handleEditStart: (nodeId: string) => void;
   handleCropStart: (nodeId: string, imageUrl: string) => void;
+  handleEraseStart: (nodeId: string, imageUrl: string) => void;
   handleBackgroundRemove: (nodeId: string) => void;
 }
 
@@ -31,6 +32,7 @@ export const useVideoNode = ({
   handleDownload,
   handleEditStart,
   handleCropStart,
+  handleEraseStart,
   handleBackgroundRemove
 }: UseVideoNodeProps) => {
   // 使用ref保存最新的回调函数，避免依赖循环
@@ -75,6 +77,7 @@ export const useVideoNode = ({
         },
         onEditStart: handleEditStart,
         onCropStart: handleCropStart,
+        onEraseStart: handleEraseStart,
         onBackgroundRemove: handleBackgroundRemove,
         // 添加首尾帧标识
         frameType: 'first' as const
@@ -97,6 +100,7 @@ export const useVideoNode = ({
         },
         onEditStart: handleEditStart,
         onCropStart: handleCropStart,
+        onEraseStart: handleEraseStart,
         onBackgroundRemove: handleBackgroundRemove,
         // 添加首尾帧标识
         frameType: 'last' as const
@@ -154,7 +158,7 @@ export const useVideoNode = ({
 
     // 更新nodeId，确保后续节点ID唯一
     setNodeId(prevId => prevId + 1);
-  }, [nodes, setNodes, setEdges, handleDelete, handleImageUpdate, handleDownload, handleEditStart, handleCropStart, handleBackgroundRemove, nodeId, setNodeId]);
+  }, [nodes, setNodes, setEdges, handleDelete, handleImageUpdate, handleDownload, handleEditStart, handleCropStart, handleEraseStart, handleBackgroundRemove, nodeId, setNodeId]);
 
   // 处理首帧生成视频事件
   const handleFirstFrameGenerate = useCallback((videoNodeId: string) => {
@@ -189,6 +193,7 @@ export const useVideoNode = ({
         },
         onEditStart: handleEditStart,
         onCropStart: handleCropStart,
+        onEraseStart: handleEraseStart,
         onBackgroundRemove: handleBackgroundRemove,
         // 添加首帧标识
         frameType: 'first' as const
@@ -234,7 +239,7 @@ export const useVideoNode = ({
 
     // 更新nodeId，确保后续节点ID唯一
     setNodeId(prevId => prevId + 1);
-  }, [nodes, setNodes, setEdges, handleDelete, handleImageUpdate, handleDownload, handleEditStart, handleCropStart, handleBackgroundRemove, nodeId, setNodeId]);
+  }, [nodes, setNodes, setEdges, handleDelete, handleImageUpdate, handleDownload, handleEditStart, handleCropStart, handleEraseStart, handleBackgroundRemove, nodeId, setNodeId]);
 
   // 更新ref中的回调函数
   useEffect(() => {

@@ -11,6 +11,7 @@ interface UseImageNodeProps {
   onReplace?: (nodeId: string) => void;
   onEditStart?: (nodeId: string) => void;
   onCropStart?: (nodeId: string, imageUrl: string) => void;
+  onEraseStart?: (nodeId: string, imageUrl: string) => void;
   onImageUpdate?: (nodeId: string, imageUrl: string) => void;
   onDownload?: (nodeId: string) => void;
   onBackgroundRemove?: (nodeId: string) => void;
@@ -22,7 +23,8 @@ export const useImageNode = ({
   onDelete, 
   onReplace, 
   onEditStart, 
-  onCropStart, 
+  onCropStart,
+  onEraseStart,
   onImageUpdate, 
   onDownload, 
   onBackgroundRemove 
@@ -119,6 +121,33 @@ export const useImageNode = ({
       }
     }
   }, [imageUrl, onEditStart, onCropStart]);
+
+  // 擦除状态管理
+  const handleEraseStartInternal = useCallback(async (nodeId: string) => {
+    const currentImageUrl = imageUrl;
+    const hasImage = !!currentImageUrl;
+    
+    if (!hasImage) {
+      console.warn('图片节点没有有效的图片资源，无法进行擦除');
+      return;
+    }
+
+    try {
+      if (onEditStart) {
+        onEditStart(nodeId);
+        await new Promise(resolve => setTimeout(resolve, 600));
+      }
+      
+      if (onEraseStart && currentImageUrl) {
+        onEraseStart(nodeId, currentImageUrl);
+      }
+    } catch (error) {
+      console.error('擦除流程执行失败:', error);
+      if (onEraseStart && currentImageUrl) {
+        onEraseStart(nodeId, currentImageUrl);
+      }
+    }
+  }, [imageUrl, onEditStart, onEraseStart]);
   
   return {
     // 状态
@@ -135,12 +164,14 @@ export const useImageNode = ({
     handleButtonClick,
     handleImageSelect: handleImageSelectInternal,
     handleEditStart: handleEditStartInternal,
+    handleEraseStart: handleEraseStartInternal,
     
     // 原始回调
     onDelete,
     onReplace,
     onEditStart,
     onCropStart,
+    onEraseStart,
     onImageUpdate,
     onDownload,
     onBackgroundRemove
