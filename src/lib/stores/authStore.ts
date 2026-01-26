@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { AuthState } from '@/lib/types/store';
-import { loginUser, registerUser, getUserProfile, logoutUser } from '@/lib/api/client/auth';
-import { saveTokens, clearTokens, getAccessToken, getRefreshToken } from '@/lib/utils/token';
+import { loginUser, logoutUser, getUserProfile } from '@/lib/api/client/auth';
+import { saveTokens, clearTokens, getAccessToken } from '@/lib/utils/token';
 
 // 用户认证store
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -9,7 +9,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isLoading: true, // 添加loading状态，用于处理认证检查过程
   user: null,
   accessToken: null,
-  refreshToken: null,
   
   setIsAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
   
@@ -19,32 +18,42 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ accessToken: token });
     // 如果token为null，清除本地存储，否则保存到本地存储
     if (token === null) {
-      const { refreshToken } = get();
       clearTokens();
-      set({ refreshToken: null });
     } else {
-      const { refreshToken } = get();
-      saveTokens({ access_token: token, refresh_token: refreshToken || '', token_type: 'Bearer', user: get().user, message: '', usage: '' });
-    }
-  },
-  
-  setRefreshToken: (token) => {
-    set({ refreshToken: token });
-    const { accessToken } = get();
-    if (accessToken && token) {
-      saveTokens({ access_token: accessToken, refresh_token: token, token_type: 'Bearer', user: get().user, message: '', usage: '' });
+      saveTokens({ access_token: token, token_type: 'Bearer', user: get().user, message: '', usage: '' });
     }
   },
   
   login: async (credentials) => {
     try {
       const response = await loginUser(credentials);
+      
+      // 先设置认证状态和用户信息，确保登录成功
       set({
         isAuthenticated: true,
         user: response.user,
-        accessToken: response.access_token,
-        refreshToken: response.refresh_token
+        accessToken: response.access_token
       });
+      
+      // 保存token到本地存储
+      saveTokens({
+        access_token: response.access_token,
+        token_type: 'Bearer',
+        user: response.user,
+        message: '',
+        usage: ''
+      });
+      
+      // 异步获取完整用户信息
+      setTimeout(async () => {
+        try {
+          const fullUserProfile = await getUserProfile();
+          set({ user: fullUserProfile });
+        } catch (profileError) {
+          console.error('获取用户信息失败，继续使用登录返回的基本信息:', profileError);
+        }
+      }, 0);
+      
       return response;
     } catch (error) {
       console.error('登录失败:', error);
@@ -56,8 +65,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({
       isAuthenticated: false,
       user: null,
-      accessToken: null,
-      refreshToken: null
+      accessToken: null
     });
     clearTokens();
     logoutUser(); // 这会重定向到登录页面
@@ -67,7 +75,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true }); // 开始认证检查，设置loading状态
     
     const accessToken = getAccessToken();
-    const refreshToken = getRefreshToken();
     const user = localStorage.getItem('user');
     
     if (accessToken) {
@@ -78,7 +85,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({
           isAuthenticated: true,
           accessToken: accessToken,
-          refreshToken: refreshToken || null,
           user: user ? JSON.parse(user) : null,
           isLoading: false // 认证检查完成，关闭loading状态
         });
@@ -87,7 +93,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({
           isAuthenticated: false,
           accessToken: null,
-          refreshToken: null,
           user: null,
           isLoading: false // 认证检查完成，关闭loading状态
         });
@@ -98,7 +103,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({
         isAuthenticated: false,
         accessToken: null,
-        refreshToken: null,
         user: null,
         isLoading: false // 认证检查完成，关闭loading状态
       });

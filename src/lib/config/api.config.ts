@@ -5,7 +5,7 @@
  * 优先使用环境变量，如果没有则使用默认值
  */
 export const getApiBaseUrl = (): string => {
-  return process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
+  return process.env.NEXT_PUBLIC_API_BASE_URL || 'http://47.92.68.167:59911';
 };
 
 /**
@@ -14,62 +14,70 @@ export const getApiBaseUrl = (): string => {
 export const API_ENDPOINTS = {
   // 用户认证相关
   AUTH: {
-    LOGIN: '/api/v1/auth/login',
-    LOGIN_WITH_CODE: '/api/v1/auth/login-code',
-    PROFILE: '/api/v1/auth/profile',
-    REGISTER: '/auth/register',
-    REGISTER_DEV: '/api/v1/auth/register-dev',
-    SEND_CODE: '/auth/send-code',
-    LOGOUT: '/api/v1/auth/logout',
-    REFRESH_TOKEN: '/api/v1/auth/refresh-token',
+    LOGIN: '/v1/auth/login',
+    LOGIN_WITH_CODE: '/v1/auth/login-code',
+    PROFILE: '/v1/auth/profile',
+    REGISTER: '/v1/auth/register',
+    REGISTER_DEV: '/v1/auth/register-dev',
+    SEND_CODE: '/v1/auth/send-code',
+    LOGOUT: '/v1/auth/logout',
   },
   
   // 项目管理相关
   PROJECTS: {
-    LIST: '/api/projects/list/',
-    CREATE: '/api/projects/create/',
-    DELETE: '/api/projects/delete/',
-    DETAIL: (id: string | number) => `/api/projects/${id}/`,
-    SAVE: (id: string | number) => `/api/projects/${id}/workspace`,
+    LIST: '/v1/projects',
+    CREATE: '/v1/projects',
+    DETAIL: (id: string | number) => `/v1/projects/${id}`,
+    UPDATE: (id: string | number) => `/v1/projects/${id}`,
+    DELETE: (id: string | number) => `/v1/projects/${id}`,
   },
   
-  // 文档管理相关
-  DOCUMENTS: {
-    TREE: (projectId: number) => `/api/projects/${projectId}/documents/tree`,
-    LIST: (projectId: number) => `/api/projects/${projectId}/documents`,
-    CREATE: (projectId: number) => `/api/projects/${projectId}/documents`,
-    DETAIL: (projectId: number, documentId: number) => 
-      `/api/projects/${projectId}/documents/${documentId}`,
-    FOLDERS: (projectId: number) => `/api/projects/${projectId}/documents/folders`,
-    FOLDER_DETAIL: (projectId: number, folderId: number) => 
-      `/api/projects/${projectId}/documents/folders/${folderId}`,
-    RENAME_NODE: (projectId: number, nodeId: number) => 
-      `/api/projects/${projectId}/documents/nodes/${nodeId}/rename`,
-    MOVE_NODE: (projectId: number, nodeId: number) => 
-      `/api/projects/${projectId}/documents/nodes/${nodeId}/move`,
-    ASSETS: (projectId: number, blobId: string, ext: string) => 
-      `/api/projects/${projectId}/assets/${blobId}.${ext}`,
-    ASSETS_BATCH: (projectId: number) => `/api/projects/${projectId}/assets/batch`,
+  // 制品管理相关
+  ARTIFACTS: {
+    LIST: '/v1/artifacts',
+    CREATE: '/v1/artifacts',
+    BATCH_UPDATE: '/v1/artifacts/batch',
+    BATCH_DELETE: '/v1/artifacts/batch',
+    GENERATE_VIDEO_FROM_FRAMES: '/v1/artifacts/generate-video-from-frames',
+    GENERATE_VIDEO_GENERAL: '/v1/artifacts/generate-video-general',
+    DETAIL: (id: string | number) => `/v1/artifacts/${id}`,
+    UPDATE: (id: string | number) => `/v1/artifacts/${id}`,
   },
   
-  // 图层管理相关
-  LAYERS: {
-    CREATE: '/api/layers/',
-    UPDATE_TEMP_IMAGE: (layerId: string) => `/api/layers/${layerId}/update-temp-image/`,
-    SAVE_PROCESSED_IMAGE: (layerId: string) => `/api/layers/${layerId}/save-processed-image/`,
+  // 资产管理相关
+  ASSETS: {
+    LIST: '/v1/assets',
+    UPLOAD: '/v1/assets/upload',
+    BATCH_STATUS: '/v1/assets/status/batch',
+    DETAIL: (id: string | number) => `/v1/assets/${id}`,
+    STATUS: (id: string | number) => `/v1/assets/${id}/status`,
   },
   
-  // Workspace 相关
-  WORKSPACE: {
-    GET: (projectId: number) => `/api/projects/${projectId}/workspace`,
-    SAVE: (projectId: number) => `/api/projects/${projectId}/workspace`,
-    DOCUMENTS: (projectId: number) => `/api/projects/${projectId}/workspace/documents`,
+  // 连线管理相关
+  EDGES: {
+    LIST: '/v1/edges',
+    BATCH_CREATE: '/v1/edges/batch',
+    SYNC: '/v1/edges/sync',
+    DETAIL: (id: string | number) => `/v1/edges/${id}`,
+  },
+  
+  // 会话管理相关
+  SESSIONS: {
+    LIST: '/v1/sessions',
+    DETAIL: (id: string | number) => `/v1/sessions/${id}`,
+    MESSAGES: (id: string | number) => `/v1/sessions/${id}/messages`,
+  },
+  
+  // 分享管理相关
+  SHARES: {
+    LIST: '/v1/shares',
+    DETAIL: (id: string | number) => `/v1/shares/${id}`,
   },
   
   // AI 模型相关
   AI: {
-    MODELS: '/api/ai/models/',
-    MODEL_PARAMS: (modelId: string) => `/api/ai/models/${modelId}/params/`,
+    MODELS: '/v1/ai/models',
+    MODEL_PARAMS: (modelId: string) => `/v1/ai/models/${modelId}/params`,
   },
 } as const;
 
@@ -109,7 +117,6 @@ export const DEFAULT_CONFIG = {
   // Token 存储 keys
   STORAGE_KEYS: {
     ACCESS_TOKEN: 'access_token',
-    REFRESH_TOKEN: 'refresh_token',
     USER: 'user',
   },
 } as const;

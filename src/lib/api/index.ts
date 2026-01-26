@@ -7,9 +7,11 @@ export { apiRequest } from './client';
 export * from './client/projects';
 export * from './client/ai';
 export * from './client/auth';
-export * from './client/documents';
-export * from './client/layers';
-export * from './client/workspace';
+export * from './client/artifacts';
+export * from './client/assets';
+export * from './client/edges';
+export * from './client/sessions';
+export * from './client/shares';
 
 // 共享类型定义
 export * from './shared/types';

@@ -53,32 +53,25 @@ export const loginUser = async (
   );
   console.log('[loginUser] 实际请求 URL:', loginUrl);
   
-  // 根据用户输入的凭证类型动态确定参数名
+  // 根据用户输入的凭证类型动态确定type字段
   // 检查是否为邮箱格式
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   // 检查是否为手机号格式
   const phoneRegex = /^1[3-9]\d{9}$/;
   
-  let loginData: Record<string, string>;
-  if (emailRegex.test(credentials.credential)) {
-    // 如果是邮箱格式，使用email参数名
-    loginData = {
-      email: credentials.credential,
-      password: credentials.password
-    };
-  } else if (phoneRegex.test(credentials.credential)) {
-    // 如果是手机号格式，使用phone参数名
-    loginData = {
-      phone: credentials.credential,
-      password: credentials.password
-    };
-  } else {
-    // 如果都不是有效格式，仍然尝试发送（后端可能需要验证）
-    loginData = {
-      email: credentials.credential, // 默认使用email参数
-      password: credentials.password
-    };
+  let type: 'email' | 'phone' = 'email';
+  if (phoneRegex.test(credentials.credential)) {
+    type = 'phone';
+  } else if (emailRegex.test(credentials.credential)) {
+    type = 'email';
   }
+  
+  // 构造统一格式的loginData
+  const loginData = {
+    password: credentials.password,
+    target: credentials.credential,
+    type: type
+  };
 
   try {
     // 登录请求使用直接fetch，因为不需要token认证
@@ -92,13 +85,21 @@ export const loginUser = async (
     });
 
     if (response.ok) {
-      const data: TokenResponse = await response.json();
+      const responseData = await response.json();
+      // 处理实际返回的数据结构
+      const data: TokenResponse = {
+        access_token: responseData.data.token,
+        token_type: 'Bearer', // 默认使用Bearer类型
+        user: responseData.data.user,
+        message: responseData.msg,
+        usage: '' // 实际接口未返回usage，使用空字符串
+      };
       // 保存token到本地存储
       saveTokens(data);
       return data;
     } else {
-      const data = await response.json().catch(() => ({}));
-      throw new Error(data.message || `登录失败: ${response.status}`);
+      const responseData = await response.json().catch(() => ({}));
+      throw new Error(responseData.msg || `登录失败: ${response.status}`);
     }
   } catch (error) {
     console.error('登录请求失败:', error);
@@ -124,12 +125,20 @@ export const loginWithVerificationCode = async (
     });
     
     if (response.ok) {
-      const data: TokenResponse = await response.json();
+      const responseData = await response.json();
+      // 处理实际返回的数据结构
+      const data: TokenResponse = {
+        access_token: responseData.data.token,
+        token_type: 'Bearer', // 默认使用Bearer类型
+        user: responseData.data.user,
+        message: responseData.msg,
+        usage: '' // 实际接口未返回usage，使用空字符串
+      };
       saveTokens(data);
       return data;
     } else {
-      const data = await response.json().catch(() => ({}));
-      throw new Error(data.message || '登录失败');
+      const responseData = await response.json().catch(() => ({}));
+      throw new Error(responseData.msg || '登录失败');
     }
   } catch (error) {
     console.error('验证码登录失败:', error);
@@ -160,11 +169,11 @@ export const registerUser = async (userData: {
   try {
     const data = await api.post<{ success: boolean; message?: string }>(registerUrl, requestData);
     return { success: true, message: data.message || '注册成功' };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('注册请求失败:', error);
     return { 
       success: false, 
-      message: error.message || error.data?.message || '网络请求失败，请稍后重试' 
+      message: error instanceof Error ? error.message : '网络请求失败，请稍后重试' 
     };
   }
 };
@@ -182,17 +191,17 @@ export const registerDevUser = async (userData: {
   try {
     const data = await api.post<{ success: boolean; message?: string }>(registerUrl, userData);
     return { success: true, message: data.message || '注册成功' };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('开发注册请求失败:', error);
     return { 
       success: false, 
-      message: error.message || error.data?.message || '网络请求失败，请稍后重试' 
+      message: error instanceof Error ? error.message : '网络请求失败，请稍后重试' 
     };
   }
 };
 
 // 获取用户信息
-export const getUserProfile = async <T = any>(): Promise<T> => {
+export const getUserProfile = async <T>(): Promise<T> => {
   const profileUrl = buildApiUrl(API_ENDPOINTS.AUTH.PROFILE);
   return api.get<T>(profileUrl);
 };

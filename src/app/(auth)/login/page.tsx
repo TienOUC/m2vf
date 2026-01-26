@@ -1,23 +1,25 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { validateLoginCredential, validatePassword, validateEmail, validatePhone, validateCode } from '@/lib/utils/validation';
 import { ROUTES } from '@/lib/config/api.config';
 import { useForm } from '@/hooks/utils/useForm';
 import { useAuthStore } from '@/lib/stores';
-import { SquareUserRound, Mail, Phone } from 'lucide-react';
+import { Mail, SquareUserRound } from 'lucide-react';
+import { getLoginErrorMessage, getRequestErrorMessage } from '@/lib/utils/loginError';
 
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { AuthHeader } from '@/components/auth/AuthHeader';
 import { AuthFooter } from '@/components/auth/AuthFooter';
 import { FormErrorMessage } from '@/components/auth/FormErrorMessage';
-import { PasswordInput } from '@/components/auth/PasswordInput';
 import { SubmitButton } from '@/components/auth/SubmitButton';
-import { LoginMethodToggle } from '@/components/auth/LoginMethodToggle';
-import { CountDownButton } from '@/components/auth/CountDownButton';
-import { sendVerificationCode, loginWithVerificationCode } from '@/lib/api/client/auth';
+import { LoginMethodHeader, AccountLoginMethod } from '@/components/auth/LoginMethodHeader';
+import { PasswordLoginForm } from '@/components/auth/PasswordLoginForm';
+import { PhoneLoginForm } from '@/components/auth/PhoneLoginForm';
+import { EmailLoginForm } from '@/components/auth/EmailLoginForm';
+import { WelcomeContent } from '@/components/auth/WelcomeContent';
+import { sendVerificationCode, loginWithVerificationCode, getUserProfile } from '@/lib/api/client/auth';
 
 interface LoginFormValues {
   credential: string;
@@ -32,7 +34,8 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [loginMethod, setLoginMethod] = useState<'password' | 'emailCode' | 'phoneCode'>('password');
+  const [loginMethod, setLoginMethod] = useState<'password' | 'phoneCode' | 'emailCode'>('password');
+  const [lastAccountLoginMethod, setLastAccountLoginMethod] = useState<AccountLoginMethod>('password');
   const [sendCodeLoading, setSendCodeLoading] = useState(false);
   const { login, isAuthenticated } = useAuthStore();
   
@@ -83,50 +86,42 @@ export default function LoginPage() {
           response = await login(credentials);
         } else if (loginMethod === 'emailCode') {
           response = await loginWithVerificationCode(values.email, values.code, 'email');
+          updateAuthState(response);
         } else {
           response = await loginWithVerificationCode(values.phone, values.code, 'phone');
+          updateAuthState(response);
         }
         
         if (response.access_token) {
           setError('');
           router.replace(redirectTo);
         } else {
-          let errorMessage = response.message || '登录失败，请检查凭证';
-          
-          if (response.message?.includes('email') || response.message?.includes('Email')) {
-            errorMessage = '邮箱不存在或格式错误';
-          } else if (response.message?.includes('phone') || response.message?.includes('Phone')) {
-            errorMessage = '手机号不存在或格式错误';
-          } else if (response.message?.includes('password') || response.message?.includes('Password')) {
-            errorMessage = '密码错误';
-          } else if (response.message?.includes('code') || response.message?.includes('Code')) {
-            errorMessage = '验证码错误或已过期';
-          } else if (response.message?.includes('invalid') || response.message?.includes('Invalid')) {
-            errorMessage = '登录信息错误';
-          }
-          
-          setError(errorMessage);
+          setError(getLoginErrorMessage(response.message));
         }
-      } catch (err: unknown) {
-        let errorMessage = '网络请求失败，请稍后重试';
-        const error = err as { message?: string };
-        
-        if (error.message?.includes('超时')) {
-          errorMessage = '请求超时，请检查网络连接';
-        } else if (error.message?.includes('401') || error.message?.includes('未授权')) {
-          errorMessage = '登录信息错误';
-        } else if (error.message?.includes('400')) {
-          errorMessage = '请求参数错误，请检查输入格式';
-        } else if (error.message?.includes('500')) {
-          errorMessage = '服务器内部错误，请稍后重试';
-        } else if (error.message?.includes('code') || error.message?.includes('Code')) {
-          errorMessage = '验证码错误或已过期';
-        }
-        
-        setError(errorMessage);
+      } catch (err) {
+        setError(getRequestErrorMessage(err));
       }
     }
   });
+
+  function updateAuthState(response: { access_token: string; user?: unknown }) {
+    if (response.access_token) {
+      useAuthStore.setState({
+        isAuthenticated: true,
+        user: response.user,
+        accessToken: response.access_token
+      });
+      
+      setTimeout(async () => {
+        try {
+          const fullUserProfile = await getUserProfile();
+          useAuthStore.setState({ user: fullUserProfile });
+        } catch {
+          console.error('获取用户信息失败，继续使用登录返回的基本信息');
+        }
+      }, 0);
+    }
+  }
 
   const redirectTo = searchParams.get('redirect') || ROUTES.PROJECTS;
 
@@ -156,7 +151,7 @@ export default function LoginPage() {
       } else {
         setError(result.message);
       }
-    } catch (err) {
+    } catch {
       setError('发送验证码失败，请稍后重试');
     } finally {
       setSendCodeLoading(false);
@@ -181,31 +176,14 @@ export default function LoginPage() {
       } else {
         setError(result.message);
       }
-    } catch (err) {
+    } catch {
       setError('发送验证码失败，请稍后重试');
     } finally {
       setSendCodeLoading(false);
     }
   };
 
-  const leftContent = (
-    <>
-      <div className="mb-8">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 via-orange-100 to-rose-100 flex items-center justify-center shadow-lg">
-          <svg viewBox="0 0 24 24" className="w-6 h-6 text-amber-600/80" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-            <circle cx="12" cy="12" r="3" />
-            <path d="M12 3v2M12 19v2M5.64 5.64l1.41 1.41M16.95 16.95l1.41 1.41M3 12h2M19 12h2M5.64 18.36l1.41-1.41M16.95 7.05l1.41-1.41" />
-          </svg>
-        </div>
-      </div>
-      <h1 className="text-4xl font-light tracking-tight mb-4 text-gray-900">
-        欢迎回来
-      </h1>
-      <p className="text-lg max-w-md text-gray-600">
-        登录您的账户，继续探索 AI 创作的无限可能
-      </p>
-    </>
-  );
+  const leftContent = <WelcomeContent />;
 
   return (
     <AuthLayout leftContent={leftContent} gradient="login">
@@ -214,15 +192,7 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-md">
           <div className="lg:hidden mb-10 text-center">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 via-orange-100 to-rose-100 flex items-center justify-center shadow-lg mx-auto mb-4">
-              <svg viewBox="0 0 24 24" className="w-6 h-6 text-amber-600/80" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                <circle cx="12" cy="12" r="3" />
-                <path d="M12 3v2M12 19v2M5.64 5.64l1.41 1.41M16.95 16.95l1.41 1.41M3 12h2M19 12h2M5.64 18.36l1.41-1.41M16.95 7.05l1.41-1.41" />
-              </svg>
-            </div>
-            <h1 className="text-2xl font-light text-gray-900">
-              欢迎回来
-            </h1>
+            <WelcomeContent />
           </div>
 
           <h2 className="text-2xl font-light tracking-tight mb-6 hidden lg:block text-gray-900">
@@ -238,191 +208,96 @@ export default function LoginPage() {
               </div>
             )}
 
-            <LoginMethodToggle
-              value={loginMethod}
-              onChange={setLoginMethod}
+            <LoginMethodHeader
+              isEmailCode={loginMethod === 'emailCode'}
+              accountMethod={loginMethod === 'emailCode' ? lastAccountLoginMethod : loginMethod as AccountLoginMethod}
+              onAccountMethodChange={(method) => setLoginMethod(method)}
             />
 
             {loginMethod === 'password' ? (
-              // 密码登录表单
-              <>
-                <div>
-                  <label className="block text-[13px] font-medium mb-2 text-gray-700">
-                    邮箱或手机号
-                  </label>
-                  <div className="relative">
-                    <SquareUserRound className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-                    <input
-                      id="credential"
-                      name="credential"
-                      type="text"
-                      autoComplete="username"
-                      required
-                      className="w-full rounded-xl pl-11 pr-4 py-3.5 text-[14px] bg-white border border-neutral-200 text-gray-900 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-300 transition-colors"
-                      placeholder="请输入邮箱地址或手机号"
-                      value={values.credential}
-                      onBlur={() => handleBlur('credential')}
-                      onChange={(e) => handleChange('credential', e.target.value)}
-                    />
-                  </div>
-                  {touched.credential && errors.credential && (
-                    <p className="mt-1 text-sm text-error-700">{errors.credential}</p>
-                  )}
-                </div>
-
-                <PasswordInput
-                  id="password"
-                  name="password"
-                  value={values.password}
-                  onChange={(e) => handleChange('password', e.target.value)}
-                  onBlur={() => handleBlur('password')}
-                  error={errors.password}
-                  touched={touched.password}
-                />
-
-                <div className="flex justify-end">
-                  <Link href="/forgot-password" className="text-[13px] text-gray-500 hover:text-gray-700 transition-colors">
-                    忘记密码？
-                  </Link>
-                </div>
-              </>
-            ) : loginMethod === 'emailCode' ? (
-              // 邮箱验证码登录表单
-              <>
-                <div>
-                  <label className="block text-[13px] font-medium mb-2 text-gray-700">
-                    邮箱
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      autoComplete="email"
-                      required
-                      className="w-full rounded-xl pl-11 pr-4 py-3.5 text-[14px] bg-white border border-neutral-200 text-gray-900 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-300 transition-colors"
-                      placeholder="请输入您的邮箱地址"
-                      value={values.email}
-                      onBlur={() => handleBlur('email')}
-                      onChange={(e) => handleChange('email', e.target.value)}
-                    />
-                  </div>
-                  {touched.email && errors.email && (
-                    <p className="mt-1 text-sm text-error-700">{errors.email}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-[13px] font-medium mb-2 text-gray-700">
-                    验证码
-                  </label>
-                  <div className="flex gap-4">
-                    <div className="flex-1">
-                      <input
-                        id="code"
-                        name="code"
-                        type="text"
-                        inputMode="numeric"
-                        pattern="\d{6}"
-                        maxLength={6}
-                        required
-                        className="w-full rounded-xl pl-4 pr-4 py-3.5 text-[14px] bg-white border border-neutral-200 text-gray-900 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-300 transition-colors"
-                        placeholder="请输入6位验证码"
-                        value={values.code}
-                        onBlur={() => handleBlur('code')}
-                        onChange={(e) => handleChange('code', e.target.value)}
-                      />
-                      {touched.code && errors.code && (
-                        <p className="mt-1 text-sm text-error-700">{errors.code}</p>
-                      )}
-                    </div>
-                    
-                    <div>
-                      <CountDownButton
-                        key={`emailCode-${loginMethod}`}
-                        isLoading={sendCodeLoading}
-                        disabled={!values.email || !!validateEmail(values.email)}
-                        onClick={handleSendEmailCode}
-                        initialText="获取验证码"
-                        className="w-full"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </>
+              <PasswordLoginForm
+                credential={values.credential}
+                password={values.password}
+                errors={{ credential: errors.credential, password: errors.password }}
+                touched={{ credential: touched.credential, password: touched.password }}
+                onCredentialChange={(value) => handleChange('credential', value)}
+                onPasswordChange={(e) => handleChange('password', e.target.value)}
+                onCredentialBlur={() => handleBlur('credential')}
+                onPasswordBlur={() => handleBlur('password')}
+              />
+            ) : loginMethod === 'phoneCode' ? (
+              <PhoneLoginForm
+                phone={values.phone}
+                code={values.code}
+                isLoading={sendCodeLoading}
+                errors={{ phone: errors.phone, code: errors.code }}
+                touched={{ phone: touched.phone, code: touched.code }}
+                onPhoneChange={(value) => handleChange('phone', value)}
+                onCodeChange={(value) => handleChange('code', value)}
+                onPhoneBlur={() => handleBlur('phone')}
+                onCodeBlur={() => handleBlur('code')}
+                onSendCode={handleSendPhoneCode}
+              />
             ) : (
-              // 手机验证码登录表单
-              <>
-                <div>
-                  <label className="block text-[13px] font-medium mb-2 text-gray-700">
-                    手机号
-                  </label>
-                  <div className="relative">
-                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-                    <input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      inputMode="numeric"
-                      pattern="\d{11}"
-                      maxLength={11}
-                      required
-                      className="w-full rounded-xl pl-11 pr-4 py-3.5 text-[14px] bg-white border border-neutral-200 text-gray-900 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-300 transition-colors"
-                      placeholder="请输入您的手机号"
-                      value={values.phone}
-                      onBlur={() => handleBlur('phone')}
-                      onChange={(e) => handleChange('phone', e.target.value)}
-                    />
-                  </div>
-                  {touched.phone && errors.phone && (
-                    <p className="mt-1 text-sm text-error-700">{errors.phone}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-[13px] font-medium mb-2 text-gray-700">
-                    验证码
-                  </label>
-                  <div className="flex gap-4">
-                    <div className="flex-1">
-                      <input
-                        id="code"
-                        name="code"
-                        type="text"
-                        inputMode="numeric"
-                        pattern="\d{6}"
-                        maxLength={6}
-                        required
-                        className="w-full rounded-xl pl-4 pr-4 py-3.5 text-[14px] bg-white border border-neutral-200 text-gray-900 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-300 transition-colors"
-                        placeholder="请输入6位验证码"
-                        value={values.code}
-                        onBlur={() => handleBlur('code')}
-                        onChange={(e) => handleChange('code', e.target.value)}
-                      />
-                      {touched.code && errors.code && (
-                        <p className="mt-1 text-sm text-destructive">{errors.code}</p>
-                      )}
-                    </div>
-                    
-                    <div>
-                      <CountDownButton
-                        key={`phoneCode-${loginMethod}`}
-                        isLoading={sendCodeLoading}
-                        disabled={!values.phone || !!validatePhone(values.phone)}
-                        onClick={handleSendPhoneCode}
-                        initialText="获取验证码"
-                        className="w-full"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </>
+              <EmailLoginForm
+                email={values.email}
+                code={values.code}
+                isLoading={sendCodeLoading}
+                errors={{ email: errors.email, code: errors.code }}
+                touched={{ email: touched.email, code: touched.code }}
+                onEmailChange={(value) => handleChange('email', value)}
+                onCodeChange={(value) => handleChange('code', value)}
+                onEmailBlur={() => handleBlur('email')}
+                onCodeBlur={() => handleBlur('code')}
+                onSendCode={handleSendEmailCode}
+              />
             )}
 
             <SubmitButton disabled={isLoading} isLoading={isLoading}>
+              {/* {loginMethod === 'emailCode' ? '立即登录' : '登录'} */}
               登录
             </SubmitButton>
+
+            {loginMethod !== 'emailCode' && (
+              <>
+                <div className="flex items-center justify-center my-8">
+                  <div className="flex-grow border-t border-neutral-200"></div>
+                  <span className="px-2 text-sm text-neutral-500">其他登录方式</span>
+                  <div className="flex-grow border-t border-neutral-200"></div>
+                </div>
+
+                <button
+                  type="button"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-[14px] font-medium transition-colors bg-white border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+                  onClick={() => {
+                    setLastAccountLoginMethod(loginMethod as AccountLoginMethod);
+                    setLoginMethod('emailCode');
+                  }}
+                >
+                  <Mail className="w-4 h-4 text-neutral-500" />
+                  邮箱登录
+                </button>
+              </>
+            )}
+
+            {loginMethod === 'emailCode' && (
+              <>
+                <div className="flex items-center justify-center my-8">
+                  <div className="flex-grow border-t border-neutral-200"></div>
+                  <span className="px-4 text-sm text-neutral-500">其他登录方式</span>
+                  <div className="flex-grow border-t border-neutral-200"></div>
+                </div>
+
+                <button
+                  type="button"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-[14px] font-medium transition-colors bg-white border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+                  onClick={() => setLoginMethod(lastAccountLoginMethod)}
+                >
+                  <SquareUserRound className="w-4 h-4 text-neutral-500" />
+                  账号/手机号登录
+                </button>
+              </>
+            )}
           </form>
         </div>
       </div>

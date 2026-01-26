@@ -2,11 +2,15 @@
 
 // 项目类型定义
 export interface Project {
-  id: number;
+  id: string;
   name: string;
   description: string;
-  created_at: string;
-  updated_at: string;
+  created_at: number;
+  updated_at: number;
+  cover_url: string;
+  max_sessions: number;
+  session_count: number;
+  status: number;
 }
 
 // 项目分页信息
@@ -26,9 +30,9 @@ export interface ProjectManagementState {
   pagination: PaginationInfo;
   fetchProjects: (page?: number, pageSize?: number, setLoading?: boolean) => Promise<any>;
   createProject: (projectData: { name: string; description: string }) => Promise<any>;
-  deleteProject: (projectName: string) => Promise<any>;
+  deleteProject: (projectId: string | number) => Promise<any>;
   getProjectDetail: (projectId: string | number) => Promise<any>;
-  updateProject: (projectId: string | number, projectData: { name: string; description: string }) => Promise<any>;
+  updateProject: (projectId: string | number, projectData: { name?: string; description?: string; cover_url?: string }) => Promise<any>;
   resetMessages: () => void;
   goToPage: (page: number) => Promise<void>;
   goToNextPage: () => Promise<void>;
@@ -58,8 +62,6 @@ export interface AuthState {
   setUser: (user: any) => void;
   accessToken: string | null;
   setAccessToken: (token: string | null) => void;
-  refreshToken: string | null;
-  setRefreshToken: (token: string | null) => void;
   login: (credentials: { credential: string; password: string }) => Promise<any>;
   logout: () => void;
   checkAuthStatus: () => void;

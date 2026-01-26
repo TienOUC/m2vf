@@ -1,9 +1,8 @@
 // API 请求客户端 - 核心请求函数
 
-import type { ApiRequestOptions, ApiSuccessResponse, ApiErrorResponse } from '../shared/types';
+import type { ApiRequestOptions, ApiSuccessResponse } from '../shared/types';
 import {
   getAccessToken,
-  refreshAccessToken,
   clearTokens
 } from '@/lib/utils/token';
 import { DEFAULT_CONFIG, ROUTES } from '@/lib/config/api.config';
@@ -13,7 +12,7 @@ export interface EnhancedApiRequestOptions extends Omit<ApiRequestOptions, 'body
   /**
    * 请求体，可以是任意类型，会根据需要自动转换为JSON字符串
    */
-  body?: any;
+  body?: unknown;
   /**
    * 是否直接返回原始Response对象，默认false
    */
@@ -28,7 +27,7 @@ export interface EnhancedApiRequestOptions extends Omit<ApiRequestOptions, 'body
 type ApiRequestReturn<T, O extends EnhancedApiRequestOptions> = O['returnRawResponse'] extends true ? Response : T;
 
 // API 工具函数，用于处理需要认证的请求
-export function apiRequest<T = any, O extends EnhancedApiRequestOptions = EnhancedApiRequestOptions>(
+export function apiRequest<T, O extends EnhancedApiRequestOptions = EnhancedApiRequestOptions>(
   url: string,
   options: O = {} as O
 ): Promise<ApiRequestReturn<T, O>> {
@@ -43,14 +42,30 @@ export function apiRequest<T = any, O extends EnhancedApiRequestOptions = Enhanc
     };
 
     // 处理请求体
-    let body: BodyInit | null | undefined = restOptions.body;
+    let body: BodyInit | null | undefined = null;
     
-    // 如果body是对象且不是FormData，自动转换为JSON字符串
-    if (body && typeof body === 'object' && !(body instanceof FormData) && !(body instanceof Blob) && !(body instanceof URLSearchParams)) {
-      body = JSON.stringify(body);
-      // 只有当没有设置 Content-Type 时才设置默认值
-      if (!headers['Content-Type']) {
-        headers['Content-Type'] = 'application/json';
+    // 根据body类型进行转换
+    if (restOptions.body !== undefined && restOptions.body !== null) {
+      const rawBody = restOptions.body;
+      
+      // 如果body已经是BodyInit类型，直接使用
+      if (
+        rawBody instanceof FormData ||
+        rawBody instanceof Blob ||
+        rawBody instanceof URLSearchParams ||
+        typeof rawBody === 'string' ||
+        ArrayBuffer.isView(rawBody) ||
+        rawBody instanceof ArrayBuffer
+      ) {
+        body = rawBody as BodyInit;
+      } 
+      // 如果body是对象，转换为JSON字符串
+      else if (typeof rawBody === 'object') {
+        body = JSON.stringify(rawBody);
+        // 只有当没有设置 Content-Type 时才设置默认值
+        if (!headers['Content-Type']) {
+          headers['Content-Type'] = 'application/json';
+        }
       }
     }
 
@@ -64,8 +79,17 @@ export function apiRequest<T = any, O extends EnhancedApiRequestOptions = Enhanc
       try {
         // 使用静态导入而不是动态导入，避免路径问题
         const { shouldUseMock, executeMock } = await import('@/lib/api/client/mock');
-        if (shouldUseMock(url, restOptions)) {
-          const mockResponse = await executeMock(url, restOptions);
+        
+        // 创建一个兼容RequestInit的对象，只包含mock函数需要的属性
+        const mockOptions: RequestInit = {
+          method: restOptions.method,
+          headers: restOptions.headers,
+          // 只传递BodyInit类型的body给mock函数
+          body: body as BodyInit | null | undefined
+        };
+        
+        if (shouldUseMock(url, mockOptions)) {
+          const mockResponse = await executeMock(url, mockOptions);
           if (returnRawResponse) {
             return mockResponse as ApiRequestReturn<T, O>;
           }
@@ -99,66 +123,29 @@ export function apiRequest<T = any, O extends EnhancedApiRequestOptions = Enhanc
     };
 
     // 发起请求
-    let response: Response;
-    try {
-      response = await fetch(url, fetchOptions);
-    } catch (error: any) {
-      clearTimeout(timeoutId);
-      // 如果是超时错误
-      if (error.name === 'AbortError') {
-        throw new Error(`请求超时（${timeout / 1000} 秒）`);
-      }
-      throw error;
+  let response: Response;
+  try {
+    response = await fetch(url, fetchOptions);
+  } catch (error: unknown) {
+    clearTimeout(timeoutId);
+    // 如果是超时错误
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`请求超时（${timeout / 1000} 秒）`);
     }
+    throw error;
+  }
 
     clearTimeout(timeoutId);
 
-    // 如果返回 401 未授权，尝试刷新token
-    if (response.status === 401 && accessToken) {
-      const newAccessToken = await refreshAccessToken();
-      if (newAccessToken) {
-        // 使用新token重试请求，也需要应用超时
-        const retryController = abortController || new AbortController();
-        const retryTimeoutId = setTimeout(() => {
-          retryController.abort();
-        }, timeout);
-
-        try {
-          headers.Authorization = `Bearer ${newAccessToken}`;
-          response = await fetch(url, {
-            ...restOptions,
-            headers,
-            body,
-            signal: retryController.signal
-          });
-          clearTimeout(retryTimeoutId);
-        } catch (retryError: any) {
-          clearTimeout(retryTimeoutId);
-          // 如果是超时错误
-          if (retryError.name === 'AbortError') {
-            throw new Error(`请求超时（${timeout / 1000} 秒）`);
-          }
-          throw retryError;
-        }
-      } else {
-        // 刷新失败，重定向到登录页（仅客户端执行）
-        if (typeof window !== 'undefined') {
-          window.location.href = ROUTES.LOGIN;
-        }
-        if (returnRawResponse) {
-          return response as ApiRequestReturn<T, O>;
-        }
-        return (await response.json()) as ApiRequestReturn<T, O>;
-      }
+    // 如果返回 401 未授权，清除token并重定向到登录页面
+  if (response.status === 401 && accessToken) {
+    clearTokens();
+    // 重定向到登录页面
+    if (typeof window !== 'undefined') {
+      window.location.href = ROUTES.LOGIN;
     }
-
-    // 如果仍然是401，清除本地存储并重定向到登录页（仅客户端执行）
-    if (response.status === 401) {
-      clearTokens();
-      if (typeof window !== 'undefined') {
-        window.location.href = ROUTES.LOGIN;
-      }
-    }
+    throw new Error('登录已过期，请重新登录');
+  }
 
     // 如果需要直接返回原始Response对象
     if (returnRawResponse) {
@@ -166,56 +153,77 @@ export function apiRequest<T = any, O extends EnhancedApiRequestOptions = Enhanc
     }
 
     // 处理响应，检查是否是JSON响应
-    const contentType = response.headers.get('Content-Type');
-    if (contentType && contentType.includes('application/json')) {
-      const responseData = await response.json();
-      
-      // 检查是否是标准化的错误响应
-      if (!response.ok) {
-        if (responseData.success === false && responseData.error) {
-          const error = new Error(responseData.error.message);
-          // 添加额外的错误信息
-          (error as any).code = responseData.error.code;
-          (error as any).details = responseData.error.details;
-          (error as any).status = response.status;
-          (error as any).data = responseData;
-          throw error;
-        } else {
-          // 非标准化错误响应
-          const error = new Error(`请求失败: ${response.status} ${response.statusText}`);
-          (error as any).status = response.status;
-          (error as any).data = responseData;
-          throw error;
-        }
+  const contentType = response.headers.get('Content-Type');
+  if (contentType && contentType.includes('application/json')) {
+    const responseData = await response.json();
+    
+    // 检查是否是新格式的API响应 (包含code、data、msg字段)
+    if ('code' in responseData && 'data' in responseData && 'msg' in responseData) {
+      // 检查响应状态码
+      if (responseData.code !== 200) {
+        const error = new Error(responseData.msg || `请求失败: ${responseData.code}`);
+        Object.assign(error, {
+          code: responseData.code,
+          status: response.status,
+          data: responseData
+        });
+        throw error;
       }
       
-      // 返回数据部分或完整响应
-      return ((responseData as ApiSuccessResponse<T>).data || responseData) as ApiRequestReturn<T, O>;
+      // 返回data字段
+      return responseData.data as ApiRequestReturn<T, O>;
     }
+    
+    // 检查是否是标准化的错误响应
+    if (!response.ok) {
+      if (responseData.success === false && responseData.error) {
+        const error = new Error(responseData.error.message);
+        // 添加额外的错误信息
+        Object.assign(error, {
+          code: responseData.error.code,
+          details: responseData.error.details,
+          status: response.status,
+          data: responseData
+        });
+        throw error;
+      } else {
+        // 非标准化错误响应
+        const error = new Error(`请求失败: ${response.status} ${response.statusText}`);
+        Object.assign(error, {
+          status: response.status,
+          data: responseData
+        });
+        throw error;
+      }
+    }
+    
+    // 返回数据部分或完整响应
+    return ((responseData as ApiSuccessResponse<T>).data || responseData) as ApiRequestReturn<T, O>;
+  }
     
     // 非JSON响应，返回原始Response
-    if (!response.ok) {
-      throw new Error(`请求失败: ${response.status} ${response.statusText}`);
-    }
-    
-    return response as any;
+  if (!response.ok) {
+    throw new Error(`请求失败: ${response.status} ${response.statusText}`);
+  }
+  
+  return response as ApiRequestReturn<T, O>;
   })();
 }
 
 // 便捷的请求方法，确保返回类型正确
 export const api = {
-  get: <T = any>(url: string, options?: EnhancedApiRequestOptions) => 
+  get: <T>(url: string, options?: EnhancedApiRequestOptions) => 
     apiRequest<T>(url, { ...options, method: 'GET' }),
   
-  post: <T = any>(url: string, data?: any, options?: EnhancedApiRequestOptions) => 
+  post: <T>(url: string, data?: unknown, options?: EnhancedApiRequestOptions) => 
     apiRequest<T>(url, { ...options, method: 'POST', body: data }),
   
-  put: <T = any>(url: string, data?: any, options?: EnhancedApiRequestOptions) => 
+  put: <T>(url: string, data?: unknown, options?: EnhancedApiRequestOptions) => 
     apiRequest<T>(url, { ...options, method: 'PUT', body: data }),
   
-  patch: <T = any>(url: string, data?: any, options?: EnhancedApiRequestOptions) => 
+  patch: <T>(url: string, data?: unknown, options?: EnhancedApiRequestOptions) => 
     apiRequest<T>(url, { ...options, method: 'PATCH', body: data }),
   
-  delete: <T = any>(url: string, options?: EnhancedApiRequestOptions) => 
+  delete: <T>(url: string, options?: EnhancedApiRequestOptions) => 
     apiRequest<T>(url, { ...options, method: 'DELETE' }),
 };

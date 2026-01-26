@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, Plus } from 'lucide-react';
 import { ROUTES } from '@/lib/config/api.config';
@@ -15,25 +15,18 @@ import Loading from '@/app/loading';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-
-interface Project {
-  id: number;
-  name: string;
-  description: string;
-  created_at: string;
-  updated_at: string;
-}
+import type { Project } from '@/lib/api';
 
 export default function ProjectsPage() {
   const router = useRouter();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectDescription, setNewProjectDescription] = useState('');
-  const [deleteConfirmProject, setDeleteConfirmProject] = useState<string | null>(null);
+  const [deleteConfirmProjectId, setDeleteConfirmProjectId] = useState<string | null>(null);
+  const [deleteConfirmProjectName, setDeleteConfirmProjectName] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   
-  // 使用toast hook
   const { toast } = useToast();
   
   const {
@@ -51,12 +44,13 @@ export default function ProjectsPage() {
     setPageSize,
   } = useProjectManagementStore();
 
-  useEffect(() => {
-    const loadProjects = async () => {
-      await fetchProjects(1, 20);
-    };
+  const hasLoadedRef = useRef(false);
 
-    loadProjects();
+  useEffect(() => {
+    if (hasLoadedRef.current) return;
+    hasLoadedRef.current = true;
+    
+    fetchProjects(1, 20);
   }, []);
 
   const handleCreateProject = async (e: React.FormEvent) => {
@@ -88,38 +82,44 @@ export default function ProjectsPage() {
     }
   };
 
-  const handleDeleteProject = async (projectName: string) => {
-    setDeleteConfirmProject(projectName);
+  const handleDeleteProject = async (projectId: string) => {
+    const project = projects.find(p => p.id === projectId);
+    if (project) {
+      setDeleteConfirmProjectId(projectId);
+      setDeleteConfirmProjectName(project.name);
+    }
   };
 
   const handleConfirmDelete = async () => {
-    if (deleteConfirmProject) {
+    if (deleteConfirmProjectId) {
       setIsDeleting(true);
       
       try {
-        await deleteProjectAPI(deleteConfirmProject);
+        await deleteProjectAPI(deleteConfirmProjectId);
         
-        toast({ title: '成功', description: `项目 "${deleteConfirmProject}" 删除成功`, variant: 'default' });
+        toast({ title: '成功', description: `项目 "${deleteConfirmProjectName}" 删除成功`, variant: 'default' });
       } catch (error) {
         console.error('删除项目错误:', error);
         
         toast({ title: '错误', description: '项目删除失败', variant: 'destructive' });
       } finally {
-        setDeleteConfirmProject(null);
+        setDeleteConfirmProjectId(null);
+        setDeleteConfirmProjectName(null);
         setIsDeleting(false);
       }
     }
   };
 
   const handleCancelDelete = () => {
-    setDeleteConfirmProject(null);
+    setDeleteConfirmProjectId(null);
+    setDeleteConfirmProjectName(null);
   };
 
-  const handleEditProject = (projectId: number) => {
+  const handleEditProject = (projectId: string) => {
     router.push(`${ROUTES.EDIT}?projectId=${projectId}`);
   };
 
-  const handleEditProjectInfo = async (projectId: number, name: string, description: string) => {
+  const handleEditProjectInfo = async (projectId: string, name: string, description: string) => {
     const projectName = name;
     try {
       await updateProject(projectId, { name: projectName, description });
@@ -290,14 +290,14 @@ export default function ProjectsPage() {
       />
       
       {/* 删除确认对话框 */}
-      <Dialog open={deleteConfirmProject !== null} onOpenChange={(open) => !open && handleCancelDelete()}>
+      <Dialog open={deleteConfirmProjectId !== null} onOpenChange={(open) => !open && handleCancelDelete()}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>删除项目</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <p className="text-sm text-muted-foreground">
-              确定要删除项目 "{deleteConfirmProject || ''}" 吗？删除后无法恢复。
+              确定要删除项目 "{deleteConfirmProjectName || ''}" 吗？删除后无法恢复。
             </p>
           </div>
           <DialogFooter>

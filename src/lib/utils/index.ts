@@ -2,10 +2,8 @@
 
 export {
   getAccessToken,
-  getRefreshToken,
   saveTokens,
   clearTokens,
-  refreshAccessToken,
   isUserLoggedIn
 } from './token';
 

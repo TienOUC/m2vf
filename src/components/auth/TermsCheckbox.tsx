@@ -14,7 +14,7 @@ export function TermsCheckbox({ checked, onChange }: TermsCheckboxProps) {
         type="button"
         onClick={() => onChange(!checked)}
         className={cn(
-          "w-5 h-5 rounded-md flex items-center justify-center transition-colors flex-shrink-0 mt-0.5",
+          "w-5 h-5 rounded-md flex items-center justify-center transition-colors flex-shrink-0",
           checked
             ? "bg-primary text-white"
             : "bg-white border border-neutral-300 hover:bg-neutral-50"

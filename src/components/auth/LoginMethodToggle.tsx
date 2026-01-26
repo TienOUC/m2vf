@@ -1,48 +1,36 @@
 import { cn } from '@/lib/utils';
 
 interface LoginMethodToggleProps {
-  value: 'password' | 'emailCode' | 'phoneCode';
-  onChange: (method: 'password' | 'emailCode' | 'phoneCode') => void;
+  value: 'password' | 'phoneCode';
+  onChange: (method: 'password' | 'phoneCode') => void;
 }
 
 export function LoginMethodToggle({ value, onChange }: LoginMethodToggleProps) {
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="flex gap-6 border-b border-neutral-200">
       <button
         type="button"
         className={cn(
-          "py-2.5 px-4 rounded-xl text-[14px] font-medium transition-colors",
+          "py-2.5 px-1 text-[14px] font-medium transition-all relative",
           value === 'password'
-            ? "bg-primary text-white"
-            : "bg-white border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+            ? "text-primary border-b-2 border-primary"
+            : "text-neutral-700 hover:text-primary"
         )}
         onClick={() => onChange('password')}
       >
-        密码登录
+        账号登录
       </button>
       <button
         type="button"
         className={cn(
-          "py-2.5 px-4 rounded-xl text-[14px] font-medium transition-colors",
-          value === 'emailCode'
-            ? "bg-primary text-white"
-            : "bg-white border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
-        )}
-        onClick={() => onChange('emailCode')}
-      >
-        邮箱验证码
-      </button>
-      <button
-        type="button"
-        className={cn(
-          "py-2.5 px-4 rounded-xl text-[14px] font-medium transition-colors",
+          "py-2.5 px-1 text-[14px] font-medium transition-all relative",
           value === 'phoneCode'
-            ? "bg-primary text-white"
-            : "bg-white border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+            ? "text-primary border-b-2 border-primary"
+            : "text-neutral-700 hover:text-primary"
         )}
         onClick={() => onChange('phoneCode')}
       >
-        手机验证码
+        手机号登录
       </button>
     </div>
   );

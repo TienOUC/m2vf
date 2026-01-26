@@ -33,7 +33,7 @@ export const backgroundRemovalMockConfig: BackgroundRemovalMockConfig = {
 // 背景去除 Mock 处理器
 export const handleBackgroundRemovalMock = (url: string, options: RequestInit): Promise<Response> | null => {
   // 检查是否匹配背景去除 API
-  if (url.includes('/api/ai/remove-background/') && options.method === 'POST') {
+  if (url.includes('/v1/ai/remove-background') && options.method === 'POST') {
     return new Promise((resolve) => {
       // 使用性能模拟工具获取随机延迟
       const delay = getRandomDelay();

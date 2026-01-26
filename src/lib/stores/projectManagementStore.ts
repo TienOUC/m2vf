@@ -25,34 +25,14 @@ export const useProjectManagementStore = create<ProjectManagementState>((set, ge
   
   fetchProjects: async (page = 1, pageSize = 20, setLoading = true) => {
     try {
-      const data: ProjectListResponse = await getProjectsAPI({ page, pageSize });
+      const data = await getProjectsAPI({ page, page_size: pageSize });
       
-      // 检查是否为分页格式
-      if (data.hasOwnProperty('projects') && data.hasOwnProperty('pagination')) {
-        set({
-          projects: data.projects,
-          pagination: {
-            page,
-            pageSize,
-            total: data.pagination.total,
-            totalPages: data.pagination.totalPages,
-          },
-          isLoading: setLoading ? false : false
-        });
-        return data;
-      } else {
-        // 如果返回的是简单数组格式
-        set(state => ({
-          projects: Array.isArray(data) ? data : [],
-          pagination: {
-            ...state.pagination,
-            total: Array.isArray(data) ? data.length : 0,
-            totalPages: 1,
-          },
-          isLoading: setLoading ? false : false
-        }));
-        return data;
-      }
+      set({
+        projects: data.projects,
+        pagination: data.pagination,
+        isLoading: setLoading ? false : false
+      });
+      return data;
     } catch (err: any) {
       const error = err.message || '获取项目列表时发生错误';
       set({ error, isLoading: false });
@@ -75,9 +55,9 @@ export const useProjectManagementStore = create<ProjectManagementState>((set, ge
     }
   },
 
-  deleteProject: async (projectName) => {
+  deleteProject: async (projectId) => {
     try {
-      await deleteProjectAPI(projectName);
+      await deleteProjectAPI(projectId);
       
       // 重新获取项目列表以移除已删除的项目
       const { page, pageSize } = get().pagination;

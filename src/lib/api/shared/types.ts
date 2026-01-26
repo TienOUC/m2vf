@@ -31,24 +31,49 @@ export interface ApiErrorResponse {
   error: {
     code: string;
     message: string;
-    details?: any;
+    details?: unknown;
   };
 }
 
 // 项目相关类型
 export interface Project {
-  id: number;
+  id: string;
   name: string;
   description: string;
-  created_at: string;
-  updated_at: string;
+  created_at: number;
+  updated_at: number;
+  cover_url: string;
+  max_sessions: number;
+  session_count: number;
+  status: number;
 }
 
 export interface ProjectListResponse {
-  projects: Project[];
-  pagination: Pagination;
+  list: Project[];
+  page: number;
+  page_size: number;
+  total: number;
 }
 
+export interface ProjectDetailResponse {
+  id: string;
+  name: string;
+  description: string;
+  created_at: number;
+  updated_at: number;
+  cover_url: string;
+  max_sessions: number;
+  session_count: number;
+  status: number;
+  recent_artifacts?: any[];
+}
+
+// API 响应包装类型
+export interface ApiResponse<T> {
+  code: number;
+  data: T;
+  msg: string;
+}
 export interface ProjectCreateRequest {
   name: string;
   description: string;
@@ -57,11 +82,9 @@ export interface ProjectCreateRequest {
 export interface ProjectUpdateRequest {
   name?: string;
   description?: string;
+  cover_url?: string;
 }
 
-export interface ProjectDeleteRequest {
-  name: string;
-}
 
 // 认证相关类型
 export interface LoginRequest {
@@ -77,7 +100,6 @@ export interface RegisterRequest {
 
 export interface TokenResponse {
   access_token: string;
-  refresh_token: string;
   token_type: string;
   expires_in: number;
 }
@@ -127,16 +149,94 @@ export interface Document {
   description?: string;
 }
 
+// 文档节点类型
+export interface DocumentNode {
+  id: number;
+  name: string;
+  type: 'document' | 'folder';
+  children?: DocumentNode[];
+  parent_id?: number | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// 文档详情类型
+export interface DocumentDetail {
+  id: number;
+  name: string;
+  type: 'document';
+  content?: string;
+  snapshot?: string;
+  assets?: Array<{
+    blobId: string;
+    ext: string;
+    url: string;
+  }>;
+  folder_id?: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// 资源信息类型
+export interface AssetInfo {
+  blobId: string;
+  ext: string;
+  url: string;
+  size: number;
+  uploaded_at: string;
+}
+
+// Workspace 相关类型
+export interface WorkspaceData {
+  workspace_content: string; // base64 编码的 ZIP
+  project_id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// Workspace 文档元数据类型
+export interface WorkspaceDocument {
+  id: number;
+  name: string;
+  path: string;
+  type: 'file' | 'folder';
+  size?: number;
+  modified_at: string;
+  children?: WorkspaceDocument[];
+}
+
+// 图层相关类型
+export interface Layer {
+  id: string;
+  name: string;
+  type: string;
+  project_id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LayerCreateRequest {
+  name: string;
+  type: string;
+  project_id: number;
+  data?: unknown;
+}
+
+export interface LayerUpdateRequest {
+  name?: string;
+  data?: unknown;
+}
+
 // AI 相关类型
 export interface AIGenerateRequest {
   prompt: string;
   model: string;
-  parameters?: Record<string, any>;
+  parameters?: Record<string, unknown>;
 }
 
 export interface AIGenerateResponse {
   id: string;
-  result: any;
+  result: unknown;
   model: string;
   created_at: string;
 }

@@ -5,8 +5,7 @@ import {
   deleteProject as deleteProjectAPI,
   getProjectDetail as getProjectDetailAPI,
   updateProject as updateProjectAPI,
-  type Project, 
-  type ProjectListResponse
+  type Project
 } from '@/lib/api';
 
 interface UseProjectManagementProps {
@@ -31,28 +30,12 @@ export const useProjectManagement = ({ initialProjects = [] }: UseProjectManagem
     setError(null);
     
     try {
-      const data: ProjectListResponse = await getProjectsAPI({ page, pageSize });
+      const data = await getProjectsAPI({ page, page_size: pageSize });
       
-      // 如果返回的是分页格式
-      if (data.hasOwnProperty('projects') && data.hasOwnProperty('pagination')) {
-        setProjects(data.projects);
-        setPagination({
-          page,
-          pageSize,
-          total: data.pagination.total,
-          totalPages: data.pagination.totalPages,
-        });
-        return data;
-      } else {
-        // 如果返回的是简单数组格式
-        setProjects(Array.isArray(data) ? data : []);
-        setPagination(prev => ({
-          ...prev,
-          total: Array.isArray(data) ? data.length : 0,
-          totalPages: 1,
-        }));
-        return data;
-      }
+      setProjects(data.projects);
+      setPagination(data.pagination);
+      
+      return data;
     } catch (err) {
       setError((err as Error).message || '获取项目列表时发生错误');
       console.error('获取项目列表错误:', err);
@@ -86,12 +69,12 @@ export const useProjectManagement = ({ initialProjects = [] }: UseProjectManagem
   }, [fetchProjects, pagination.page, pagination.pageSize]);
 
   // 删除项目
-  const deleteProject = useCallback(async (projectName: string) => {
+  const deleteProject = useCallback(async (projectId: string | number) => {
     setIsLoading(true);
     setError(null);
     
     try {
-      await deleteProjectAPI(projectName);
+      await deleteProjectAPI(projectId);
       
       setSuccess('项目删除成功！');
       
@@ -126,12 +109,12 @@ export const useProjectManagement = ({ initialProjects = [] }: UseProjectManagem
   }, []);
 
   // 更新项目
-  const updateProject = useCallback(async (projectId: string | number, projectData: { name: string; description: string }) => {
+  const updateProject = useCallback(async (projectId: string | number, projectData: { name?: string; description?: string; cover_url?: string }) => {
     setIsLoading(true);
     setError(null);
     
     try {
-      const data: Project = await updateProjectAPI(projectId.toString(), projectData);
+      const data: Project = await updateProjectAPI(projectId, projectData);
       
       setSuccess('项目更新成功！');
       

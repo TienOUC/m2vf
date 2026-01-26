@@ -6,7 +6,7 @@ const nextConfig = {
     } : false,
   },
 
-  // 图片配置，仅在开发环境允许外部图片域名
+  // 图片/视频mock源配置，仅在开发环境使用
   images: process.env.NODE_ENV === 'development' ? {
     remotePatterns: [
       {
@@ -29,12 +29,12 @@ const nextConfig = {
     if (process.env.NODE_ENV !== 'production') {
       return [
         {
-          source: '/api2/:path*/',  // 明确匹配尾部斜杠
-          destination: 'http://115.190.176.116:8001/:path*/',
+          source: '/api/:path*/',  // 明确匹配尾部斜杠
+          destination: 'http://47.92.68.167:59911/:path*/',
         },
         {
-          source: '/api2/:path*',  // 也匹配不带尾部斜杠的情况
-          destination: 'http://115.190.176.116:8001/:path*',
+          source: '/api/:path*',  // 也匹配不带尾部斜杠的情况
+          destination: 'http://47.92.68.167:59911/:path*',
         },
       ];
     }

@@ -7,14 +7,14 @@ interface RegisterMethodToggleProps {
 
 export function RegisterMethodToggle({ value, onChange }: RegisterMethodToggleProps) {
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="flex gap-6 border-b border-neutral-200">
       <button
         type="button"
         className={cn(
-          "py-2.5 px-4 rounded-xl text-[14px] font-medium transition-colors",
+          "py-2.5 px-1 text-[14px] font-medium transition-all relative",
           value === 'email'
-            ? "bg-primary text-white"
-            : "bg-white border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+            ? "text-primary border-b-2 border-primary"
+            : "text-neutral-700 hover:text-primary"
         )}
         onClick={() => onChange('email')}
       >
@@ -23,10 +23,10 @@ export function RegisterMethodToggle({ value, onChange }: RegisterMethodTogglePr
       <button
         type="button"
         className={cn(
-          "py-2.5 px-4 rounded-xl text-[14px] font-medium transition-colors",
+          "py-2.5 px-1 text-[14px] font-medium transition-all relative",
           value === 'phone'
-            ? "bg-primary text-white"
-            : "bg-white border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+            ? "text-primary border-b-2 border-primary"
+            : "text-neutral-700 hover:text-primary"
         )}
         onClick={() => onChange('phone')}
       >

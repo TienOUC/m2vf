@@ -3,6 +3,7 @@ import ProjectEditModal from '@/components/projects/ProjectEditModal';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useProjectEditingStore } from '@/lib/stores';
 import { useToast } from '@/hooks/use-toast';
+import type { Project as ProjectType } from '@/lib/api';
 
 const cardGradients = [
   'bg-gradient-to-br from-emerald-400/30 via-teal-300/20 to-cyan-400/25',
@@ -11,22 +12,16 @@ const cardGradients = [
   'bg-gradient-to-br from-sky-300/30 via-indigo-200/20 to-violet-300/25',
 ];
 
-const getRandomGradientIndex = (id: number) => {
-  return id % cardGradients.length;
+const getRandomGradientIndex = (id: string) => {
+  // 生成字符串ID的哈希值作为随机索引
+  const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return hash % cardGradients.length;
 };
 
-interface Project {
-  id: number;
-  name: string;
-  description: string;
-  created_at: string;
-  updated_at: string;
-}
-
 interface ProjectCardProps {
-  project: Project;
-  onEdit: (projectId: number) => void;
-  onDelete: (projectName: string) => void;
+  project: ProjectType;
+  onEdit: (projectId: string) => void;
+  onDelete: (projectId: string) => void;
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) => {
@@ -117,7 +112,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
   
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onDelete(project.name);
+    onDelete(project.id);
   };
   
   const gradientIndex = getRandomGradientIndex(project.id);
