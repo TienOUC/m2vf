@@ -2,7 +2,7 @@
 
 import type { TokenResponse, LoginCredentials } from '@/lib/types/auth';
 import { saveTokens, clearTokens } from '@/lib/utils/token';
-import { apiRequest } from './index';
+import { api } from './index';
 import { buildApiUrl, API_ENDPOINTS, ROUTES } from '@/lib/config/api.config';
 
 // 专门用于登录的 API 请求（不需要 token）
@@ -45,6 +45,7 @@ export const loginUser = async (
   }
 
   try {
+    // 登录请求使用直接fetch，因为不需要token认证
     const response = await fetch(loginUrl, {
       method: 'POST',
       headers: {
@@ -87,38 +88,38 @@ export const registerUser = async (userData: {
   };
 
   try {
-    const response = await apiRequest(registerUrl, {
-      method: 'POST',
-      body: JSON.stringify(requestData),
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      return { success: true, message: data.message || '注册成功' };
-    } else {
-      const errorData = await response.json();
-      return {
-        success: false,
-        message: errorData.message || '注册失败，请重试'
-      };
-    }
-  } catch (error) {
+    const data = await api.post<{ success: boolean; message?: string }>(registerUrl, requestData);
+    return { success: true, message: data.message || '注册成功' };
+  } catch (error: any) {
     console.error('注册请求失败:', error);
-    return { success: false, message: '网络请求失败，请稍后重试' };
+    return { 
+      success: false, 
+      message: error.message || error.data?.message || '网络请求失败，请稍后重试' 
+    };
   }
 };
 
 // 获取用户信息
-export const getUserProfile = async (): Promise<Response> => {
+export const getUserProfile = async <T = any>(): Promise<T> => {
   const profileUrl = buildApiUrl(API_ENDPOINTS.AUTH.PROFILE);
-  return apiRequest(profileUrl, { method: 'GET' });
+  return api.get<T>(profileUrl);
 };
 
 // 登出用户
-export const logoutUser = (): void => {
+export const logoutUser = async (): Promise<void> => {
+  // 调用登出API
+  try {
+    const logoutUrl = buildApiUrl(API_ENDPOINTS.AUTH.LOGOUT);
+    await api.post(logoutUrl);
+  } catch (error) {
+    console.error('登出API调用失败:', error);
+  }
+  
+  // 清除本地存储的token
   clearTokens();
-  window.location.href = ROUTES.LOGIN;
+  
+  // 重定向到登录页
+  if (typeof window !== 'undefined') {
+    window.location.href = ROUTES.LOGIN;
+  }
 };

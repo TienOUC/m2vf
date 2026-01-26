@@ -1,18 +1,53 @@
 // 文档管理相关 API
 
-import { apiRequest } from './index';
+import { api, apiRequest } from './index';
 import { getAccessToken } from '@/lib/utils/token';
+import { buildApiUrl } from '@/lib/config/api.config';
+
+// 文档节点类型
+export interface DocumentNode {
+  id: number;
+  name: string;
+  type: 'document' | 'folder';
+  children?: DocumentNode[];
+  parent_id?: number | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// 文档详情类型
+export interface DocumentDetail {
+  id: number;
+  name: string;
+  type: 'document';
+  content?: string;
+  snapshot?: string;
+  assets?: Array<{
+    blobId: string;
+    ext: string;
+    url: string;
+  }>;
+  folder_id?: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// 资源信息类型
+export interface AssetInfo {
+  blobId: string;
+  ext: string;
+  url: string;
+  size: number;
+  uploaded_at: string;
+}
 
 // ==================== 文档管理API ====================
 
 // 获取文档树
-export const getDocumentTree = async (projectId: number): Promise<Response> => {
-  const treeUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${projectId}/documents/tree`
-    : `http://127.0.0.1:8000/api/projects/${projectId}/documents/tree`;
-
+export const getDocumentTree = async (projectId: number): Promise<DocumentNode[]> => {
+  const treeUrl = buildApiUrl(`/api/projects/${projectId}/documents/tree`);
   console.log('正在获取文档树:', treeUrl);
-  return apiRequest(treeUrl, { method: 'GET' });
+  return api.get<DocumentNode[]>(treeUrl);
 };
 
 // 创建文档
@@ -23,16 +58,10 @@ export const createDocument = async (
     folder_id?: number | null;
     content?: string;
   }
-): Promise<Response> => {
-  const createUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${projectId}/documents`
-    : `http://127.0.0.1:8000/api/projects/${projectId}/documents`;
-
+): Promise<DocumentDetail> => {
+  const createUrl = buildApiUrl(`/api/projects/${projectId}/documents`);
   console.log('正在创建文档:', createUrl);
-  return apiRequest(createUrl, {
-    method: 'POST',
-    body: JSON.stringify(documentData)
-  });
+  return api.post<DocumentDetail>(createUrl, documentData);
 };
 
 // 更新文档（新架构：支持 multipart/form-data，包含 snapshot JSON 和资源文件）
@@ -49,10 +78,8 @@ export const updateDocument = async (
       ext: string;
     }>;
   }
-): Promise<Response> => {
-  const updateUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${projectId}/documents/${documentId}`
-    : `http://127.0.0.1:8000/api/projects/${projectId}/documents/${documentId}`;
+): Promise<DocumentDetail> => {
+  const updateUrl = buildApiUrl(`/api/projects/${projectId}/documents/${documentId}`);
 
   console.log('正在更新文档:', updateUrl, {
     hasSnapshot: !!documentData.snapshot,
@@ -76,27 +103,22 @@ export const updateDocument = async (
       formData.append('assets', asset.file, `${asset.blobId}.${asset.ext}`);
     });
 
-    // 使用 fetch 直接发送 FormData（不通过 apiRequest，因为需要设置正确的 Content-Type）
-    const token = getAccessToken();
-    const headers: HeadersInit = {};
-
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    return fetch(updateUrl, {
+    // 使用 apiRequest 发送 FormData，返回原始Response
+    return apiRequest(updateUrl, {
       method: 'PUT',
-      headers,
-      body: formData
+      body: formData,
+      returnRawResponse: true
+    }).then(response => {
+      if (!response.ok) {
+        throw new Error(`更新文档失败: ${response.status} ${response.statusText}`);
+      }
+      return response.json() as Promise<DocumentDetail>;
     });
   } else {
     // 如果没有资源文件，使用 JSON 格式（向后兼容）
-    return apiRequest(updateUrl, {
-      method: 'PUT',
-      body: JSON.stringify({
-        name: documentData.name,
-        content: documentData.snapshot // 向后兼容：如果没有 snapshot，使用 content
-      })
+    return api.put<DocumentDetail>(updateUrl, {
+      name: documentData.name,
+      content: documentData.snapshot // 向后兼容：如果没有 snapshot，使用 content
     });
   }
 };
@@ -105,26 +127,20 @@ export const updateDocument = async (
 export const deleteDocument = async (
   projectId: number,
   documentId: number
-): Promise<Response> => {
-  const deleteUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${projectId}/documents/${documentId}`
-    : `http://127.0.0.1:8000/api/projects/${projectId}/documents/${documentId}`;
-
+): Promise<{ success: boolean; message?: string }> => {
+  const deleteUrl = buildApiUrl(`/api/projects/${projectId}/documents/${documentId}`);
   console.log('正在删除文档:', deleteUrl);
-  return apiRequest(deleteUrl, { method: 'DELETE' });
+  return api.delete<{ success: boolean; message?: string }>(deleteUrl);
 };
 
 // 获取文档详情（新架构：返回 snapshot JSON 和资源列表）
 export const getDocumentDetail = async (
   projectId: number,
   documentId: number
-): Promise<Response> => {
-  const detailUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${projectId}/documents/${documentId}`
-    : `http://127.0.0.1:8000/api/projects/${projectId}/documents/${documentId}`;
-
+): Promise<DocumentDetail> => {
+  const detailUrl = buildApiUrl(`/api/projects/${projectId}/documents/${documentId}`);
   console.log('正在获取文档详情:', detailUrl);
-  return apiRequest(detailUrl, { method: 'GET' });
+  return api.get<DocumentDetail>(detailUrl);
 };
 
 // 获取资源文件
@@ -133,21 +149,12 @@ export const getAssetFile = async (
   blobId: string,
   ext: string
 ): Promise<Response> => {
-  const assetUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${projectId}/assets/${blobId}.${ext}`
-    : `http://127.0.0.1:8000/api/projects/${projectId}/assets/${blobId}.${ext}`;
-
+  const assetUrl = buildApiUrl(`/api/projects/${projectId}/assets/${blobId}.${ext}`);
   console.log('正在获取资源文件:', assetUrl);
-  const token = getAccessToken();
-  const headers: HeadersInit = {};
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  return fetch(assetUrl, {
+  // 使用 apiRequest 获取原始Response，用于文件下载
+  return apiRequest(assetUrl, {
     method: 'GET',
-    headers
+    returnRawResponse: true
   });
 };
 
@@ -155,16 +162,10 @@ export const getAssetFile = async (
 export const getAssetsBatch = async (
   projectId: number,
   blobIds: string[]
-): Promise<Response> => {
-  const batchUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${projectId}/assets/batch`
-    : `http://127.0.0.1:8000/api/projects/${projectId}/assets/batch`;
-
+): Promise<AssetInfo[]> => {
+  const batchUrl = buildApiUrl(`/api/projects/${projectId}/assets/batch`);
   console.log('正在批量获取资源信息:', batchUrl, { count: blobIds.length });
-  return apiRequest(batchUrl, {
-    method: 'POST',
-    body: JSON.stringify({ blobIds })
-  });
+  return api.post<AssetInfo[]>(batchUrl, { blobIds });
 };
 
 // 创建文档文件夹
@@ -174,10 +175,8 @@ export const createDocumentFolder = async (
     name: string;
     parent?: number | null;
   }
-): Promise<Response> => {
-  const createUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${projectId}/documents/folders`
-    : `http://127.0.0.1:8000/api/projects/${projectId}/documents/folders`;
+): Promise<DocumentNode> => {
+  const createUrl = buildApiUrl(`/api/projects/${projectId}/documents/folders`);
 
   // 构建请求数据
   // 与创建文档的逻辑保持一致：即使 parent 为 null，也明确传递 null
@@ -202,10 +201,7 @@ export const createDocumentFolder = async (
     typeof folderData.parent
   );
 
-  return apiRequest(createUrl, {
-    method: 'POST',
-    body: JSON.stringify(requestData)
-  });
+  return api.post<DocumentNode>(createUrl, requestData);
 };
 
 // 更新文档文件夹
@@ -216,29 +212,20 @@ export const updateDocumentFolder = async (
     name?: string;
     parent?: number | null;
   }
-): Promise<Response> => {
-  const updateUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${projectId}/documents/folders/${folderId}`
-    : `http://127.0.0.1:8000/api/projects/${projectId}/documents/folders/${folderId}`;
-
+): Promise<DocumentNode> => {
+  const updateUrl = buildApiUrl(`/api/projects/${projectId}/documents/folders/${folderId}`);
   console.log('正在更新文档文件夹:', updateUrl);
-  return apiRequest(updateUrl, {
-    method: 'PUT',
-    body: JSON.stringify(folderData)
-  });
+  return api.put<DocumentNode>(updateUrl, folderData);
 };
 
 // 删除文档文件夹
 export const deleteDocumentFolder = async (
   projectId: number,
   folderId: number
-): Promise<Response> => {
-  const deleteUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${projectId}/documents/folders/${folderId}`
-    : `http://127.0.0.1:8000/api/projects/${projectId}/documents/folders/${folderId}`;
-
+): Promise<{ success: boolean; message?: string }> => {
+  const deleteUrl = buildApiUrl(`/api/projects/${projectId}/documents/folders/${folderId}`);
   console.log('正在删除文档文件夹:', deleteUrl);
-  return apiRequest(deleteUrl, { method: 'DELETE' });
+  return api.delete<{ success: boolean; message?: string }>(deleteUrl);
 };
 
 // 重命名节点
@@ -249,16 +236,10 @@ export const renameDocumentNode = async (
     name: string;
     type: 'document' | 'folder';
   }
-): Promise<Response> => {
-  const renameUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${projectId}/documents/nodes/${nodeId}/rename`
-    : `http://127.0.0.1:8000/api/projects/${projectId}/documents/nodes/${nodeId}/rename`;
-
+): Promise<DocumentNode> => {
+  const renameUrl = buildApiUrl(`/api/projects/${projectId}/documents/nodes/${nodeId}/rename`);
   console.log('正在重命名节点:', renameUrl);
-  return apiRequest(renameUrl, {
-    method: 'PATCH',
-    body: JSON.stringify(nodeData)
-  });
+  return api.patch<DocumentNode>(renameUrl, nodeData);
 };
 
 // 移动节点
@@ -269,14 +250,8 @@ export const moveDocumentNode = async (
     target_folder_id?: number | null;
     type: 'document' | 'folder';
   }
-): Promise<Response> => {
-  const moveUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${projectId}/documents/nodes/${nodeId}/move`
-    : `http://127.0.0.1:8000/api/projects/${projectId}/documents/nodes/${nodeId}/move`;
-
+): Promise<DocumentNode> => {
+  const moveUrl = buildApiUrl(`/api/projects/${projectId}/documents/nodes/${nodeId}/move`);
   console.log('正在移动节点:', moveUrl);
-  return apiRequest(moveUrl, {
-    method: 'PATCH',
-    body: JSON.stringify(nodeData)
-  });
+  return api.patch<DocumentNode>(moveUrl, nodeData);
 };
