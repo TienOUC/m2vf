@@ -96,3 +96,19 @@ export const validateLoginCredential = (value: string): string | undefined => {
 
   return undefined;
 };
+
+// 验证码格式验证
+export const validateCode = (value: string): string | undefined => {
+  if (!value.trim()) {
+    return '请输入验证码';
+  }
+
+  // 验证码验证正则（6位数字）
+  const codeRegex = /^\d{6}$/;
+
+  if (!codeRegex.test(value)) {
+    return '请输入6位数字验证码';
+  }
+
+  return undefined;
+};

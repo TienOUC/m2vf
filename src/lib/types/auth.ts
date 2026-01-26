@@ -16,4 +16,28 @@ export interface LoginCredentials {
   password: string;
 }
 
+// 邮箱验证码登录凭据
+export interface EmailCodeLoginCredentials {
+  email: string;
+  code: string;
+}
+
+// 手机验证码登录凭据
+export interface PhoneCodeLoginCredentials {
+  phone: string;
+  code: string;
+}
+
+// 验证码发送请求
+export interface SendCodeRequest {
+  email?: string;
+  phone?: string;
+}
+
+// 验证码发送响应
+export interface SendCodeResponse {
+  success: boolean;
+  message: string;
+}
+
 

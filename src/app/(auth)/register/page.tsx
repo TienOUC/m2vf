@@ -76,10 +76,10 @@ export default function RegisterPage() {
       
       const userData = {
         email: values.registerMethod === 'email' ? values.email : '',
-        phoneNumber: values.registerMethod === 'phone' ? values.phoneNumber : '',
+        phone: values.registerMethod === 'phone' ? values.phoneNumber : '',
         password: values.password,
         confirmPassword: values.confirmPassword,
-        name: values.name
+        nickname: values.name
       };
       
       try {
@@ -180,7 +180,7 @@ export default function RegisterPage() {
                 />
               </div>
               {touched.name && errors.name && (
-                <p className="mt-1 text-sm text-destructive">{errors.name}</p>
+                <p className="mt-1 text-sm text-error-700">{errors.name}</p>
               )}
             </div>
 
@@ -205,7 +205,7 @@ export default function RegisterPage() {
                   />
                 </div>
                 {touched.email && errors.email && (
-                  <p className="mt-1 text-sm text-destructive">{errors.email}</p>
+                  <p className="mt-1 text-sm text-error-700">{errors.email}</p>
                 )}
               </div>
             )}
@@ -231,7 +231,7 @@ export default function RegisterPage() {
                   />
                 </div>
                 {touched.phoneNumber && errors.phoneNumber && (
-                  <p className="mt-1 text-sm text-destructive">{errors.phoneNumber}</p>
+                  <p className="mt-1 text-sm text-error-700">{errors.phoneNumber}</p>
                 )}
               </div>
             )}

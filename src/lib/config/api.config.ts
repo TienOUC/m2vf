@@ -14,11 +14,14 @@ export const getApiBaseUrl = (): string => {
 export const API_ENDPOINTS = {
   // 用户认证相关
   AUTH: {
-    LOGIN: '/api/users/login/',
-    REGISTER: '/api/users/register/',
-    PROFILE: '/api/users/profile/',
-    REFRESH_TOKEN: '/api/users/refresh-token/',
-    LOGOUT: '/api/users/logout/',
+    LOGIN: '/api/v1/auth/login',
+    LOGIN_WITH_CODE: '/api/v1/auth/login-code',
+    PROFILE: '/api/v1/auth/profile',
+    REGISTER: '/auth/register',
+    REGISTER_DEV: '/api/v1/auth/register-dev',
+    SEND_CODE: '/auth/send-code',
+    LOGOUT: '/api/v1/auth/logout',
+    REFRESH_TOKEN: '/api/v1/auth/refresh-token',
   },
   
   // 项目管理相关

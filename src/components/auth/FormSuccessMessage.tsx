@@ -4,8 +4,8 @@ interface FormSuccessMessageProps {
 
 export function FormSuccessMessage({ message }: FormSuccessMessageProps) {
   return (
-    <div className="p-4 rounded-xl bg-success/10 border border-success/20">
-      <p className="text-sm text-success-foreground text-center">{message}</p>
+    <div className="p-4 rounded-xl bg-success-50 border border-success-200">
+      <p className="text-sm text-success-700 text-center">{message}</p>
     </div>
   );
 }

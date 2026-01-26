@@ -5,7 +5,43 @@ import { saveTokens, clearTokens } from '@/lib/utils/token';
 import { api } from './index';
 import { buildApiUrl, API_ENDPOINTS, ROUTES } from '@/lib/config/api.config';
 
-// 专门用于登录的 API 请求（不需要 token）
+// 发送验证码
+export const sendVerificationCode = async (target: string, type: 'phone' | 'email'): Promise<{ success: boolean; message: string; expire_in?: number }> => {
+  const url = buildApiUrl(API_ENDPOINTS.AUTH.SEND_CODE);
+  
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ target, type })
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      return { 
+        success: true, 
+        message: data.message || '验证码发送成功',
+        expire_in: data.expire_in
+      };
+    } else {
+      const data = await response.json().catch(() => ({}));
+      return { 
+        success: false, 
+        message: data.message || '验证码发送失败'
+      };
+    }
+  } catch (error) {
+    console.error('发送验证码失败:', error);
+    return { 
+      success: false, 
+      message: '网络请求失败，请稍后重试' 
+    };
+  }
+};
+
+// 密码登录
 export const loginUser = async (
   credentials: LoginCredentials
 ): Promise<TokenResponse> => {
@@ -61,7 +97,8 @@ export const loginUser = async (
       saveTokens(data);
       return data;
     } else {
-      throw new Error(`登录失败: ${response.status}`);
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.message || `登录失败: ${response.status}`);
     }
   } catch (error) {
     console.error('登录请求失败:', error);
@@ -69,22 +106,55 @@ export const loginUser = async (
   }
 };
 
+// 验证码登录
+export const loginWithVerificationCode = async (
+  target: string, // 邮箱或手机号
+  code: string, // 验证码
+  type: 'phone' | 'email' // 类型
+): Promise<TokenResponse> => {
+  const url = buildApiUrl(API_ENDPOINTS.AUTH.LOGIN_WITH_CODE);
+  
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ target, code, type })
+    });
+    
+    if (response.ok) {
+      const data: TokenResponse = await response.json();
+      saveTokens(data);
+      return data;
+    } else {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.message || '登录失败');
+    }
+  } catch (error) {
+    console.error('验证码登录失败:', error);
+    throw error;
+  }
+};
+
 // 用户注册
 export const registerUser = async (userData: {
   email: string;
-  phoneNumber: string;
+  phone: string;
   password: string;
   confirmPassword: string;
-  name?: string;
+  nickname?: string;
+  username?: string;
 }): Promise<{ success: boolean; message?: string }> => {
   const registerUrl = buildApiUrl(API_ENDPOINTS.AUTH.REGISTER);
 
   // 准备发送到服务器的数据，只发送需要的字段
   const requestData = {
     email: userData.email,
-    phoneNumber: userData.phoneNumber,
+    phone: userData.phone,
     password: userData.password,
-    name: userData.name
+    nickname: userData.nickname,
+    username: userData.username
   };
 
   try {
@@ -92,6 +162,28 @@ export const registerUser = async (userData: {
     return { success: true, message: data.message || '注册成功' };
   } catch (error: any) {
     console.error('注册请求失败:', error);
+    return { 
+      success: false, 
+      message: error.message || error.data?.message || '网络请求失败，请稍后重试' 
+    };
+  }
+};
+
+// 开发测试用注册（跳过验证码）
+export const registerDevUser = async (userData: {
+  email: string;
+  phone: string;
+  password: string;
+  nickname?: string;
+  username?: string;
+}): Promise<{ success: boolean; message?: string }> => {
+  const registerUrl = buildApiUrl(API_ENDPOINTS.AUTH.REGISTER_DEV);
+
+  try {
+    const data = await api.post<{ success: boolean; message?: string }>(registerUrl, userData);
+    return { success: true, message: data.message || '注册成功' };
+  } catch (error: any) {
+    console.error('开发注册请求失败:', error);
     return { 
       success: false, 
       message: error.message || error.data?.message || '网络请求失败，请稍后重试' 

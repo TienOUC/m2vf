@@ -54,7 +54,7 @@ export function PasswordInput({
         </button>
       </div>
       {touched && error && (
-        <p className="mt-1 text-sm text-destructive">{error}</p>
+        <p className="mt-1 text-sm text-error-700">{error}</p>
       )}
     </div>
   );
