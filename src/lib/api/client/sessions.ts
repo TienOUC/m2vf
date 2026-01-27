@@ -30,23 +30,18 @@ export interface UpdateSessionRequest {
   };
 }
 
-// 发送消息请求参数类型
-export interface SendMessageRequest {
-  content: string;
-  asset_ids?: string[];
-}
-
 // 流式对话请求参数类型
 export interface StreamChatRequest {
   session_id: string;
   content: string;
   asset_ids?: string[];
   model?: string;
-  max_tokens?: number;
-  temperature?: number;
-  thinking_mode?: boolean;
-  web_search?: boolean;
   mode?: 'chat' | 'managed';
+  action_response?: {
+    action_id: string;
+    data?: Record<string, any>;
+    suggestion_type?: string;
+  };
 }
 
 // 导入并重新导出SSE类型
@@ -102,12 +97,6 @@ export const getSessionMessages = async (sessionId: string | number, options?: {
   
   const url = `${buildApiUrl(API_ENDPOINTS.SESSIONS.MESSAGES(sessionId))}?${params.toString()}`;
   return api.get(url);
-};
-
-// 发送消息
-export const sendMessage = async (sessionId: string | number, data: SendMessageRequest) => {
-  const url = buildApiUrl(API_ENDPOINTS.SESSIONS.MESSAGES(sessionId));
-  return api.post(url, data);
 };
 
 // 导入SSE管理器

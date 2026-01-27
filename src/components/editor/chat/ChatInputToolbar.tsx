@@ -9,7 +9,7 @@ import {
   Paperclip, 
   Upload, 
   FolderOpen, 
-  Box, 
+  Boxes, 
   Sparkles as SparklesIcon, 
   Send,
   Globe,
@@ -94,7 +94,7 @@ export function ChatInputToolbar({
           onClick={onToggleMode}
         >
           <SparklesIcon className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="text-xs font-medium">{isAgentMode ? 'Agent' : '对话'}</span>
+          <span className="text-xs font-medium">{isAgentMode ? 'Managed' : 'Chat'}</span>
         </Button>
       </div>
 
@@ -143,7 +143,7 @@ export function ChatInputToolbar({
             className={`p-2 rounded-lg bg-background/80 border border-border hover:bg-accent hover:text-accent-foreground ${showModelSelector ? 'bg-accent' : ''}`}
             aria-label="选择模型"
           >
-            <Box className="w-4 h-4 text-muted-foreground" />
+            <Boxes className="w-4 h-4 text-muted-foreground" />
           </Button>
           <ModelSelector
             isOpen={showModelSelector}

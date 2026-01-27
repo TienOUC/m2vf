@@ -1,6 +1,6 @@
 'use client'
 
-import { Eye } from 'lucide-react';
+import { Boxes } from 'lucide-react';
 import type { ChatMessage } from '@/lib/types/studio';
 
 interface ChatMessageProps {
@@ -30,7 +30,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
       
       {message.modelUsed && (
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Eye className="w-3 h-3" />
+          <Boxes className="w-3 h-3" />
           <span>{message.modelUsed}</span>
         </div>
       )}

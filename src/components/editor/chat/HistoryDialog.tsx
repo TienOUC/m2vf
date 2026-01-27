@@ -34,9 +34,22 @@ const groupByDate = (items: HistoryItem[]) => {
   const groups: Record<string, HistoryItem[]> = {};
   
   items.forEach(item => {
-    const date = new Date(item.timestamp).toISOString().split('T')[0];
-    if (!groups[date]) groups[date] = [];
-    groups[date].push(item);
+    let dateStr: string;
+    try {
+      const date = new Date(item.timestamp);
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        // If invalid, fallback to today
+        dateStr = new Date().toISOString().split('T')[0];
+      } else {
+        dateStr = date.toISOString().split('T')[0];
+      }
+    } catch (e) {
+      dateStr = new Date().toISOString().split('T')[0];
+    }
+
+    if (!groups[dateStr]) groups[dateStr] = [];
+    groups[dateStr].push(item);
   });
   
   return Object.entries(groups).sort((a, b) => 

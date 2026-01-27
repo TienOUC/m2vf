@@ -65,9 +65,14 @@ const ModelIcon = ({ icon, isDark }: { icon: string; isDark: boolean }) => {
 
 export function ModelSelector({ isOpen, onClose, onSelectModel, selectedModel, theme }: ModelSelectorProps) {
   const [activeCategory, setActiveCategory] = useState<ModelCategory>('image')
-  const [autoMode, setAutoMode] = useState(false)
+  const [autoMode, setAutoMode] = useState(selectedModel?.id === 'auto')
   const isDark = theme === 'dark'
   const selectorRef = useRef<HTMLDivElement>(null)
+
+  // 同步 autoMode 状态
+  useEffect(() => {
+    setAutoMode(selectedModel?.id === 'auto')
+  }, [selectedModel])
 
   // 使用 useClickOutside 钩子处理外部点击关闭
   useClickOutside([selectorRef], onClose, isOpen)

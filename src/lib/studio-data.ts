@@ -6,7 +6,7 @@ import { AIModel } from './types/studio';
 export const AI_MODELS: AIModel[] = [
   {
     id: 'model-1',
-    name: 'Seedream 4.0',
+    name: '可灵',
     description: 'High-quality image generation',
     icon: 'google',
     category: 'image',
@@ -14,7 +14,7 @@ export const AI_MODELS: AIModel[] = [
   },
   {
     id: 'model-2',
-    name: 'Kawaii V3',
+    name: '即梦',
     description: 'Cute and playful art style',
     icon: 'bytedance',
     category: 'image',
@@ -22,7 +22,7 @@ export const AI_MODELS: AIModel[] = [
   },
   {
     id: 'model-3',
-    name: 'Anime Master',
+    name: 'Vidu',
     description: 'Anime-style illustrations',
     icon: 'openai',
     category: 'image',
@@ -30,7 +30,7 @@ export const AI_MODELS: AIModel[] = [
   },
   {
     id: 'model-4',
-    name: 'Realistic Pro',
+    name: 'MiniMax',
     description: 'Photorealistic images',
     icon: 'flux',
     category: 'image',
@@ -38,7 +38,7 @@ export const AI_MODELS: AIModel[] = [
   },
   {
     id: 'model-5',
-    name: 'Video Creator',
+    name: '可灵',
     description: 'Short video generation',
     icon: 'pika',
     category: 'video',
@@ -46,6 +46,30 @@ export const AI_MODELS: AIModel[] = [
   },
   {
     id: 'model-6',
+    name: '即梦',
+    description: 'Short video generation',
+    icon: 'pika',
+    category: 'video',
+    time: '30s',
+  },
+  {
+    id: 'model-7',
+    name: 'Vidu',
+    description: 'Short video generation',
+    icon: 'pika',
+    category: 'video',
+    time: '30s',
+  },
+  {
+    id: 'model-8',
+    name: 'MiniMax',
+    description: 'Short video generation',
+    icon: 'pika',
+    category: 'video',
+    time: '30s',
+  },
+  {
+    id: 'model-9',
     name: '3D Builder',
     description: '3D model generation',
     icon: 'meshy',

@@ -117,7 +117,8 @@ export function ChatHeader({
         items={sessions.map(session => ({
           id: session.id,
           name: session.title,
-          timestamp: new Date(session.last_message_at * 1000),
+          // 优先使用最后消息时间，如果没有（如新会话），则使用创建时间
+          timestamp: new Date((session.last_message_at || session.created_at || 0) * 1000),
           type: 'text' // 默认类型，实际应用中可以根据会话内容类型设置
         }))}
         triggerRef={historyButtonRef}
