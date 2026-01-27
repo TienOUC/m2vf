@@ -1,8 +1,16 @@
 'use client'
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useClickOutside } from '@/hooks/ui/useClickOutside';
+import { MoreHorizontal, Trash, Pencil, Check, X } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface HistoryItem {
   id: string;
@@ -16,6 +24,9 @@ interface HistoryDialogProps {
   onClose: () => void;
   items: HistoryItem[];
   triggerRef?: React.RefObject<HTMLButtonElement>;
+  onSelect: (id: string) => void;
+  onDelete: (id: string) => void;
+  onRename: (id: string, newName: string) => void;
 }
 
 // Group history items by date
@@ -33,9 +44,19 @@ const groupByDate = (items: HistoryItem[]) => {
   );
 };
 
-export function HistoryDialog({ isOpen, onClose, items, triggerRef }: HistoryDialogProps) {
+export function HistoryDialog({ 
+  isOpen, 
+  onClose, 
+  items, 
+  triggerRef,
+  onSelect,
+  onDelete,
+  onRename
+}: HistoryDialogProps) {
   // 简化状态管理：使用对象存储展开状态，键为日期字符串，值为布尔值
   const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({});
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
   const dialogRef = useRef<HTMLDivElement>(null);
   
   // 计算默认展开的日期（今天或最近有记录的一天）
@@ -53,8 +74,24 @@ export function HistoryDialog({ isOpen, onClose, items, triggerRef }: HistoryDia
     if (triggerRef?.current && triggerRef.current.contains(e.target as Node)) {
       return;
     }
+
+    // 检查点击是否发生在 DropdownMenu Portal 中 (Radix UI)
+    // 防止点击菜单项时触发外部点击导致列表关闭
+    const target = e.target as Element;
+    if (target.closest('[data-radix-popper-content-wrapper]') || target.closest('[role="menu"]')) {
+      return;
+    }
+
     onClose();
   }, isOpen);
+
+  // 当关闭对话框时，重置编辑状态
+  useEffect(() => {
+    if (!isOpen) {
+      setEditingId(null);
+      setEditName('');
+    }
+  }, [isOpen]);
   
   const groupedHistory = groupByDate(items);
   const defaultExpandedDate = getDefaultExpandedDate();
@@ -71,16 +108,43 @@ export function HistoryDialog({ isOpen, onClose, items, triggerRef }: HistoryDia
       };
     });
   };
+
+  const handleStartRename = (item: HistoryItem) => {
+    setEditingId(item.id);
+    setEditName(item.name);
+  };
+
+  const handleConfirmRename = (id: string) => {
+    if (editName.trim()) {
+      onRename(id, editName.trim());
+    }
+    setEditingId(null);
+    setEditName('');
+  };
+
+  const handleCancelRename = () => {
+    setEditingId(null);
+    setEditName('');
+  };
+
+  const handleDelete = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    onDelete(id);
+  };
   
   if (!isOpen) return null;
   
   return (
     <div 
       ref={dialogRef}
-      className="absolute top-full right-0 mt-1 w-[280px] rounded-xl bg-background border border-border shadow-lg z-50 max-h-[400px] overflow-y-auto animate-in slide-in-from-top-2 duration-200"
+      className="absolute top-full right-0 mt-1 w-[320px] rounded-xl bg-background border border-border shadow-lg z-50 max-h-[500px] overflow-y-auto animate-in slide-in-from-top-2 duration-200"
     >
       <div className="p-2">
-        {groupedHistory.map(([dateStr, items]) => {
+        {groupedHistory.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground text-sm">
+            暂无历史记录
+          </div>
+        ) : groupedHistory.map(([dateStr, items]) => {
           // 计算当前日期是否展开
           const isExpanded = expandedDays[dateStr] ?? dateStr === defaultExpandedDate;
           
@@ -124,24 +188,96 @@ export function HistoryDialog({ isOpen, onClose, items, triggerRef }: HistoryDia
                   className={`transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}
                 >
                   {items.map((item) => (
-                    <Button
+                    <div
                       key={item.id}
-                      variant="ghost"
-                      className="flex items-start gap-2 w-full py-2 pl-2 rounded-lg hover:bg-accent justify-start"
+                      className="group flex items-center gap-2 w-full py-1 pl-2 rounded-lg hover:bg-accent relative"
                     >
-                      {/* Item Content */}
-                      <div className="flex-1 text-left">
-                        <div className="flex items-center gap-2">
-                          <div className="text-sm font-medium text-foreground">{item.name}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {new Date(item.timestamp).toLocaleTimeString('zh-CN', {
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </div>
+                      {editingId === item.id ? (
+                        <div className="flex items-center gap-1 w-full pr-2">
+                          <Input
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            className="h-7 text-sm"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleConfirmRename(item.id);
+                              if (e.key === 'Escape') handleCancelRename();
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 shrink-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleConfirmRename(item.id);
+                            }}
+                          >
+                            <Check className="w-4 h-4 text-green-500" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 shrink-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCancelRename();
+                            }}
+                          >
+                            <X className="w-4 h-4 text-red-500" />
+                          </Button>
                         </div>
-                      </div>
-                    </Button>
+                      ) : (
+                        <>
+                          <Button
+                            variant="ghost"
+                            className="flex-1 flex items-start gap-2 h-auto py-2 px-2 justify-start hover:bg-transparent"
+                            onClick={() => onSelect(item.id)}
+                          >
+                            <div className="flex-1 text-left overflow-hidden">
+                              <div className="flex items-center gap-2">
+                                <div className="text-sm font-medium text-foreground truncate max-w-[160px]" title={item.name}>
+                                  {item.name}
+                                </div>
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {new Date(item.timestamp).toLocaleTimeString('zh-CN', {
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </div>
+                            </div>
+                          </Button>
+                          
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity absolute right-1"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleStartRename(item)}>
+                                <Pencil className="w-4 h-4 mr-2" />
+                                重命名
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="text-destructive focus:text-destructive"
+                                onClick={(e) => handleDelete(e, item.id)}
+                              >
+                                <Trash className="w-4 h-4 mr-2" />
+                                删除
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </>
+                      )}
+                    </div>
                   ))}
                 </div>
               </div>

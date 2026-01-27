@@ -38,6 +38,7 @@ export interface SendMessageRequest {
 
 // 流式对话请求参数类型
 export interface StreamChatRequest {
+  session_id: string;
   content: string;
   asset_ids?: string[];
   model?: string;
@@ -45,6 +46,7 @@ export interface StreamChatRequest {
   temperature?: number;
   thinking_mode?: boolean;
   web_search?: boolean;
+  mode?: 'chat' | 'managed';
 }
 
 // 导入并重新导出SSE类型
@@ -110,6 +112,7 @@ export const sendMessage = async (sessionId: string | number, data: SendMessageR
 
 // 导入SSE管理器
 import { createSSEConnection } from '@/lib/utils/sseManager';
+import { getAccessToken } from '@/lib/utils/token';
 
 // 流式对话
 export const streamChat = async (
@@ -118,12 +121,19 @@ export const streamChat = async (
   onError?: (error: Error) => void,
   abortController?: AbortController
 ) => {
+  const token = getAccessToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   // 创建SSE连接配置
   const options: RequestInit = {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify(data),
     signal: abortController?.signal,
   };

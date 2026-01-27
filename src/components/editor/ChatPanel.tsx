@@ -1,14 +1,24 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { ChevronRight, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { ChatHeader } from './chat/ChatHeader'
 import { ChatMessages } from './chat/ChatMessages'
 import { ChatInput } from './chat/ChatInput'
 import { useChatState } from './chat/useChatState'
-import { createSession, getSessions, getSessionDetail } from '@/lib/api/client/sessions'
+import { createSession, getSessions, getSessionDetail, updateSession, deleteSession } from '@/lib/api/client/sessions'
 
 interface ChatPanelProps {
   isOpen: boolean
@@ -42,7 +52,39 @@ export function ChatPanel({ isOpen, onClose, projectId }: ChatPanelProps) {
   const [sessions, setSessions] = useState<SessionItem[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [isLoadingSession, setIsLoadingSession] = useState(false);
+  const [isLoadingSessionsList, setIsLoadingSessionsList] = useState(false);
   const [sessionError, setSessionError] = useState<string | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    sessionId: string | null;
+  }>({
+    isOpen: false,
+    sessionId: null,
+  });
+
+  // 处理会话更新（来自 useChatState）
+  const handleSessionUpdate = useCallback((updates: any) => {
+    if (!currentSessionId) return;
+    
+    setSessions(prev => prev.map(session => {
+      if (session.id === currentSessionId) {
+        // 如果有 config 更新，需要深度合并
+        if (updates.config) {
+          return {
+            ...session,
+            ...updates,
+            config: {
+              ...session.config,
+              ...updates.config
+            }
+          };
+        }
+        // 普通属性更新
+        return { ...session, ...updates };
+      }
+      return session;
+    }));
+  }, [currentSessionId]);
 
   const {
     messages,
@@ -58,118 +100,204 @@ export function ChatPanel({ isOpen, onClose, projectId }: ChatPanelProps) {
     handleSend,
     cancelGeneration,
     loadMessagesFromApi,
-  } = useChatState(currentSessionId || 'default-session');
+    loadMoreMessages,
+    hasMore,
+    isLoadingMore,
+    setSessionConfig,
+    isWebSearchEnabled,
+    isThinkingMode,
+    handleModelChange,
+    handleWebSearchChange,
+    handleThinkingModeChange
+  } = useChatState(currentSessionId || 'default-session', handleSessionUpdate);
 
-  // 检查历史会话是否为空
-  useEffect(() => {
-    const checkHistoryEmpty = async () => {
-      if (projectId) {
-        try {
-          const response = await getSessions(projectId, {
-            page: 1,
-            page_size: 10
-          }) as any;
-          const sessionList = response.list || [];
-          setSessions(sessionList);
-          setIsHistoryEmpty(sessionList.length === 0);
-        } catch (error) {
-          console.error('获取会话列表失败:', error);
-          // 发生错误时，默认认为历史会话为空
-          setIsHistoryEmpty(true);
-          setSessions([]);
-        }
-      }
-    };
-
-    checkHistoryEmpty();
+  // 获取会话列表
+  const fetchSessions = useCallback(async () => {
+    if (!projectId) return;
+    
+    setIsLoadingSessionsList(true);
+    try {
+      const response = await getSessions(projectId, {
+        page: 1,
+        page_size: 50 // 增加获取数量以显示更多历史
+      }) as any;
+      const sessionList = response.list || [];
+      setSessions(sessionList);
+      setIsHistoryEmpty(sessionList.length === 0);
+      return sessionList;
+    } catch (error) {
+      console.error('获取会话列表失败:', error);
+      // 发生错误时，如果不确定，暂不认为是空，以免误触发自动创建
+      // 但如果是404等，可能确实是空
+      // 这里保持原有逻辑，或者根据需要调整
+    } finally {
+      setIsLoadingSessionsList(false);
+    }
   }, [projectId]);
 
-  // 加载最新会话数据的逻辑
+  // 加载指定会话详情
+  const loadSession = useCallback(async (sessionId: string) => {
+    if (!sessionId) return;
+    
+    setIsLoadingSession(true);
+    setSessionError(null);
+    setCurrentSessionId(sessionId);
+    
+    try {
+      // 调用获取会话详情的接口
+      const response = await getSessionDetail(sessionId, 50) as any;
+      console.log('加载会话成功:', response);
+      
+      // 更新会话配置
+      if (response && response.config) {
+        setSessionConfig(response.config);
+      }
+      
+      // 处理响应数据中的 recent_messages
+      if (response && response.recent_messages) {
+        const recentMessages = response.recent_messages;
+        console.log('会话消息:', recentMessages);
+        // 调用 loadMessagesFromApi 函数更新消息列表
+        loadMessagesFromApi(recentMessages);
+      }
+    } catch (error) {
+      console.error('加载会话失败:', error);
+      setSessionError('加载会话失败，请重试');
+    } finally {
+      setIsLoadingSession(false);
+    }
+  }, [loadMessagesFromApi, setSessionConfig]);
+
+  // 初始化：获取会话列表
   useEffect(() => {
-    const loadLatestSession = async () => {
-      // 当满足以下条件时加载最新会话数据：
-      // 1. ChatPanel 处于展开状态
-      // 2. 历史会话不为空
-      // 3. 有有效的 projectId
-      // 4. 不在加载会话的过程中
-      if (isOpen && !isHistoryEmpty && projectId && sessions.length > 0 && !isLoadingSession) {
-        setIsLoadingSession(true);
-        setSessionError(null);
-        try {
-          // 按最后消息时间排序，获取最新的会话
+    if (isOpen && projectId) {
+      fetchSessions();
+    }
+  }, [isOpen, projectId, fetchSessions]);
+
+  // 自动加载最新会话或创建新会话
+  useEffect(() => {
+    const initSession = async () => {
+      // 仅当没有当前会话ID且不在加载中时执行
+      if (isOpen && projectId && !currentSessionId && !isLoadingSession && !isCreatingSession) {
+        // 如果 sessions 为空且不是历史记录为空（即还未获取到 sessions），则等待 fetchSessions 更新
+        // 但这里依赖 sessions 变化，所以逻辑如下：
+        
+        if (sessions.length > 0) {
+          // 有历史会话，加载最新的
           const sortedSessions = [...sessions].sort((a, b) => b.last_message_at - a.last_message_at);
           const latestSession = sortedSessions[0];
-          
-          if (latestSession) {
-            setCurrentSessionId(latestSession.id);
-            // 调用获取会话详情的接口
-            const response = await getSessionDetail(latestSession.id, 50) as any;
-            console.log('加载最新会话成功:', response);
-            
-            // 处理响应数据中的 recent_messages
-            if (response.data && response.data.recent_messages) {
-              const recentMessages = response.data.recent_messages;
-              console.log('会话消息:', recentMessages);
-              // 调用 loadMessagesFromApi 函数更新消息列表
-              loadMessagesFromApi(recentMessages);
-            }
-          }
-        } catch (error) {
-          console.error('加载最新会话失败:', error);
-          setSessionError('加载会话失败，请重试');
-        } finally {
-          setIsLoadingSession(false);
+          await loadSession(latestSession.id);
+        } else if (isHistoryEmpty) {
+          // 确实没有历史会话，创建新的
+          handleNewSession();
         }
       }
     };
 
-    loadLatestSession();
-  }, [isOpen, isHistoryEmpty, projectId, sessions, isLoadingSession]);
+    initSession();
+  }, [isOpen, projectId, sessions, isHistoryEmpty, currentSessionId, isLoadingSession, isCreatingSession, loadSession]);
 
-  // 自动创建会话的逻辑
-  useEffect(() => {
-    const autoCreateSession = async () => {
-      // 当满足以下条件时自动创建会话：
-      // 1. ChatPanel 处于展开状态
-      // 2. 历史会话为空
-      // 3. ChatPanel 内容为空（messages 为空）
-      // 4. 有有效的 projectId
-      // 5. 不在创建会话的过程中
-      if (isOpen && isHistoryEmpty && messages.length === 0 && projectId && !isCreatingSession) {
-        setIsCreatingSession(true);
-        setSessionError(null);
-        try {
-          const payload = {
-            config: {
-              max_tokens: 4096,
-              model: "gpt-4o",
-              system_prompt: "",
-              temperature: 0.5,
-              thinking_mode: false,
-              web_search: false
-            },
-            project_id: projectId,
-            title: "新对话"
-          };
+  // 新建会话
+  const handleNewSession = async () => {
+    if (!projectId || isCreatingSession) return;
 
-          const response = await createSession(payload) as any;
-          console.log('自动创建会话成功:', response);
-          // 创建会话成功后，更新历史会话状态
-          setIsHistoryEmpty(false);
-          // 更新会话列表
-          setSessions([response.data]);
-          setCurrentSessionId(response.data.id);
-        } catch (error) {
-          console.error('自动创建会话失败:', error);
-          setSessionError('创建会话失败，请重试');
-        } finally {
-          setIsCreatingSession(false);
+    setIsCreatingSession(true);
+    setSessionError(null);
+    try {
+      const payload = {
+        config: {
+          max_tokens: 4096,
+          model: "auto",
+          system_prompt: "",
+          temperature: 0.7,
+          thinking_mode: false,
+          web_search: false
+        },
+        project_id: projectId,
+        title: "新对话"
+      };
+
+      const response = await createSession(payload) as any;
+      console.log('创建会话成功:', response);
+      
+      // 更新状态
+      setIsHistoryEmpty(false);
+      const newSession = response;
+      
+      // 更新列表并选中新会话
+      setSessions(prev => [newSession, ...prev]);
+      setCurrentSessionId(newSession.id);
+      
+      // 清空当前消息（因为是新会话）
+      loadMessagesFromApi([]); 
+      
+    } catch (error) {
+      console.error('创建会话失败:', error);
+      setSessionError('创建会话失败，请重试');
+    } finally {
+      setIsCreatingSession(false);
+    }
+  };
+
+  // 切换会话
+  const handleSwitchSession = async (sessionId: string) => {
+    if (sessionId === currentSessionId) return;
+    await loadSession(sessionId);
+  };
+
+  // 删除会话 - 触发确认弹窗
+  const handleDeleteSession = (sessionId: string) => {
+    setDeleteConfirmation({
+      isOpen: true,
+      sessionId,
+    });
+  };
+
+  // 确认删除会话
+  const handleConfirmDelete = async () => {
+    const { sessionId } = deleteConfirmation;
+    if (!sessionId) return;
+
+    try {
+      await deleteSession(sessionId);
+      
+      // 更新列表
+      const newSessions = sessions.filter(s => s.id !== sessionId);
+      setSessions(newSessions);
+      
+      // 如果删除的是当前会话，则切换到最新的会话或清空
+      if (sessionId === currentSessionId) {
+        if (newSessions.length > 0) {
+          const sortedSessions = [...newSessions].sort((a, b) => b.last_message_at - a.last_message_at);
+          await loadSession(sortedSessions[0].id);
+        } else {
+          setCurrentSessionId(null);
+          setIsHistoryEmpty(true);
+          handleNewSession(); // 自动创建新的
         }
       }
-    };
+    } catch (error) {
+      console.error('删除会话失败:', error);
+      // 可以添加 toast 提示
+    } finally {
+      setDeleteConfirmation({ isOpen: false, sessionId: null });
+    }
+  };
 
-    autoCreateSession();
-  }, [isOpen, isHistoryEmpty, messages.length, projectId, isCreatingSession]);
+  // 重命名会话
+  const handleRenameSession = async (sessionId: string, newName: string) => {
+    try {
+      await updateSession(sessionId, { title: newName });
+      
+      // 更新本地列表
+      setSessions(prev => prev.map(s => 
+        s.id === sessionId ? { ...s, title: newName } : s
+      ));
+    } catch (error) {
+      console.error('重命名会话失败:', error);
+    }
+  };
 
   return (
     <div
@@ -189,12 +317,23 @@ export function ChatPanel({ isOpen, onClose, projectId }: ChatPanelProps) {
         </Button>
       )}
       
-      <ChatHeader messages={messages} projectId={projectId} />
+      <ChatHeader 
+        messages={messages} 
+        projectId={projectId}
+        sessions={sessions}
+        isLoadingSessions={isLoadingSessionsList}
+        onNewSession={handleNewSession}
+        onSwitchSession={handleSwitchSession}
+        onDeleteSession={handleDeleteSession}
+        onRenameSession={handleRenameSession}
+        onRefreshSessions={fetchSessions}
+      />
       
       {/* 错误消息显示 */}
       {(error || sessionError) && (
         <div className="p-3 bg-destructive/10 text-destructive text-sm border-b border-border">
-          {error || sessionError}
+          {typeof error === 'string' ? error : (error as any)?.message || '未知错误'}
+          {sessionError && !error && sessionError}
         </div>
       )}
       
@@ -212,6 +351,9 @@ export function ChatPanel({ isOpen, onClose, projectId }: ChatPanelProps) {
             messages={messages} 
             isGenerating={isGenerating} 
             generationProgress={generationProgress} 
+            onLoadMore={loadMoreMessages}
+            hasMore={hasMore}
+            isLoadingMore={isLoadingMore}
           />
           <ChatInput 
             input={input} 
@@ -219,14 +361,39 @@ export function ChatPanel({ isOpen, onClose, projectId }: ChatPanelProps) {
             isGenerating={isGenerating} 
             onInputChange={setInput} 
             onSend={handleSend} 
-            onSelectModel={setSelectedModel} 
+            onSelectModel={handleModelChange} 
             isAgentMode={isAgentMode} 
             onToggleMode={setIsAgentMode} 
             onCancel={cancelGeneration}
+            isWebSearchEnabled={isWebSearchEnabled}
+            isThinkingMode={isThinkingMode}
+            onToggleWebSearch={handleWebSearchChange}
+            onToggleThinkingMode={handleThinkingModeChange}
           />
         </>
       )}
+
+      <AlertDialog 
+        open={deleteConfirmation.isOpen} 
+        onOpenChange={(open) => {
+          if (!open) setDeleteConfirmation({ isOpen: false, sessionId: null });
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认删除会话？</AlertDialogTitle>
+            <AlertDialogDescription>
+              此操作将永久删除该会话记录，无法恢复。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive hover:bg-destructive/90">
+              删除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
-

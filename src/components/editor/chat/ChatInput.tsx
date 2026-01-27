@@ -17,6 +17,11 @@ interface ChatInputProps {
   isAgentMode?: boolean;
   onToggleMode?: (isAgentMode: boolean) => void;
   onCancel?: () => void;
+  // 新增属性
+  isWebSearchEnabled?: boolean;
+  isThinkingMode?: boolean;
+  onToggleWebSearch?: () => void;
+  onToggleThinkingMode?: () => void;
 }
 
 export function ChatInput({ 
@@ -26,16 +31,16 @@ export function ChatInput({
   onInputChange, 
   onSend, 
   onSelectModel,
-  isAgentMode: externalIsAgentMode,
+  isAgentMode = false,
   onToggleMode,
-  onCancel
+  onCancel,
+  isWebSearchEnabled = false,
+  isThinkingMode = false,
+  onToggleWebSearch,
+  onToggleThinkingMode
 }: ChatInputProps) {
   const [showModelSelector, setShowModelSelector] = useState(false);
-  const [isAgentMode, setIsAgentMode] = useState(externalIsAgentMode || false);
   const [showAssetMenu, setShowAssetMenu] = useState(false);
-  // 添加搜索和思考按钮的选中状态
-  const [isSearchSelected, setIsSearchSelected] = useState(false);
-  const [isThinkSelected, setIsThinkSelected] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // 使用自定义 Hook 处理文件上传
@@ -48,16 +53,6 @@ export function ChatInput({
     handleFileDelete 
   } = useFileUpload();
   
-  // 切换搜索按钮选中状态
-  const handleToggleSearch = () => {
-    setIsSearchSelected(prev => !prev);
-  };
-  
-  // 切换思考按钮选中状态
-  const handleToggleThink = () => {
-    setIsThinkSelected(prev => !prev);
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -78,9 +73,7 @@ export function ChatInput({
   };
 
   const handleToggleMode = () => {
-    const newMode = !isAgentMode;
-    setIsAgentMode(newMode);
-    onToggleMode?.(newMode);
+    onToggleMode?.(!isAgentMode);
   };
 
   return (
@@ -157,10 +150,10 @@ export function ChatInput({
           onSend={onSend}
           onCancel={onCancel}
           // 搜索和思考按钮相关属性
-          isSearchSelected={isSearchSelected}
-          isThinkSelected={isThinkSelected}
-          onToggleSearch={handleToggleSearch}
-          onToggleThink={handleToggleThink}
+          isSearchSelected={isWebSearchEnabled}
+          isThinkSelected={isThinkingMode}
+          onToggleSearch={onToggleWebSearch}
+          onToggleThink={onToggleThinkingMode}
         />
       </div>
     </div>

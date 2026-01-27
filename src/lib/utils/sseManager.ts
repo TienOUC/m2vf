@@ -90,7 +90,7 @@ export class SSEManager {
         }
 
         buffer += decoder.decode(value, { stream: true });
-        await this.processBuffer(buffer);
+        buffer = await this.processBuffer(buffer);
       }
     } finally {
       reader.releaseLock();
@@ -99,14 +99,16 @@ export class SSEManager {
   }
 
   // 处理缓冲区数据
-  private async processBuffer(buffer: string): Promise<void> {
+  private async processBuffer(buffer: string): Promise<string> {
     const events = buffer.split('\n\n');
-    buffer = events.pop() || '';
+    const leftover = events.pop() || '';
 
     for (const event of events) {
       if (!event.trim()) continue;
       await this.parseEvent(event);
     }
+
+    return leftover;
   }
 
   // 解析SSE事件

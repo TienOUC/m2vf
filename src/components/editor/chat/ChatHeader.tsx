@@ -6,12 +6,6 @@ import type { ChatMessage } from '@/lib/types/studio';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { HistoryDialog } from './HistoryDialog';
-import { getSessions } from '@/lib/api/client/sessions';
-
-interface ChatHeaderProps {
-  messages: ChatMessage[];
-  projectId: string | null;
-}
 
 interface SessionItem {
   id: string;
@@ -32,46 +26,41 @@ interface SessionItem {
   };
 }
 
-interface HistoryItem {
-  id: string;
-  name: string;
-  timestamp: Date;
-  type: 'image' | 'video' | 'text' | '3d';
+interface ChatHeaderProps {
+  messages: ChatMessage[];
+  projectId: string | null;
+  sessions: SessionItem[];
+  isLoadingSessions: boolean;
+  onNewSession: () => void;
+  onSwitchSession: (sessionId: string) => void;
+  onDeleteSession: (sessionId: string) => void;
+  onRenameSession: (sessionId: string, newName: string) => void;
+  onRefreshSessions: () => void;
 }
 
-export function ChatHeader({ messages, projectId }: ChatHeaderProps) {
+export function ChatHeader({ 
+  messages, 
+  projectId,
+  sessions,
+  isLoadingSessions,
+  onNewSession,
+  onSwitchSession,
+  onDeleteSession,
+  onRenameSession,
+  onRefreshSessions
+}: ChatHeaderProps) {
   const [showHistory, setShowHistory] = useState(false);
-  const [sessions, setSessions] = useState<SessionItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const chatTitle = messages.length > 0 
-    ? `${messages[0].content.slice(0, 16)}...` 
+    ? (messages[0].content.length > 16 ? `${messages[0].content.slice(0, 16)}...` : messages[0].content)
     : '新对话';
   const historyButtonRef = useRef<HTMLButtonElement>(null);
   
   // 处理点击历史按钮事件
-  const handleHistoryClick = async () => {
+  const handleHistoryClick = () => {
     setShowHistory(!showHistory);
     if (!showHistory && projectId) {
-      // 仅当展开历史记录且有projectId时才请求数据
-      setIsLoading(true);
-      try {
-        const response = await getSessions(projectId, {
-          page: 1,
-          page_size: 10
-        }) as any;
-        setSessions(response.list || []);
-      } catch (error) {
-        console.error('获取会话列表失败:', error);
-      } finally {
-        setIsLoading(false);
-      }
+      onRefreshSessions();
     }
-  };
-
-  // 处理点击新建会话按钮事件
-  const handleNewSession = () => {
-    // 新建会话逻辑，这里可以根据实际需求实现
-    console.log('新建会话');
   };
 
   return (
@@ -85,7 +74,7 @@ export function ChatHeader({ messages, projectId }: ChatHeaderProps) {
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              onClick={handleNewSession}
+              onClick={onNewSession}
               variant="ghost"
               size="icon"
               className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-accent hover:text-accent-foreground"
@@ -109,7 +98,7 @@ export function ChatHeader({ messages, projectId }: ChatHeaderProps) {
               className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-accent hover:text-accent-foreground"
               aria-label="查看对话历史"
             >
-              {isLoading ? (
+              {isLoadingSessions ? (
                 <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
               ) : (
                 <History className="w-3 h-3 text-muted-foreground" />
@@ -132,6 +121,12 @@ export function ChatHeader({ messages, projectId }: ChatHeaderProps) {
           type: 'text' // 默认类型，实际应用中可以根据会话内容类型设置
         }))}
         triggerRef={historyButtonRef}
+        onSelect={(id) => {
+          onSwitchSession(id);
+          setShowHistory(false);
+        }}
+        onDelete={onDeleteSession}
+        onRename={onRenameSession}
       />
     </div>
   );
