@@ -47,14 +47,9 @@ export interface StreamChatRequest {
   web_search?: boolean;
 }
 
-// SSE事件类型
-export type SSEEventType = 'thought' | 'data' | 'message' | 'asset' | 'generate_request' | 'artifact' | 'error' | 'done';
-
-// SSE事件数据类型
-export interface SSEEvent {
-  type: SSEEventType;
-  data: any;
-}
+// 导入并重新导出SSE类型
+import type { SSEEvent, SSEEventType } from '@/lib/utils/sseManager';
+export type { SSEEvent, SSEEventType };
 
 // 获取会话列表
 export const getSessions = async (projectId: string | number, options?: {
@@ -113,82 +108,41 @@ export const sendMessage = async (sessionId: string | number, data: SendMessageR
   return api.post(url, data);
 };
 
+// 导入SSE管理器
+import { createSSEConnection } from '@/lib/utils/sseManager';
+
 // 流式对话
 export const streamChat = async (
-  sessionId: string | number,
   data: StreamChatRequest,
   onEvent: (event: SSEEvent) => void,
   onError?: (error: Error) => void,
   abortController?: AbortController
 ) => {
-  const url = buildApiUrl(API_ENDPOINTS.SESSIONS.STREAM_CHAT(sessionId));
-  
+  // 创建SSE连接配置
+  const options: RequestInit = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+    signal: abortController?.signal,
+  };
+
+  // 创建SSE管理器实例
+  const sseManager = createSSEConnection(
+    API_ENDPOINTS.CHAT.STREAM,
+    options,
+    onEvent,
+    onError,
+    {
+      maxRetries: 3,
+      retryDelay: 1000
+    }
+  );
+
+  // 启动SSE连接
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-      signal: abortController?.signal,
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const reader = response.body?.getReader();
-    if (!reader) {
-      throw new Error('No response body');
-    }
-    
-    const decoder = new TextDecoder('utf-8');
-    let buffer = '';
-    
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      
-      buffer += decoder.decode(value, { stream: true });
-      
-      // 处理SSE事件
-      const events = buffer.split('\n\n');
-      buffer = events.pop() || '';
-      
-      for (const event of events) {
-        if (!event.trim()) continue;
-        
-        const eventLines = event.split('\n');
-        let eventType = 'message';
-        let eventData = '';
-        
-        for (const line of eventLines) {
-          if (line.startsWith('event:')) {
-            const typeValue = line.slice(6).trim();
-            // 确保eventType是有效的SSEEventType
-            let validType: SSEEventType = 'message';
-            if (typeValue === 'thought' || typeValue === 'data' || typeValue === 'message' || typeValue === 'asset' || typeValue === 'generate_request' || typeValue === 'artifact' || typeValue === 'error' || typeValue === 'done') {
-              validType = typeValue as SSEEventType;
-            }
-            eventType = validType;
-          } else if (line.startsWith('data:')) {
-            eventData += line.slice(5).trim();
-          }
-        }
-        
-        if (eventData) {
-          try {
-            const parsedData = JSON.parse(eventData);
-            // 直接断言整个事件对象为SSEEvent类型
-            onEvent({ type: eventType, data: parsedData } as SSEEvent);
-          } catch (parseError) {
-            console.error('Failed to parse SSE data:', parseError);
-            onError?.(new Error('Failed to parse server response'));
-          }
-        }
-      }
-    }
-    
+    await sseManager.start();
     return true;
   } catch (error) {
     console.error('Stream chat error:', error);

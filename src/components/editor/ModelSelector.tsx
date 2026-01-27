@@ -1,7 +1,7 @@
 'use client'
 
 import React from "react"
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Check, Sparkles } from 'lucide-react'
 import { useClickOutside } from '@/hooks/ui/useClickOutside'
 import { cn } from '@/lib/utils'
@@ -96,7 +96,21 @@ export function ModelSelector({ isOpen, onClose, onSelectModel, selectedModel, t
           <div className="flex items-center gap-1.5">
             <span className={cn("text-[11px]", isDark ? "text-white/40" : "text-gray-500")}>自动</span>
             <button
-              onClick={() => setAutoMode(!autoMode)}
+              onClick={() => {
+                const newAutoMode = !autoMode;
+                setAutoMode(newAutoMode);
+                if (newAutoMode) {
+                  // 自动模式开启时，取消当前选中的模型
+                  onSelectModel({
+                    id: 'auto',
+                    name: 'Auto',
+                    description: '自动选择模型',
+                    category: activeCategory,
+                    icon: 'openai',
+                    time: ''
+                  });
+                }
+              }}
               className={cn(
                 "w-8 h-4 rounded-full transition-colors relative",
                 autoMode ? "bg-blue-500" : isDark ? "bg-white/[0.08]" : "bg-gray-300"
@@ -135,34 +149,36 @@ export function ModelSelector({ isOpen, onClose, onSelectModel, selectedModel, t
       <div className="max-h-[240px] overflow-y-auto">
         <div className="p-1.5">
           {filteredModels.map(model => (
-            <button
-              key={model.id}
-              onClick={() => {
-                onSelectModel(model)
-                onClose()
-              }}
-              className={cn(
-                "w-full flex items-center gap-2.5 p-2 rounded-lg transition-colors text-left group",
-                selectedModel?.id === model.id
-                  ? isDark ? "bg-white/[0.06]" : "bg-gray-100"
-                  : isDark ? "hover:bg-white/[0.04]" : "hover:bg-gray-50"
-              )}
-            >
-              <ModelIcon icon={model.icon} isDark={isDark} />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className={cn("font-medium text-[12px]", isDark ? "text-white/90" : "text-gray-800")}>{model.name}</span>
-                  <span className={cn("text-[10px] font-mono", isDark ? "text-white/30" : "text-gray-400")}>{model.time}</span>
-                </div>
-                <div className={cn("text-[11px] truncate", isDark ? "text-white/40" : "text-gray-500")}>{model.description}</div>
+          <button
+            key={model.id}
+            onClick={() => {
+              // 选择具体模型时，关闭自动模式
+              setAutoMode(false);
+              onSelectModel(model);
+              // 移除 onClose() 调用，保持菜单打开
+            }}
+            className={cn(
+              "w-full flex items-center gap-2.5 p-2 rounded-lg transition-colors text-left group",
+              selectedModel?.id === model.id && !autoMode
+                ? isDark ? "bg-white/[0.06]" : "bg-gray-100"
+                : isDark ? "hover:bg-white/[0.04]" : "hover:bg-gray-50"
+            )}
+          >
+            <ModelIcon icon={model.icon} isDark={isDark} />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className={cn("font-medium text-[12px]", isDark ? "text-white/90" : "text-gray-800")}>{model.name}</span>
+                <span className={cn("text-[10px] font-mono", isDark ? "text-white/30" : "text-gray-400")}>{model.time}</span>
               </div>
-              {selectedModel?.id === model.id && (
-                <div className="w-4 h-4 rounded bg-blue-500 flex items-center justify-center">
-                  <Check className="w-2.5 h-2.5 text-white" />
-                </div>
-              )}
-            </button>
-          ))}
+              <div className={cn("text-[11px] truncate", isDark ? "text-white/40" : "text-gray-500")}>{model.description}</div>
+            </div>
+            {selectedModel?.id === model.id && !autoMode && (
+              <div className="w-4 h-4 rounded bg-blue-500 flex items-center justify-center">
+                <Check className="w-2.5 h-2.5 text-white" />
+              </div>
+            )}
+          </button>
+        ))}
         </div>
       </div>
     </div>

@@ -69,7 +69,6 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string | number) => `/v1/sessions/${id}`,
     DELETE: (id: string | number) => `/v1/sessions/${id}`,
     MESSAGES: (id: string | number) => `/v1/sessions/${id}/messages`,
-    STREAM_CHAT: (id: string | number) => `/v1/sessions/${id}/stream-chat`,
   },
   
   // 聊天相关

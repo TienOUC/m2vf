@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react';
-import { History } from 'lucide-react';
+import { History, Plus } from 'lucide-react';
 import type { ChatMessage } from '@/lib/types/studio';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -68,33 +68,59 @@ export function ChatHeader({ messages, projectId }: ChatHeaderProps) {
     }
   };
 
+  // 处理点击新建会话按钮事件
+  const handleNewSession = () => {
+    // 新建会话逻辑，这里可以根据实际需求实现
+    console.log('新建会话');
+  };
+
   return (
     <div className="h-10 flex items-center justify-between px-3 border-b border-border bg-background relative">
       <span className="text-xs font-medium tracking-wide text-muted-foreground">
         {chatTitle}
       </span>
       
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            ref={historyButtonRef}
-            onClick={handleHistoryClick}
-            variant="ghost"
-            size="icon"
-            className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-accent hover:text-accent-foreground"
-            aria-label="查看对话历史"
-          >
-            {isLoading ? (
-              <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-            ) : (
-              <History className="w-3 h-3 text-muted-foreground" />
-            )}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>查看对话历史</p>
-        </TooltipContent>
-      </Tooltip>
+      {/* 按钮容器，确保两个按钮挨着且整体右对齐 */}
+      <div className="flex items-center gap-1">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              onClick={handleNewSession}
+              variant="ghost"
+              size="icon"
+              className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-accent hover:text-accent-foreground"
+              aria-label="新建会话"
+            >
+              <Plus className="w-3 h-3 text-muted-foreground" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>新建会话</p>
+          </TooltipContent>
+        </Tooltip>
+        
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              ref={historyButtonRef}
+              onClick={handleHistoryClick}
+              variant="ghost"
+              size="icon"
+              className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-accent hover:text-accent-foreground"
+              aria-label="查看对话历史"
+            >
+              {isLoading ? (
+                <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <History className="w-3 h-3 text-muted-foreground" />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>查看对话历史</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
       
       <HistoryDialog 
         isOpen={showHistory}

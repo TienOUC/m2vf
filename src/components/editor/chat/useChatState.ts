@@ -5,7 +5,15 @@ import type { ChatMessage, AIModel } from '@/lib/types/studio';
 import { streamChat } from '@/lib/api/client/sessions';
 
 export function useChatState() {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  // 使用当前项目的默认会话ID，实际应用中应从项目状态或URL获取
+  const sessionId = 'default-session';
+  
+  // 从localStorage恢复消息
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    const savedMessages = localStorage.getItem(`chat_messages_${sessionId}`);
+    return savedMessages ? JSON.parse(savedMessages) : [];
+  });
+  
   const [input, setInput] = useState('');
   const [selectedModel, setSelectedModel] = useState<AIModel>({ id: 'gpt-4o', name: 'GPT-4o', category: 'image', description: 'GPT-4o模型', icon: 'icon' });
   const [isGenerating, setIsGenerating] = useState(false);
@@ -13,10 +21,13 @@ export function useChatState() {
   const [isAgentMode, setIsAgentMode] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // 使用当前项目的默认会话ID，实际应用中应从项目状态或URL获取
-  const sessionId = 'default-session';
   const abortControllerRef = useRef<AbortController | null>(null);
   const assistantMessageRef = useRef<ChatMessage | null>(null);
+  
+  // 保存消息到localStorage
+  useEffect(() => {
+    localStorage.setItem(`chat_messages_${sessionId}`, JSON.stringify(messages));
+  }, [messages, sessionId]);
 
   // 清除错误消息
   const clearError = useCallback(() => {
@@ -137,7 +148,6 @@ export function useChatState() {
 
     // 调用流式对话API
     streamChat(
-      sessionId,
       {
         content: input.trim(),
         model: selectedModel.id,
@@ -153,6 +163,23 @@ export function useChatState() {
     });
   }, [input, isGenerating, selectedModel, isAgentMode, handleSSEEvent, handleSSEError, clearError]);
 
+  // 从服务器获取历史消息
+  useEffect(() => {
+    const fetchHistoryMessages = async () => {
+      try {
+        // 这里可以调用getSessionMessages API获取历史消息
+        // 暂时注释，因为API可能还没有实现
+        // const response = await getSessionMessages(sessionId, { page: 1, page_size: 50 });
+        // setMessages(response.data.messages || []);
+      } catch (error) {
+        console.error('Failed to fetch history messages:', error);
+        // 如果获取失败，继续使用localStorage中的消息
+      }
+    };
+
+    fetchHistoryMessages();
+  }, [sessionId]);
+
   // 清理函数
   useEffect(() => {
     return () => {
@@ -162,6 +189,16 @@ export function useChatState() {
       }
     };
   }, []);
+  
+  // 网络重连提示效果
+  useEffect(() => {
+    if (error?.includes('连接服务器失败')) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   return {
     messages,
