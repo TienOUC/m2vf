@@ -4,15 +4,37 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import type { ChatMessage, AIModel } from '@/lib/types/studio';
 import { streamChat } from '@/lib/api/client/sessions';
 
-export function useChatState() {
-  // 使用当前项目的默认会话ID，实际应用中应从项目状态或URL获取
-  const sessionId = 'default-session';
-  
+export function useChatState(sessionId: string = 'default-session') {
   // 从localStorage恢复消息
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     const savedMessages = localStorage.getItem(`chat_messages_${sessionId}`);
-    return savedMessages ? JSON.parse(savedMessages) : [];
+    if (savedMessages) {
+      const parsedMessages = JSON.parse(savedMessages);
+      // 将 timestamp 字段转换回 Date 对象
+      return parsedMessages.map((msg: any) => ({
+        ...msg,
+        timestamp: new Date(msg.timestamp)
+      }));
+    }
+    return [];
   });
+  
+  // 从API加载消息
+  const loadMessagesFromApi = useCallback((apiMessages: any[]) => {
+    if (apiMessages && apiMessages.length > 0) {
+      const formattedMessages: ChatMessage[] = apiMessages.map(msg => ({
+        id: msg.id,
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content,
+        timestamp: new Date(msg.created_at * 1000),
+        modelUsed: msg.metadata?.model,
+        status: msg.status === 'done' ? 'complete' : 'pending',
+        imageUrl: msg.metadata?.generated_artifacts?.find((artifact: string) => artifact.includes('image')),
+        videoUrl: msg.metadata?.generated_artifacts?.find((artifact: string) => artifact.includes('video'))
+      }));
+      setMessages(formattedMessages);
+    }
+  }, []);
   
   const [input, setInput] = useState('');
   const [selectedModel, setSelectedModel] = useState<AIModel>({ id: 'gpt-4o', name: 'GPT-4o', category: 'image', description: 'GPT-4o模型', icon: 'icon' });
@@ -213,5 +235,6 @@ export function useChatState() {
     setSelectedModel,
     handleSend,
     cancelGeneration,
+    loadMessagesFromApi,
   };
 }

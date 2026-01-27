@@ -23,7 +23,7 @@ const groupByDate = (items: HistoryItem[]) => {
   const groups: Record<string, HistoryItem[]> = {};
   
   items.forEach(item => {
-    const date = item.timestamp.toISOString().split('T')[0];
+    const date = new Date(item.timestamp).toISOString().split('T')[0];
     if (!groups[date]) groups[date] = [];
     groups[date].push(item);
   });
@@ -134,7 +134,7 @@ export function HistoryDialog({ isOpen, onClose, items, triggerRef }: HistoryDia
                         <div className="flex items-center gap-2">
                           <div className="text-sm font-medium text-foreground">{item.name}</div>
                           <div className="text-xs text-muted-foreground">
-                            {item.timestamp.toLocaleTimeString('zh-CN', {
+                            {new Date(item.timestamp).toLocaleTimeString('zh-CN', {
                               hour: '2-digit',
                               minute: '2-digit'
                             })}

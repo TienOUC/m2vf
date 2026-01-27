@@ -21,7 +21,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
   return (
     <div className="space-y-2">
       <div className="text-xs text-muted-foreground">
-        {message.timestamp.toLocaleDateString('zh-CN', { 
+        {new Date(message.timestamp).toLocaleDateString('zh-CN', { 
           month: 'short', 
           day: 'numeric'
         })}
