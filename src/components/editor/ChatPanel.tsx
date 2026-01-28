@@ -119,7 +119,7 @@ export function ChatPanel({ isOpen, onClose, projectId }: ChatPanelProps) {
   // 自动加载最新会话或创建新会话
   useEffect(() => {
     const initSession = async () => {
-      if (isOpen && projectId && !currentSessionId && !isLoadingSession && !isCreatingSession) {
+      if (isOpen && projectId && !currentSessionId && !isLoadingSession && !isCreatingSession && !sessionError) {
         if (sessions.length > 0) {
           const sortedSessions = [...sessions].sort((a, b) => b.last_message_at - a.last_message_at);
           const latestSession = sortedSessions[0];
@@ -132,7 +132,7 @@ export function ChatPanel({ isOpen, onClose, projectId }: ChatPanelProps) {
     };
 
     initSession();
-  }, [isOpen, projectId, sessions, isHistoryEmpty, currentSessionId, isLoadingSession, isCreatingSession, loadSession, handleSwitchSession, handleNewSession]);
+  }, [isOpen, projectId, sessions, isHistoryEmpty, currentSessionId, isLoadingSession, isCreatingSession, sessionError, loadSession, handleSwitchSession, handleNewSession]);
 
   // 确认删除会话
   const handleConfirmDelete = async () => {

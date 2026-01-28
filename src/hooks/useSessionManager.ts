@@ -198,9 +198,15 @@ export function useSessionManager({ projectId }: UseSessionManagerProps): UseSes
         dispatch({ type: 'SET_CURRENT_SESSION_ID', payload: response.id });
       }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('创建会话失败:', error);
-      dispatch({ type: 'SET_SESSION_ERROR', payload: '创建会话失败，请重试' });
+      
+      // 特殊处理会话限制错误
+      if (error.message && error.message.includes('project session limit reached')) {
+        dispatch({ type: 'SET_SESSION_ERROR', payload: '会话数量已达上限，请删除部分会话后重试' });
+      } else {
+        dispatch({ type: 'SET_SESSION_ERROR', payload: '创建会话失败，请重试' });
+      }
     } finally {
       dispatch({ type: 'SET_IS_CREATING_SESSION', payload: false });
     }
