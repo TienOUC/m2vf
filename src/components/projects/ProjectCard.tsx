@@ -177,7 +177,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
             </div>
           </div>
           
-          <div className="pt-4 border-t border-border">
+          <div className="pt-4 border-t border-border opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
             <div className="text-xs text-muted-foreground space-y-1">
               <p className="flex items-center">
                 <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

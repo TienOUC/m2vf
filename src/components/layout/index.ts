@@ -1,2 +1,2 @@
 export { default as Navbar } from './Navbar';
-export { default as UserAvatar } from './UserAvatar';
+export { default as UserProfileMenu } from './UserProfileMenu';

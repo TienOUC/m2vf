@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { SidebarButton, ClickMenu } from '@/components/ui';
-import UserAvatar from '../UserAvatar';
+import UserProfileMenu from '../UserProfileMenu';
 import { useAuthStore } from '@/lib/stores';
 import { LeftSidebarProps } from './types';
 import { getSidebarButtons } from './config'; // config.tsx
@@ -54,9 +54,9 @@ export default function LeftSidebar(props: LeftSidebarProps) {
         {/* 分割线 */}
         <div className="w-8 h-px bg-neutral-200 mt-1.5"></div>
         
-        {/* 用户头像 - 悬停菜单已在UserAvatar组件内部实现 */}
+        {/* 用户头像 - 悬停菜单已在UserProfileMenu组件内部实现 */}
         <div className="mt-auto">
-          {user && <UserAvatar user={user} menuOffsetY={10} />}
+          {user && <UserProfileMenu size="md" variant="sidebar" />}
         </div>
       </div>
     </div>

@@ -5,4 +5,3 @@ export * from './NavItem';
 export * from './NavMenu';
 export * from './BellButton';
 export * from './ThemeToggle';
-export * from './UserMenu';
