@@ -199,7 +199,7 @@ export default function ProjectsPage() {
           <div className="fixed bottom-0 left-0 right-0 bg-background border-input py-3 z-[10] px-20 box-border">
             <div className="max-w-[1440px] mx-auto w-full flex justify-between items-center">
               <span className="text-sm text-foreground">
-                共 {pagination.total} 条
+                共 {pagination.total} 项
               </span>
               <div className="flex items-center space-x-4">
                 <Pagination>

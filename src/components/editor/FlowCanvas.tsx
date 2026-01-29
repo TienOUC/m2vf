@@ -52,7 +52,7 @@ const FlowCanvasContent: React.FC<FlowCanvasProps> = ({ projectId }) => {
   const { screenToFlowPosition } = reactFlowInstance;
   
   // State for chat panel
-  const [isChatOpen, setIsChatOpen] = useState(true);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const centerNode = useNodeCentering(reactFlowInstance);
   

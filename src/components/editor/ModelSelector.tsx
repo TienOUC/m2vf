@@ -49,8 +49,8 @@ export function ModelSelector({ isOpen, onClose, onSelectModel, selectedModel, t
   useClickOutside([selectorRef], onClose, isOpen)
 
   const categories: { key: ModelCategory; label: string }[] = [
-    { key: 'image', label: 'Image' },
-    { key: 'video', label: 'Video' },
+    { key: 'image', label: '图片' },
+    { key: 'video', label: '视频' },
     { key: '3d', label: '3D' },
   ]
 

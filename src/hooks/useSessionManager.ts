@@ -190,18 +190,22 @@ export function useSessionManager({ projectId }: UseSessionManagerProps): UseSes
 
       const response = await createSession(payload) as any;
       
-      // 刷新完整的会话列表，确保所有会话都被正确加载
-      await fetchSessions();
+      // 刷新会话列表
+      const sessionList = await fetchSessions();
       
-      // 选中新创建的会话
+      // 确保设置当前会话ID
       if (response && response.id) {
         dispatch({ type: 'SET_CURRENT_SESSION_ID', payload: response.id });
+      } else if (sessionList.length > 0) {
+        // 如果响应中没有ID，但会话列表已更新，使用最新的会话
+        const sortedSessions = [...sessionList].sort((a, b) => b.created_at - a.created_at);
+        dispatch({ type: 'SET_CURRENT_SESSION_ID', payload: sortedSessions[0].id });
       }
       
     } catch (error: any) {
       console.error('创建会话失败:', error);
       
-      // 特殊处理会话限制错误
+      // 处理会话限制错误
       if (error.message && error.message.includes('project session limit reached')) {
         dispatch({ type: 'SET_SESSION_ERROR', payload: '会话数量已达上限，请删除部分会话后重试' });
       } else {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { ChevronRight, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -36,6 +36,16 @@ export function ChatPanel({ isOpen, onClose, projectId }: ChatPanelProps) {
   }>({
     isOpen: false,
     sessionId: null,
+  });
+  
+  // 跟踪 isOpen 的前一个值，避免循环请求
+  const isOpenRef = useRef(isOpen);
+  
+  // 存储最新的函数引用
+  const sessionFunctionsRef = useRef({
+    setSessionConfig: (_: any) => {},
+    loadMessagesFromApi: (_: any[]) => {},
+    addError: (_: string) => {},
   });
 
   // 使用错误处理 hook
@@ -82,6 +92,15 @@ export function ChatPanel({ isOpen, onClose, projectId }: ChatPanelProps) {
     handleWebSearchChange,
     handleThinkingModeChange
   } = useChatState(currentSessionId || 'default-session', handleSessionUpdate);
+  
+  // 更新函数引用
+  useEffect(() => {
+    sessionFunctionsRef.current = {
+      setSessionConfig,
+      loadMessagesFromApi,
+      addError,
+    };
+  }, [setSessionConfig, loadMessagesFromApi, addError]);
 
   // 加载指定会话详情
   const loadSession = useCallback(async (sessionId: string) => {
@@ -94,45 +113,61 @@ export function ChatPanel({ isOpen, onClose, projectId }: ChatPanelProps) {
       
       // 更新会话配置
       if (response && response.config) {
-        setSessionConfig(response.config);
+        sessionFunctionsRef.current.setSessionConfig(response.config);
       }
       
       // 处理响应数据中的 recent_messages
       if (response && response.recent_messages) {
         const recentMessages = response.recent_messages;
-        loadMessagesFromApi(recentMessages);
+        sessionFunctionsRef.current.loadMessagesFromApi(recentMessages);
       }
     } catch (error) {
-      addError('加载会话失败，请重试');
+      sessionFunctionsRef.current.addError('加载会话失败，请重试');
     } finally {
       setIsLoadingSession(false);
     }
-  }, [loadMessagesFromApi, setSessionConfig, addError]);
+  }, []);
 
   // 初始化：获取会话列表
   useEffect(() => {
-    if (isOpen && projectId) {
+    // 只在 isOpen 从 false 变为 true 时调用 fetchSessions
+    if (isOpen && !isOpenRef.current && projectId) {
       fetchSessions();
     }
+    // 更新 isOpenRef
+    isOpenRef.current = isOpen;
   }, [isOpen, projectId, fetchSessions]);
 
   // 自动加载最新会话或创建新会话
   useEffect(() => {
     const initSession = async () => {
-      if (isOpen && projectId && !currentSessionId && !isLoadingSession && !isCreatingSession && !sessionError) {
+      if (isOpen && projectId && !currentSessionId && !isLoadingSession && !isLoadingSessions && !isCreatingSession && !sessionError) {
         if (sessions.length > 0) {
+          // 按最后消息时间排序，获取最新会话
           const sortedSessions = [...sessions].sort((a, b) => b.last_message_at - a.last_message_at);
           const latestSession = sortedSessions[0];
           await loadSession(latestSession.id);
           await handleSwitchSession(latestSession.id);
         } else if (isHistoryEmpty) {
+          // 历史为空，创建新会话
           await handleNewSession();
         }
       }
     };
 
     initSession();
-  }, [isOpen, projectId, sessions, isHistoryEmpty, currentSessionId, isLoadingSession, isCreatingSession, sessionError, loadSession, handleSwitchSession, handleNewSession]);
+  }, [isOpen, projectId, sessions, isHistoryEmpty, currentSessionId, isLoadingSession, isLoadingSessions, isCreatingSession, sessionError, loadSession, handleSwitchSession, handleNewSession]);
+
+  // 监听当前会话ID变化，加载新会话内容
+  useEffect(() => {
+    const loadSessionOnChange = async () => {
+      if (isOpen && projectId && currentSessionId) {
+        await loadSession(currentSessionId);
+      }
+    };
+
+    loadSessionOnChange();
+  }, [isOpen, projectId, currentSessionId, loadSession]);
 
   // 确认删除会话
   const handleConfirmDelete = async () => {
