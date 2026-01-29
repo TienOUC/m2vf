@@ -35,8 +35,19 @@ export interface ChatMessage {
   timestamp: Date;
   modelUsed?: string;
   status: MessageStatus;
+  thought?: string;
   imageUrl?: string;
   videoUrl?: string;
+  artifacts?: Artifact[];
+}
+
+export interface Artifact {
+  id: string;
+  type: 'image' | 'video';
+  url?: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  width?: number;
+  height?: number;
 }
 
 // AI 模型类型

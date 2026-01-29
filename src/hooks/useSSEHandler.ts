@@ -51,7 +51,10 @@ export function useSSEHandler({ sessionId, onSessionUpdate }: UseSSEHandlerProps
 
   // 处理SSE事件
   const handleSSEEvent = useCallback((event: SSEEvent) => {
-    switch (event.type) {
+    // 优先使用 payload 中的 type，如果不存在则使用 SSE 协议的 event type
+    const effectiveType = event.data?.type || event.type;
+    
+    switch (effectiveType) {
       case 'message':
         // 更新助手消息内容
         setMessages(prev => {
@@ -59,7 +62,35 @@ export function useSSEHandler({ sessionId, onSessionUpdate }: UseSSEHandlerProps
           const assistantMsg = updatedMessages.find(msg => msg.role === 'assistant' && msg.id === assistantMessageRef.current?.id);
           
           if (assistantMsg) {
-            assistantMsg.content = typeof event.data === 'string' ? event.data : JSON.stringify(event.data);
+            // 处理不同的消息格式
+            if (event.data?.content?.text) {
+              // 1. 标准格式: { type: "message", content: { text: "..." } }
+              // 如果是增量更新，可能需要追加；如果是全量替换，则直接赋值
+              // 假设是流式追加，或者每次返回完整文本？
+              // 根据 data.txt，似乎是独立的消息块。如果是流式，通常是 token。
+              // 这里假设如果是 text 字段，就是直接的内容
+              // 如果是流式，通常会有 finish_reason 等。
+              // 既然 data.txt 是 message 类型，且有 sequence，可能是追加。
+              // 但为了简单，如果内容不重复，追加；或者直接赋值（如果后端发送的是完整累积文本）。
+              // 多数流式API发送的是 delta。
+              // 观察 data.txt: "text":"已收到你的请求..."
+              // 假设是追加模式，或者直接替换（如果是完整文本）。
+              // 通常 SSE message event 是 delta。
+              // 但 data.txt 看起来像是一个完整的句子。
+              // 让我们假设是追加模式，除非它是第一条。
+              // 或者是覆盖模式？
+              // 让我们先用覆盖模式，因为 ChatMessage 只有 content 字符串。
+              // 不，流式通常是追加。
+              // 修正：如果 event.data.content.text 存在，追加它。
+              // 但要注意重复。
+              // 让我们看看 data.txt，只有一个 message 示例。
+              // 无论如何，这里更新 content。
+              assistantMsg.content = event.data.content.text;
+            } else if (typeof event.data === 'string') {
+              assistantMsg.content = event.data;
+            } else if (event.data?.text) {
+              assistantMsg.content = event.data.text;
+            }
           }
           
           return updatedMessages;
@@ -67,11 +98,81 @@ export function useSSEHandler({ sessionId, onSessionUpdate }: UseSSEHandlerProps
         break;
         
       case 'thought':
-        // 处理思考链消息
+        // 处理思考链/状态提示
+        if (event.data?.content?.desc) {
+          setMessages(prev => {
+            const updatedMessages = [...prev];
+            const assistantMsg = updatedMessages.find(msg => msg.role === 'assistant' && msg.id === assistantMessageRef.current?.id);
+            if (assistantMsg) {
+              assistantMsg.thought = event.data.content.desc;
+            }
+            return updatedMessages;
+          });
+        }
         break;
         
-      case 'data':
-        // 处理结构化数据
+      case 'artifact':
+        // 处理生成的artifact（如图像）初始创建
+        if (event.data?.content) {
+          const artifact = event.data.content;
+          setMessages(prev => {
+            const updatedMessages = [...prev];
+            const assistantMsg = updatedMessages.find(msg => msg.role === 'assistant' && msg.id === assistantMessageRef.current?.id);
+            if (assistantMsg) {
+              const newArtifact = {
+                id: artifact.id || Date.now().toString(),
+                type: artifact.type || 'image',
+                url: artifact.url,
+                status: artifact.status || 'pending',
+                width: artifact.width,
+                height: artifact.height
+              };
+              
+              if (!assistantMsg.artifacts) {
+                assistantMsg.artifacts = [];
+              }
+              // 避免重复添加
+              if (!assistantMsg.artifacts.find(a => a.id === newArtifact.id)) {
+                assistantMsg.artifacts.push(newArtifact);
+              }
+            }
+            return updatedMessages;
+          });
+        }
+        break;
+        
+      case 'artifact_status':
+        // 处理artifact状态更新
+        if (event.data?.content?.artifacts) {
+          const artifactUpdates = event.data.content.artifacts;
+          
+          setMessages(prev => {
+            const updatedMessages = [...prev];
+            const assistantMsg = updatedMessages.find(msg => msg.role === 'assistant' && msg.id === assistantMessageRef.current?.id);
+            
+            if (assistantMsg && assistantMsg.artifacts) {
+              artifactUpdates.forEach((update: any) => {
+                const artifact = assistantMsg.artifacts?.find(a => a.id === update.id);
+                if (artifact) {
+                  artifact.status = update.status;
+                  if (update.url) artifact.url = update.url;
+                  
+                  // 如果完成了，同时也更新 message.imageUrl / videoUrl 为了兼容旧代码
+                  if (update.status === 'completed' && update.url) {
+                    if (artifact.type === 'image') assistantMsg.imageUrl = update.url;
+                    if (artifact.type === 'video') assistantMsg.videoUrl = update.url;
+                  }
+                }
+              });
+
+              // 如果所有任务完成，清除 thought
+              if (event.data.content.all_done) {
+                assistantMsg.thought = undefined;
+              }
+            }
+            return updatedMessages;
+          });
+        }
         break;
         
       case 'error':
@@ -117,6 +218,34 @@ export function useSSEHandler({ sessionId, onSessionUpdate }: UseSSEHandlerProps
       abortControllerRef.current = null;
     }
     updateSessionState(false, 0);
+
+    // 更新当前消息状态为完成，并清除loading状态
+    if (assistantMessageRef.current) {
+      setMessages(prev => {
+        const updatedMessages = [...prev];
+        const index = updatedMessages.findIndex(msg => msg.id === assistantMessageRef.current?.id);
+        
+        if (index !== -1) {
+          const assistantMsg = { ...updatedMessages[index] };
+          assistantMsg.status = 'complete';
+          // 清除思考/提示信息
+          assistantMsg.thought = undefined;
+          
+          // 将所有进行中的 artifacts 标记为失败
+          if (assistantMsg.artifacts) {
+            assistantMsg.artifacts = assistantMsg.artifacts.map(artifact => {
+              if (artifact.status === 'pending' || artifact.status === 'processing') {
+                return { ...artifact, status: 'failed' };
+              }
+              return artifact;
+            });
+          }
+          
+          updatedMessages[index] = assistantMsg;
+        }
+        return updatedMessages;
+      });
+    }
   }, [updateSessionState]);
 
   // 发送消息

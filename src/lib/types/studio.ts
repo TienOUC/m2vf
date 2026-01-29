@@ -15,6 +15,15 @@ export interface AIModel {
   time?: string;
 }
 
+export interface Artifact {
+  id: string;
+  type: 'image' | 'video';
+  url?: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  width?: number;
+  height?: number;
+}
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
@@ -22,8 +31,10 @@ export interface ChatMessage {
   timestamp: Date;
   modelUsed?: string;
   status?: 'pending' | 'complete' | 'error';
+  thought?: string;
   imageUrl?: string;
   videoUrl?: string;
+  artifacts?: Artifact[];
 }
 
 export type ViewMode = 'canvas' | '3d';

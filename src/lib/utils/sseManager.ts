@@ -3,7 +3,7 @@
 import { buildApiUrl } from '@/lib/config/api.config';
 
 // SSE事件类型
-export type SSEEventType = 'thought' | 'data' | 'message' | 'asset' | 'generate_request' | 'artifact' | 'error' | 'done';
+export type SSEEventType = 'thought' | 'data' | 'message' | 'asset' | 'generate_request' | 'artifact' | 'artifact_status' | 'error' | 'done';
 
 // SSE事件数据类型
 export interface SSEEvent {
